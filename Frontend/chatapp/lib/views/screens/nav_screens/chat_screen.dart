@@ -3,15 +3,15 @@ import 'dart:ui';
 import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/service/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  final String lastSeen;
   final String fullname;
   final String receiverId;
-  const ChatScreen({super.key,required this.lastSeen ,required this.fullname,required this.receiverId});
+  const ChatScreen({super.key,required this.fullname,required this.receiverId});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -27,7 +27,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(messageProvider(widget.receiverId));
-    final status = ref.read(statusListener);
+    final status = ref.watch(statusListener);
+    final receiverStatus = status[widget.receiverId];
+    final isOnline = receiverStatus?.isOnline ?? false;
+    final lastSeen = receiverStatus?.lastSeen;
     final user = ref.watch(userProvider);
     return Scaffold(
       appBar: AppBar(
@@ -43,13 +46,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 color: Colors.white,
               ),
             ),
-            Text(
-              widget.lastSeen,
-              style: GoogleFonts.montserrat(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              )
+            Row(
+              children: [
+                Icon(
+                  Icons.circle,
+                  color: status[widget.receiverId]?.isOnline == true ? Colors.green : Colors.red,
+                  size: 10,
+                ),
+                Text(
+                    isOnline ? "Online" : lastSeen != null ? "Last Seen:${lastSeen.toLocal()}" : "Offline",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    )
+                )
+              ]
             )
           ],
         ),
@@ -87,39 +99,48 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               padding: EdgeInsets.all(10),
                               margin: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
                               decoration: BoxDecoration(
-                                  color: isMe ? Colors.yellow : Colors.blue,
+                                  color: isMe ? Colors.cyan : Colors.blue,
                                   borderRadius: BorderRadius.circular(10)
                               ),
-                              child: Text(message.message,style: GoogleFonts.poppins(color: Colors.white,fontWeight: FontWeight.w700),),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(message.message,style: GoogleFonts.poppins(color: Colors.white,fontWeight: FontWeight.w700),),
+                                  if(isMe)
+                                    ...[
+                                      SizedBox(height: 3,),
+                                      _buildStatusIcon(message.status)
+                                    ]
+
+                                ],
+                              ),
                             )
                         );
                       }
                   )
               ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0,horizontal: 8.0),
-                  child: TextField(
-                      controller: messageController,
-                      decoration: InputDecoration(
-                          hintText: 'Type a message',
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15)
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[200],
-                          contentPadding: EdgeInsets.all(10),
-                          hintStyle: TextStyle(color: Colors.grey),
-                          prefixIcon: Icon(Icons.emoji_emotions_outlined),
-                          suffixIcon: IconButton(
-                            onPressed: ()async{
-                              await ref.read(messageProvider(widget.receiverId).notifier).sendMessage(userMessage: messageController.text);
-                              messageController.clear();
-                            },
-                            icon: Icon(Icons.send),
-                          )
-                      )
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15.0,horizontal: 15.0),
+                child: TextField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                        hintText: 'Type a message',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15)
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        contentPadding: EdgeInsets.all(20),
+                        hintStyle: TextStyle(color: Colors.grey),
+                        prefixIcon: Icon(Icons.emoji_emotions_outlined),
+                        suffixIcon: IconButton(
+                          onPressed: ()async{
+                            await ref.read(messageProvider(widget.receiverId).notifier).sendMessage(userMessage: messageController.text);
+                            messageController.clear();
+                          },
+                          icon: Icon(Icons.send),
+                        )
+                    )
                 ),
               )
             ],
@@ -128,4 +149,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
   }
+  Widget _buildStatusIcon(String status){
+    switch(status){
+      case 'seen':
+        return Icon(Icons.done_all,color: Colors.blueAccent,);
+      case 'delivered':
+        return Icon(Icons.done_all,color: Colors.grey,);
+      case 'sent':
+        return Icon(Icons.done,color: Colors.grey,);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
 }
+

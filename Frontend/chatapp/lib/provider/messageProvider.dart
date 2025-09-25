@@ -32,7 +32,33 @@ class MessageProvider extends StateNotifier<List<Message>> {
       final message = Message.fromMap(msg);
       state = [...state, message];
     });
+
+    // listen for status updates
+    socket.listenMessageStatus((data){
+      final status = data['status'];
+      final messageId = data['messageId'];
+      updateMessageStatus(messageId, status);
+    });
+
+
   }
+
+  void updateMessageStatus(String messageId,String status){
+    state = state.map((msg){
+      if(msg.id == messageId){
+        return Message(
+        id: msg.id,
+        senderId: msg.senderId,
+        receiverId: msg.receiverId,
+        message: msg.message,
+        status: status,
+          createdAt: msg.createdAt
+        );
+      }
+      return msg;
+    }).toList();
+  }
+
 }
 
 final messageProvider =

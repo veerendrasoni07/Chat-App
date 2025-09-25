@@ -31,10 +31,36 @@ messageRoute.post('/api/send-message/:receiverId', auth, async (req, res) => {
 
     conversation.messages.push(newMessage._id);
     await Promise.all([conversation.save(), newMessage.save()]);
+    
+    // ------ Socket - IO part
 
     // Emit message to receiver
     io.to(receiverId.toString()).emit('newMessage', newMessage);
+    
+    // once message is emitted to user then we have to check , is our user is online or not , if not then marks sent else deliverd 
+    
+    const sockets = io.sockets.adapter.rooms.get(receiverId.toString());
+    if(sockets && sockets.size>0){
+      newMessage.status = 'delivered',
+      newMessage.save();
 
+      // notify the status to the sender
+      io.to(senderId.toString()).emit('messageStatus',
+        {
+        messageId:newMessage._id,
+        status:'delivered'
+        }
+      );
+
+      // notify the status to the receiver 
+      io.to(receiverId.toString()).emit(
+        'messageStatus',
+        {
+          messageId:newMessage._id,
+          status:'delivered'
+        }
+      );
+    } 
     res.status(200).json(newMessage);
   } catch (err) {
     console.log(err);

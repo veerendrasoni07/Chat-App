@@ -8,8 +8,9 @@ class User {
   final String profilePic;
   final String gender;
   final String token;
+  final bool isOnline;
 
-  User({required this.id,required this.fullname, required this.email, required this.profilePic, required this.gender,required this.token});
+  User({required this.id,required this.fullname, required this.email, required this.profilePic, required this.gender,required this.token,required this.isOnline});
 
 
   Map<String, dynamic> toMap() {
@@ -19,7 +20,8 @@ class User {
       'email': email,
       'profilePic': profilePic,
       'gender': gender,
-      'token':token
+      'token':token,
+      'isOnline':isOnline
     };
   }
 
@@ -31,6 +33,7 @@ class User {
       profilePic: map['profilePic'] ?? '',
       gender: map['gender'] ?? '',
       token: map['token'] ?? '',
+      isOnline: map['isOnline'] ?? false,
     );
   }
 

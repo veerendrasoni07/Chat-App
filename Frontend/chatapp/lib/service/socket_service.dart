@@ -34,9 +34,16 @@ class SocketService {
     socket.on(event, callback);
   }
 
-  void onlineOfflineStatus(Function (dynamic) callback){
-    socket.on('onlineUser', callback);
-    socket.on('offlineUser', callback);
+  void userStatus(Function (dynamic) callback){
+    socket.on('userStatusChanged', callback);
+  }
+
+  void listenMessageStatus(Function (dynamic) callback){
+    socket.on('messageStatus',callback);
+  }
+
+  void markAsSeen(String messageId){
+    socket.emit('seenMessage', {messageId});
   }
 
   void dispose() {

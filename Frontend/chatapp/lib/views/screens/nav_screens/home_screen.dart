@@ -83,14 +83,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             itemBuilder: (context,index) {
                               final user = users[index];
                               final userStatus = status[user.id];
-                              final online = userStatus?.isOnline ?? false;
+                              final online = user.isOnline ;
                               final lastSeen = userStatus?.lastSeen ;
                               return Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: ListTile(
                                   title: Text(user.fullname,style: GoogleFonts.poppins(color: Colors.white,fontWeight: FontWeight.w700,fontSize: 20),),
                                   onTap: (){
-                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>ChatScreen(receiverId: user.id,fullname: user.fullname,lastSeen: lastSeen == null ? "Offline" : "${lastSeen.toLocal()}",)));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context)=>ChatScreen(receiverId: user.id,fullname: user.fullname)));
                                   },
                                   leading: CircleAvatar(
                                     radius: 30,

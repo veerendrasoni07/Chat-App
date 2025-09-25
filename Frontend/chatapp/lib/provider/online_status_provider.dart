@@ -5,18 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OnlineOfflineStatus extends StateNotifier<Map<String,UserStatus>>{
   OnlineOfflineStatus(SocketService socket):super({}){
-    socket.onlineOfflineStatus((data){
+    socket.userStatus((data){
       final userId = data['userId'];
-
-      if(data.containsKey('lastSeen')){
-        final lastseen = DateTime.parse(data['lastSeen']);
-        state = {
-          ...state,
-          userId: UserStatus(isOnline: false, lastSeen: lastseen)
-        };
-      }else{
-        UserStatus(isOnline: true, lastSeen: null);
-      }
+      final isOnline = data['isOnline'];
+      final lastSeen = data['lastSeen'] != null ? DateTime.parse(data['lastSeen']) : null;
+      state = {
+        ...state,
+        userId:UserStatus(isOnline: isOnline, lastSeen: lastSeen)
+      };
     });
   }
 }

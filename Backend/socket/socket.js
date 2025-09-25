@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import http from 'http';
 import User from '../models/user.js';
 import express from 'express';
+import Message from '../models/messages.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -13,45 +14,71 @@ const io = new Server(server, {
   }
 });
 
-// Keep track of connected users for direct messaging
-const onlineUsers = new Map();
+const onlineUsers = new Map(); // userId -> Set of socketIds
 
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
+  socket.on('join', async (userId) => {
+    console.log(userId);
 
+    if (!onlineUsers.has(userId)) {
+      onlineUsers.set(userId, new Set());
+    }
+    onlineUsers.get(userId).add(socket.id);
 
-  // Client joins with userId
-  socket.on('join', async(userId) => {
+    socket.join(userId);
+
+    await User.findByIdAndUpdate(userId, { isOnline: true });
     
-    
-    if(!onlineUsers.has(userId)) onlineUsers.set(userId,[]);
-    onlineUsers.get(userId).push(socket.id);
-    socket.join(userId); // join a room named by userId
-    await User.findByIdAndUpdate(userId,{isOnline:true});
-    socket.broadcast.emit('onlineUser',{userId});
+    io.emit('userStatusChanged',{userId,isOnline:true,lastSeen:null});
+
     console.log(`User ${userId} joined room ${userId}`);
   });
 
-  //handle disconnect
-  socket.on('disconnect',async () => {
-    console.log('Socket disconnected:', socket.id);
-    // Remove from onlineUsers
-    for( const [userId,sockets] of onlineUsers){
-      const index = sockets.indexOf(socket.id);
-      if(index>-1) sockets.splice(index,1);
+  socket.on('seenMessage', async ({ messageId }) => {
+    try {
+      const message = await Message.findById(messageId);
+      if (!message) return;
 
-      if(sockets.length === 0){
-        onlineUsers.delete(userId);
-        await User.findByIdAndUpdate(userId,{isOnline:false});
-        socket.broadcast.emit('offlineUser',{userId:userId,lastSeen:new Date()});
-        console.log(` User ${userId} is now offline`);
-      }
+      message.status = 'seen';
+      await message.save();
 
+      io.to(message.senderId.toString()).emit('messageStatus', {
+        messageId,
+        status: 'seen'
+      });
+      io.to(message.receiverId.toString()).emit('messageStatus', {
+        messageId,
+        status: 'seen'
+      });
+
+    } catch (error) {
+      console.log("Seen error", error);
     }
-  
   });
 
+  socket.on('disconnect', async () => {
+    console.log('Socket disconnected:', socket.id);
+
+    for (const [userId, sockets] of onlineUsers) {
+      sockets.delete(socket.id); // remove socket in O(1)
+
+      if (sockets.size === 0) {
+        onlineUsers.delete(userId);
+        await User.findByIdAndUpdate(userId, { isOnline: false });
+
+        io.emit('userStatusChanged', { 
+          userId, 
+          isOnline:false,
+          lastSeen: new Date() 
+        });
+
+        console.log(`User ${userId} is now offline`);
+      }
+    }
+  });
 });
+
 
 export { app, server, io };
