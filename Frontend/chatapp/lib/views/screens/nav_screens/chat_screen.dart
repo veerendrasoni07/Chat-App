@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
+import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/service/socket_service.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   final TextEditingController messageController = TextEditingController();
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    markAllMessageAsSeen();
+  }
+
+  void markAllMessageAsSeen(){
+    final message = ref.read(messageProvider(widget.receiverId));
+    final userId = ref.read(userProvider)!.id;
+    for (final msg in message){
+      if(msg.status != 'seen' && msg.senderId != userId){
+        ref.read(socketProvider).markAsSeen(msg.id);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

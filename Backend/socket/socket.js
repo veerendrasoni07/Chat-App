@@ -20,30 +20,43 @@ io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
   socket.on('join', async (userId) => {
-    console.log(userId);
+  console.log(userId);
 
-    if (!onlineUsers.has(userId)) {
-      onlineUsers.set(userId, new Set());
-    }
-    onlineUsers.get(userId).add(socket.id);
+  if (!onlineUsers.has(userId)) {
+    onlineUsers.set(userId, new Set());
+  }
+  onlineUsers.get(userId).add(socket.id);
+  socket.join(userId);
 
-    socket.join(userId);
+  await User.findByIdAndUpdate(userId, { isOnline: true });
 
-    await User.findByIdAndUpdate(userId, { isOnline: true });
-    
-    io.emit('userStatusChanged',{userId,isOnline:true,lastSeen:null});
+  // Notify all other users about this new user's status
+  socket.broadcast.emit('userStatusChanged', { userId, isOnline: true, lastSeen: null });
 
-    console.log(`User ${userId} joined room ${userId}`);
-  });
+  // Send all current online users with their status to this client
+  const currentlyOnlineUsers = Array.from(onlineUsers.keys()).map(id => ({
+    userId: id,
+    isOnline: true,
+    lastSeen: null
+  }));
+
+  socket.emit('currentOnlineUser', currentlyOnlineUsers);
+
+  console.log(`✅ Sending currentOnlineUsers to ${userId}:`, currentlyOnlineUsers);
+});
+
+
 
   socket.on('seenMessage', async ({ messageId }) => {
     try {
       const message = await Message.findById(messageId);
+
       if (!message) return;
 
       message.status = 'seen';
       await message.save();
 
+  
       io.to(message.senderId.toString()).emit('messageStatus', {
         messageId,
         status: 'seen'

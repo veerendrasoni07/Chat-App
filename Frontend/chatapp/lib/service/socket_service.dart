@@ -43,7 +43,12 @@ class SocketService {
   }
 
   void markAsSeen(String messageId){
-    socket.emit('seenMessage', {messageId});
+    socket.emit('seenMessage', {"messageId":messageId});
+    print("Mark as seen done");
+  }
+  
+  void currentOnlineUsers(Function (dynamic) callback){
+    socket.on('currentOnlineUser', callback);
   }
 
   void dispose() {
