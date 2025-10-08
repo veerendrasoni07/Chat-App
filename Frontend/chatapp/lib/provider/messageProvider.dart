@@ -29,7 +29,11 @@ class MessageProvider extends StateNotifier<List<Message>> {
   void listenMessage() {
     socket.listenMessage('newMessage', (data) {
       final msg = jsonDecode(jsonEncode(data));
-      final message = Message.fromMap(msg);
+      var message = Message.fromMap(msg);
+      if(message.senderId == receiverId){
+        socket.markAsSeen(message.id);
+        message = message.copyWith(status: 'seen');
+      }
       state = [...state, message];
     });
 
@@ -39,8 +43,6 @@ class MessageProvider extends StateNotifier<List<Message>> {
       final messageId = data['messageId'];
       updateMessageStatus(messageId, status);
     });
-
-
   }
 
   void updateMessageStatus(String messageId,String status){
@@ -57,6 +59,14 @@ class MessageProvider extends StateNotifier<List<Message>> {
       }
       return msg;
     }).toList();
+  }
+
+  void chatOpened (String userId){
+    socket.chatOpen(userId, receiverId);
+  }
+
+  void chatClosed(String userId){
+    socket.chatClosed(userId);
   }
 
 }

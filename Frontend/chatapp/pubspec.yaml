@@ -38,6 +38,9 @@ dependencies:
   flutter_riverpod: ^2.6.1
   shared_preferences: ^2.5.3
   socket_io_client: ^3.1.2
+  smooth_page_indicator: ^1.2.1
+  lottie: ^3.3.1
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +69,9 @@ flutter:
     - assets/images/snow_background.jpg
     - assets/images/blue_snow_night_background.jpg
     - assets/images/snow_tree_background.jpg
+    - assets/animation/globe.json
+    - assets/animation/cat_typing.json
+    - assets/animation/saying_hi_animation.json
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

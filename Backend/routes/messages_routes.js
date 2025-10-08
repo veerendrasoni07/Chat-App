@@ -4,6 +4,7 @@ import Message from '../models/messages.js';
 import Conversation from '../models/converation.js';
 import User from '../models/user.js';
 import { io } from '../socket/socket.js';
+import {activeChats} from '../socket/socket.js';
 
 const messageRoute = express.Router();
 
@@ -37,18 +38,29 @@ messageRoute.post('/api/send-message/:receiverId', auth, async (req, res) => {
     // Emit message to receiver
     io.to(receiverId.toString()).emit('newMessage', newMessage);
     
+    let status = 'sent';
     // once message is emitted to user then we have to check , is our user is online or not , if not then marks sent else deliverd 
     
     const sockets = io.sockets.adapter.rooms.get(receiverId.toString());
     if(sockets && sockets.size>0){
-      newMessage.status = 'delivered',
-      newMessage.save();
+      status = 'delivered';
+      if(activeChats.get(receiverId.toString())===senderId){
+        status = 'seen';
+        newMessage.status = 'seen';
+      }
+      else{
+        status = 'delivered';
+        newMessage.status = 'delivered';
+      }
+      await newMessage.save();
+
+      
 
       // notify the status to the sender
       io.to(senderId.toString()).emit('messageStatus',
         {
         messageId:newMessage._id,
-        status:'delivered'
+        status : status
         }
       );
 
@@ -57,7 +69,6 @@ messageRoute.post('/api/send-message/:receiverId', auth, async (req, res) => {
         'messageStatus',
         {
           messageId:newMessage._id,
-          status:'delivered'
         }
       );
     } 

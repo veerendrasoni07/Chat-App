@@ -1,6 +1,6 @@
 import 'dart:ui'; // Import this for ImageFilter
 import 'package:chatapp/controller/auth_controller.dart';
-import 'package:chatapp/views/authentication/login_screen.dart';
+import 'package:chatapp/views/entry%20point/authentication/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';

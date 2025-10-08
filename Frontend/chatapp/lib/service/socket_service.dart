@@ -46,7 +46,16 @@ class SocketService {
     socket.emit('seenMessage', {"messageId":messageId});
     print("Mark as seen done");
   }
+
+  void chatOpen(String userId,String chatWith){
+    socket.emit('chatOpened',{'userId':userId,'chatWith':chatWith});
+  }
   
+  void chatClosed(String userId){
+    socket.emit('chatClosed',userId);
+  }
+
+
   void currentOnlineUsers(Function (dynamic) callback){
     socket.on('currentOnlineUser', callback);
   }

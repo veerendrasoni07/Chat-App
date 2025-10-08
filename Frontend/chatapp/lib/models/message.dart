@@ -33,6 +33,17 @@ class Message {
     );
   }
 
+  Message copyWith({ String? id, String? senderId, String? receiverId, String? message, String? status, DateTime? createdAt}){
+    return Message(
+      id: id ?? this.id,
+      senderId: senderId ?? this.senderId,
+      receiverId: receiverId ?? this.receiverId,
+      message: message ?? this.message,
+        status: status ?? this.status,
+        createdAt: createdAt ?? this.createdAt
+    );
+  }
+
   String toJson() => json.encode(toMap());
 
   factory Message.fromJson(String source) => Message.fromMap(json.decode(source) as Map<String, dynamic>);
