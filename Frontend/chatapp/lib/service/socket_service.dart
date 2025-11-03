@@ -52,12 +52,16 @@ class SocketService {
   }
   
   void chatClosed(String userId){
-    socket.emit('chatClosed',userId);
+    socket.emit('chatClosed',{'userId':userId});
   }
 
 
   void currentOnlineUsers(Function (dynamic) callback){
     socket.on('currentOnlineUser', callback);
+  }
+
+  void sendMessageToGroup (String message,String groupId,String senderId){
+    socket.emit('group-new-message',{groupId,senderId,message});
   }
 
   void dispose() {

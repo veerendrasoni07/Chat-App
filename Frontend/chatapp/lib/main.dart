@@ -4,11 +4,11 @@ import 'package:chatapp/theme/dark_theme.dart';
 import 'package:chatapp/theme/light_mode.dart';
 import 'package:chatapp/views/entry%20point/authentication/login_screen.dart';
 import 'package:chatapp/views/entry%20point/onBoarding/onboarding_page.dart';
+import 'package:chatapp/views/screens/main_screen.dart';
 import 'package:chatapp/views/screens/nav_screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'views/entry point/authentication/register_screen.dart';
 
 void main() {
@@ -40,7 +40,7 @@ class MyApp extends ConsumerWidget {
             return const Center(child: CircularProgressIndicator());
           } else {
             final user = ref.read(userProvider);
-            return user != null ? HomeScreen() : OnboardingPage();
+            return user != null ? MainScreen() : OnboardingPage();
           }
         },
       ),

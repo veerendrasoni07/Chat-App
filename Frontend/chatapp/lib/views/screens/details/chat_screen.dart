@@ -5,44 +5,61 @@ import 'package:chatapp/provider/online_status_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String fullname;
   final String receiverId;
-  const ChatScreen({super.key,required this.fullname,required this.receiverId});
+  const ChatScreen({
+    super.key,
+    required this.fullname,
+    required this.receiverId,
+  });
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
-
-
-
   final TextEditingController messageController = TextEditingController();
-
+  ScrollController scrollController = ScrollController();
+  bool isAtBottom = true;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     final userId = ref.read(userProvider)!.id;
     ref.read(messageProvider(widget.receiverId).notifier).chatOpened(userId);
+    scrollController.addListener((){
+      var isAtBottomNow = scrollController.position.pixels >= scrollController.position.maxScrollExtent - 50;
+      if(isAtBottomNow != isAtBottom){
+        setState(() {
+          isAtBottom = isAtBottomNow;
+        });
+      }
+    });
+
+  }
+
+
+  void scrollToBottom(){
+    scrollController.animateTo(scrollController.position.maxScrollExtent, duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
   }
 
   @override
   void dispose() async {
     // TODO: implement dispose
     super.dispose();
-    closeChat();
     print('Disposed');
   }
 
-  void closeChat(){
+  /*   void closeChat(){
     final userId = ref.read(userProvider)!.id;
     ref.read(messageProvider(widget.receiverId).notifier).chatClosed(userId);
-  }
+  } */
 
   // void markAllMessageAsSeen(){
   //   final message = ref.read(messageProvider(widget.receiverId));
@@ -62,132 +79,174 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isOnline = receiverStatus?.isOnline ?? false;
     final lastSeen = receiverStatus?.lastSeen;
     final user = ref.watch(userProvider);
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(onPressed: ()=>Navigator.pop(context), icon: Icon(Icons.arrow_back_ios,color: Colors.white,)),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.fullname,
-              style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            Row(
-              children: [
-                Icon(
-                  Icons.circle,
-                  color: status[widget.receiverId]?.isOnline == true ? Colors.green : Colors.red,
-                  size: 10,
+    return PopScope(
+      canPop: true, // allow pop after our logic
+      onPopInvoked: (bool didPop) {
+        if (!didPop) {
+          final userId = ref.read(userProvider)!.id;
+          ref
+              .read(messageProvider(widget.receiverId).notifier)
+              .chatClosed(userId);
+          print('🔙 System back pressed → chatClosed emitted');
+          Navigator.pop(context); // only manually pop if Flutter didn't
+        } else {
+          final userId = ref.read(userProvider)!.id;
+          ref
+              .read(messageProvider(widget.receiverId).notifier)
+              .chatClosed(userId);
+          print('🔙 System back pressed → chatClosed emitted (auto pop)');
+        }
+      },
+
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              /*         final userId = ref.read(userProvider)!.id;
+              ref
+                  .read(messageProvider(widget.receiverId).notifier)
+                  .chatClosed(userId); */
+              Navigator.pop(context);
+            },
+            icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.fullname,
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-                Text(
-                    isOnline ? "Online" : lastSeen != null ? "Last Seen:${lastSeen.toLocal()}" : "Offline",
+              ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.circle,
+                    color:
+                        status[widget.receiverId]?.isOnline == true
+                            ? Colors.green
+                            : Colors.red,
+                    size: 10,
+                  ),
+                  Text(
+                    isOnline
+                        ? "Online"
+                        : lastSeen != null
+                        ? "Last Seen:${lastSeen.toLocal()}"
+                        : "Offline",
                     style: GoogleFonts.montserrat(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
-                    )
-                )
-              ]
-            )
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      extendBodyBehindAppBar: true,
-      body: Stack(
-        fit: StackFit.expand,
-        children:[
-          Image.asset(
-            'assets/images/snow_background.jpg',
-            fit: BoxFit.cover,
-          ),
-
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0), // Adjust sigma for blur intensity
-            child: Container(
-              color: Colors.black.withOpacity(0.3), // Optional semi-transparent overlay
-            ),
-          ),
-
-          Column(
-            children: [
-              Expanded(
-                  child: ListView.builder(
-                      itemCount: messages.length,
-                      itemBuilder: (context,index){
-                        final message = messages[index];
-                        final isMe = message.senderId == user!.id ;
-                        return Align(
-                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                            child: Container(
-                              padding: EdgeInsets.all(10),
-                              margin: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
-                              decoration: BoxDecoration(
-                                  color: isMe ? Colors.deepPurpleAccent : Colors.blue,
-                                  borderRadius: BorderRadius.circular(10)
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(message.message,style: GoogleFonts.poppins(color: Colors.white,fontWeight: FontWeight.w700),),
-                                  if(isMe)
-                                    ...[
-                                      SizedBox(height: 3,),
-                                      _buildStatusIcon(message.status)
-                                    ]
-                                ],
-                              ),
-                            )
-                        );
-                      }
-                  )
+                    ),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15.0,horizontal: 15.0),
-                child: TextField(
-                    controller: messageController,
-                    decoration: InputDecoration(
-                        hintText: 'Type a message',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15)
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        contentPadding: EdgeInsets.all(20),
-                        hintStyle: TextStyle(color: Colors.grey),
-                        prefixIcon: Icon(Icons.emoji_emotions_outlined),
-                        suffixIcon: IconButton(
-                          onPressed: ()async{
-                            await ref.read(messageProvider(widget.receiverId).notifier).sendMessage(userMessage: messageController.text);
-                            messageController.clear();
-                          },
-                          icon: Icon(Icons.send),
-                        )
-                    )
-                ),
-              )
             ],
           ),
-        ]
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
+          elevation: 0,
+        ),
+
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final message = messages[index];
+                  final isMe = message.senderId == user!.id;
+                  return Align(
+                    alignment:
+                        isMe ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      margin: EdgeInsets.symmetric(
+                        vertical: 5,
+                        horizontal: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isMe ? Colors.deepPurpleAccent : Colors.blue,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            message.message,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ).animate().fade().scale(),
+                          if (isMe) ...[
+                            SizedBox(height: 3),
+                            _buildStatusIcon(message.status),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+              if(!isAtBottom)
+                Positioned(
+                    child: IconButton(onPressed:(){
+                      scrollToBottom();
+                    }, icon: Icon(Icons.arrow_circle_down_sharp))
+                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 15.0,
+                horizontal: 10.0,
+              ),
+              child: TextField(
+                controller: messageController,
+                decoration: InputDecoration(
+                  hintText: 'Type a message',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  contentPadding: EdgeInsets.all(10),
+                  hintStyle: TextStyle(color: Colors.grey),
+                  prefixIcon: Icon(Icons.emoji_emotions_outlined),
+                  suffixIcon: IconButton(
+                    onPressed: () async {
+                      await ref
+                          .read(messageProvider(widget.receiverId).notifier)
+                          .sendMessage(userMessage: messageController.text);
+                      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+                      messageController.clear();
+                    },
+                    icon: Icon(Icons.send),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-  Widget _buildStatusIcon(String status){
-    switch(status){
+
+  Widget _buildStatusIcon(String status) {
+    switch (status) {
       case 'seen':
-        return Icon(Icons.done_all,color: Colors.blueAccent,);
+        return Icon(Icons.done_all, color: Colors.blueAccent);
       case 'delivered':
-        return Icon(Icons.done_all,color: Colors.grey,);
+        return Icon(Icons.done_all, color: Colors.grey);
       case 'sent':
-        return Icon(Icons.done,color: Colors.grey,);
+        return Icon(Icons.done, color: Colors.grey);
       default:
         return const SizedBox.shrink();
     }
   }
 }
-
