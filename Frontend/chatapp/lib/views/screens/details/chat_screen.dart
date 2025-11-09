@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
@@ -7,6 +8,7 @@ import 'package:chatapp/provider/userProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -27,14 +29,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
   bool isAtBottom = true;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     final userId = ref.read(userProvider)!.id;
-    ref.read(messageProvider(widget.receiverId).notifier).chatOpened(userId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(messageProvider(widget.receiverId).notifier).chatOpened(userId);
+    });
     scrollController.addListener((){
-      var isAtBottomNow = scrollController.position.pixels >= scrollController.position.maxScrollExtent - 50;
+      var isAtBottomNow = scrollController.position.pixels >= scrollController.position.maxScrollExtent - 100 ;
       if(isAtBottomNow != isAtBottom){
         setState(() {
           isAtBottom = isAtBottomNow;
@@ -53,6 +58,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void dispose() async {
     // TODO: implement dispose
     super.dispose();
+    messageController.dispose();
     print('Disposed');
   }
 
@@ -99,56 +105,62 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       },
 
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            onPressed: () {
-              /*         final userId = ref.read(userProvider)!.id;
-              ref
-                  .read(messageProvider(widget.receiverId).notifier)
-                  .chatClosed(userId); */
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.fullname,
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(MediaQuery.of(context).size.height*0.08),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10,sigmaY: 10),
+              child: AppBar(
+                leading: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back_ios, color: Colors.white),
                 ),
-              ),
-              Row(
-                children: [
-                  Icon(
-                    Icons.circle,
-                    color:
-                        status[widget.receiverId]?.isOnline == true
-                            ? Colors.green
-                            : Colors.red,
-                    size: 10,
-                  ),
-                  Text(
-                    isOnline
-                        ? "Online"
-                        : lastSeen != null
-                        ? "Last Seen:${lastSeen.toLocal()}"
-                        : "Offline",
-                    style: GoogleFonts.montserrat(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AutoSizeText(
+                      widget.fullname,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                  ),
-                ],
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.circle,
+                          color:
+                              status[widget.receiverId]?.isOnline == true
+                                  ? Colors.green
+                                  : Colors.red,
+                          size: 10.r,
+                        ),
+                        AutoSizeText(
+                          isOnline
+                              ? "Online"
+                              : lastSeen != null
+                              ? "Last Seen:${lastSeen.toLocal()}"
+                              : "Offline",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                elevation: 0,
               ),
-            ],
+            ),
           ),
-          backgroundColor: Theme.of(context).colorScheme.tertiary,
-          elevation: 0,
         ),
 
         body: Column(
@@ -166,8 +178,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     child: Container(
                       padding: EdgeInsets.all(10),
                       margin: EdgeInsets.symmetric(
-                        vertical: 5,
-                        horizontal: 10,
+                        vertical: 5.h,
+                        horizontal: 10.w,
                       ),
                       decoration: BoxDecoration(
                         color: isMe ? Colors.deepPurpleAccent : Colors.blue,
@@ -196,15 +208,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
 
               if(!isAtBottom)
-                Positioned(
-                    child: IconButton(onPressed:(){
-                      scrollToBottom();
-                    }, icon: Icon(Icons.arrow_circle_down_sharp))
+                Center(
+                  child: IconButton(onPressed:(){
+                    scrollToBottom();
+                  }, icon: Icon(Icons.arrow_circle_down_sharp)),
                 ),
             Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 15.0,
-                horizontal: 10.0,
+              padding:  EdgeInsets.symmetric(
+                vertical: 15.h,
+                horizontal: 10.0.w,
               ),
               child: TextField(
                 controller: messageController,
@@ -212,21 +224,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   hintText: 'Type a message',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[200],
-                  contentPadding: EdgeInsets.all(10),
-                  hintStyle: TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.emoji_emotions_outlined),
+                  fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  contentPadding: EdgeInsets.all(10.sp),
+                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  prefixIcon: Icon(Icons.door_back_door_outlined,color: Theme.of(context).colorScheme.primary,),
                   suffixIcon: IconButton(
                     onPressed: () async {
                       await ref
                           .read(messageProvider(widget.receiverId).notifier)
-                          .sendMessage(userMessage: messageController.text);
+                          .sendMessage(userMessage: messageController.text,senderId: user!.id,receiverId: widget.receiverId);
                       scrollController.jumpTo(scrollController.position.maxScrollExtent);
                       messageController.clear();
                     },
-                    icon: Icon(Icons.send),
+                    icon: Icon(Icons.send,color: Theme.of(context).colorScheme.primary,),
                   ),
                 ),
               ),

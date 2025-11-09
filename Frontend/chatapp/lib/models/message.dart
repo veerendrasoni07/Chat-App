@@ -24,14 +24,17 @@ class Message {
 
   factory Message.fromMap(Map<String, dynamic> map) {
     return Message(
-      id: map['_id'] as String,
-      senderId: map['senderId'] as String,
-      receiverId: map['receiverId'] as String,
-      message: map['message'] as String,
-      status: map['status'] as String,
-      createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt'] as String) : DateTime.now(),
+      id: (map['_id'] ?? map['id'] ?? '').toString(),
+      senderId: (map['senderId'] ?? '').toString(),
+      receiverId: (map['receiverId'] ?? '').toString(),
+      message: (map['message'] ?? '').toString(),
+      status: (map['status'] ?? 'sent').toString(),
+      createdAt: map['createdAt'] != null
+          ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
+
 
   Message copyWith({ String? id, String? senderId, String? receiverId, String? message, String? status, DateTime? createdAt}){
     return Message(

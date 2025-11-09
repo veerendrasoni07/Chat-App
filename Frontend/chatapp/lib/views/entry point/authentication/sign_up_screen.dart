@@ -1,16 +1,18 @@
+import 'package:chatapp/provider/socket_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/componentss/elevated_button.dart';
 
-class SignUpFlow extends StatefulWidget {
+class SignUpFlow extends ConsumerStatefulWidget {
   const SignUpFlow({super.key});
 
   @override
-  State<SignUpFlow> createState() => _SignUpFlowState();
+  ConsumerState<SignUpFlow> createState() => _SignUpFlowState();
 }
 
-class _SignUpFlowState extends State<SignUpFlow> {
+class _SignUpFlowState extends ConsumerState<SignUpFlow> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -23,7 +25,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
       TextEditingController();
 
   String? gender;
-
+  bool isUserNameExist = false;
   final List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(), // Name
     GlobalKey<FormState>(), // Username
@@ -68,7 +70,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
+    final socket = ref.read(socketProvider);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -152,6 +154,9 @@ class _SignUpFlowState extends State<SignUpFlow> {
                       SizedBox(height: size.height * 0.03),
                       TextFormField(
                         controller: _userNameController,
+                        onChanged: (value){
+                          socket.usernameCheck(_userNameController.text);
+                        },
                         validator: (value) =>
                             value == null || value.isEmpty
                                 ? "Please enter a username"
@@ -163,10 +168,16 @@ class _SignUpFlowState extends State<SignUpFlow> {
                           ),
                         ),
                       ),
+                      if(isUserNameExist)
+                        Text("Username already exist",style: TextStyle(color: Colors.red),),
                       SizedBox(height: size.height * 0.05),
                       CustomElevatedButton(
                         buttonText: "Next",
-                        onPressed: nextPage,
+                        onPressed: (){
+                          if(!isUserNameExist && _formKeys[1].currentState!.validate()){
+                            nextPage();
+                          }
+                        },
                       ),
                     ],
                   ),

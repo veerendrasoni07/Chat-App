@@ -8,11 +8,20 @@ import 'package:chatapp/views/screens/main_screen.dart';
 import 'package:chatapp/views/screens/nav_screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'views/entry point/authentication/register_screen.dart';
 
 void main() {
-  runApp(ProviderScope(child: const MyApp()));
+  runApp(
+      ProviderScope(
+          child: ScreenUtilInit(
+            designSize: ScreenUtil.defaultSize,
+              minTextAdapt: true,
+              child: const MyApp()
+          )
+      )
+  );
 }
 
 class MyApp extends ConsumerWidget {
@@ -47,6 +56,7 @@ class MyApp extends ConsumerWidget {
       darkTheme: darkMode,
       theme: lightMode,
       themeMode: theme,
+
       debugShowCheckedModeBanner: false,
       routes: {
         '/home': (context) => HomeScreen(),

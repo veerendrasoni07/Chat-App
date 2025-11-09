@@ -1,9 +1,15 @@
 import 'dart:ui';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:chatapp/controller/group_controller.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:uuid/uuid.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-Future<void> newGroupModalSheet(BuildContext context, TextEditingController controller,List<User> users) async {
+
+Future<void> newGroupModalSheet(BuildContext context, TextEditingController controller,List<User> users,WidgetRef ref) async {
   List<User> selectedUsers = [];
   await showModalBottomSheet(
     context: context,
@@ -40,7 +46,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                     bottom: mediaQuery.viewInsets.bottom + 20,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withOpacity(0.2),
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
                   ),
                   child: Column(
@@ -66,7 +72,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                           style: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w600,
                             fontSize: 18,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),
@@ -75,31 +81,29 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                       // Input Field
                       TextField(
                         controller: controller,
-                        cursorColor: Colors.black,
+                        cursorColor: Colors.green,
+                        style: GoogleFonts.montserrat(fontSize: 16.sp,color: Theme.of(context).colorScheme.primary),
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.white,
-                          prefixIcon: const Icon(Icons.group, color: Colors.black54),
+                          fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                          prefixIcon:  Icon(Icons.group, color: Theme.of(context).colorScheme.primary,),
                           hintText: "Enter group name",
-                          hintStyle: GoogleFonts.montserrat(color: Colors.grey[600]),
+                          hintStyle: GoogleFonts.montserrat(color:Theme.of(context).colorScheme.primary),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Colors.black, width: 1.2),
+                            borderSide: BorderSide.none
                           ),
                         ),
                       ),
 
-                      Text('To:'),
+                      AutoSizeText('To:',style: GoogleFonts.montserrat(fontSize: 16.sp,color: Theme.of(context).colorScheme.primary),),
                       Wrap(
                         spacing: 8,
                         runSpacing: 4,
                         children: List.generate(selectedUsers.length, (index) {
                           return Chip(
-                            label: Text(selectedUsers[index].fullname),
+                            color: WidgetStateProperty.all( Theme.of(context).colorScheme.primary.withOpacity(0.2)),
+                            label: Text(selectedUsers[index].fullname,style: GoogleFonts.montserrat(fontSize: 14.sp,color: Theme.of(context).colorScheme.primary,fontWeight: FontWeight.w700)),
                             deleteIcon: Icon(Icons.cancel),
                             onDeleted: ()=> setState(() {
                               selectedUsers.remove(selectedUsers[index]);
@@ -120,20 +124,35 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                             final isSelected = selectedUsers.contains(user);
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
-                              leading: CircleAvatar(
-                                radius: 20,
-                                backgroundColor: Colors.grey[300],
-                                child: Text(
-                                  users[index].fullname[0],
-                                  style: const TextStyle(color: Colors.black87),
+                              leading: ClipOval(
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaY: 10,sigmaX: 10),
+                                  child: Container(
+                                    height: 40.h,
+                                    width: 40.w,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.1),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.25),
+                                        width: 1.2,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: AutoSizeText(
+                                        users[index].fullname[0],
+                                        style:  TextStyle(color:Theme.of(context).colorScheme.primary,fontSize: 16.sp),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                               title: Text(
                                 users[index].fullname,
-                                style: GoogleFonts.montserrat(fontSize: 14, color: Colors.black87),
+                                style: GoogleFonts.montserrat(fontSize: 14, color: Theme.of(context).colorScheme.primary,fontWeight: FontWeight.w700),
                               ),
                               trailing: selectedUsers.contains(users[index]) ?  Icon(Icons.check_circle,color: Colors.green,) : IconButton(
-                                icon: const Icon(Icons.add_circle_outline, color: Colors.black54),
+                                icon:  Icon(Icons.add_circle_outline, color: Theme.of(context).colorScheme.primary,),
                                 onPressed: () {
                                   setState((){
                                     if (isSelected) {
@@ -160,8 +179,10 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          onPressed: () {
-                            Navigator.pop(context);
+                          onPressed: () async{
+                            var uuid = Uuid();
+                            final groupId = uuid.v4();
+                            GroupController().createNewGroup(groupName: controller.text, members: selectedUsers, groupId:groupId , context: context);
                             // Handle creation
                           },
                           child: Text(

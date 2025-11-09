@@ -1,5 +1,4 @@
 import 'package:chatapp/global_variable.dart';
-import 'package:chatapp/models/message.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -26,8 +25,13 @@ class SocketService {
     socket.onDisconnect((_) => print('Socket disconnected'));
   }
 
-  void sendMessage(String event, Message message) {
-    socket.emit(event, message.toJson());
+
+  void sendMessage(String receiverId,String senderId,String message){
+    socket.emit('send-direct-message',{
+      'receiverId':receiverId,
+      'senderId':senderId,
+      'message':message
+    });
   }
 
   void listenMessage(String event, Function(dynamic) callback) {
@@ -60,9 +64,44 @@ class SocketService {
     socket.on('currentOnlineUser', callback);
   }
 
-  void sendMessageToGroup (String message,String groupId,String senderId){
-    socket.emit('group-new-message',{groupId,senderId,message});
+  void newGroupCreated(Function (dynamic) callback){
+    socket.on('group-created', callback);
   }
+
+  void syncGroups (Function(dynamic) callback){
+    socket.on('sync-groups', callback);
+  }
+
+  void sendGroupMessage(String groupId,String senderId,String message){
+    print(message);
+    socket.emit('send-group-message',{
+      'groupId':groupId,
+      'senderId':senderId,
+      'message':message
+    });
+  }
+
+
+
+  void listenGroupMessage(Function (dynamic) callback){
+    socket.on("group-message", callback);
+  }
+
+  // username check
+  void usernameCheck(String username){
+    socket.emit('username-check',{
+      'username':username,
+    });
+    listenUsernameApproval();
+  }
+
+  dynamic listenUsernameApproval(){
+    socket.on('username-approval', (data){
+      return data;
+    });
+  }
+  
+  
 
   void dispose() {
     socket.dispose();

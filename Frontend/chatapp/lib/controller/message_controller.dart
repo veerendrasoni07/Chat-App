@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:chatapp/models/message.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:chatapp/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,6 +44,7 @@ class MessageController{
 
   Future<List<Message>> getMessages({required String receiverId})async{
     try{
+      print("receiverId:$receiverId");
       SharedPreferences preferences = await SharedPreferences.getInstance();
       final token = preferences.getString('token');
       print(token);
