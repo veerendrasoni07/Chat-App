@@ -29,8 +29,14 @@ const userSchema = new mongoose.Schema({
   gender:{
     type:String,
   },
+  username:{
+    type:String,
+    required:true,
+    unique:true
+  },
   isOnline:{type:Boolean},
-  lastSeen:{type:Date}
+  lastSeen:{type:Date},
+  groups:[String]
 
 },{timestamps:true});
 

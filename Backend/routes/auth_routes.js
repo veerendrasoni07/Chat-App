@@ -10,7 +10,7 @@ const authRouter = express.Router();
 
 authRouter.post('/api/sign-up',async(req,res)=>{
     try {
-        const {fullname,email,password,gender} = req.body;
+        const {fullname,email,password,gender,username} = req.body;
         if(!fullname || !email || !password){
             return res.status(400).json({msg:"Name or Email Or Password is missing!"});
         }
@@ -24,6 +24,7 @@ authRouter.post('/api/sign-up',async(req,res)=>{
                 fullname,
                 email,
                 gender,
+                username,
                 password:hashedPassword
             }
         );

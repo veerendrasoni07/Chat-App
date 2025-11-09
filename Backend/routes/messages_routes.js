@@ -37,6 +37,8 @@ messageRoute.post('/api/send-message/:receiverId', auth, async (req, res) => {
 
     // Emit message to receiver
     io.to(receiverId.toString()).emit('newMessage', newMessage);
+
+    
     
     let status = 'sent';
     // once message is emitted to user then we have to check , is our user is online or not , if not then marks sent else deliverd 
@@ -55,12 +57,11 @@ messageRoute.post('/api/send-message/:receiverId', auth, async (req, res) => {
       await newMessage.save();
 
       
-
-      // notify the status to the sender
+      // notify the status to the sender 
       io.to(senderId.toString()).emit('messageStatus',
         {
-        messageId:newMessage._id,
-        status : status
+          messageId:newMessage._id,
+          status : status
         }
       );
 
@@ -99,7 +100,6 @@ messageRoute.get('/api/get-messages/:receiverId', auth, async (req, res) => {
 
 
 // get all users 
-
 messageRoute.get('/api/get-all-users/:userId',async(req,res)=>{
     try {
         const {userId} = req.params;
@@ -111,6 +111,12 @@ messageRoute.get('/api/get-all-users/:userId',async(req,res)=>{
         console.log(error);
         res.status(500).json({error:"Internal Server Error"});
     }
+});
+
+
+messageRoute.delete('/api/delete-messages',async(req,res)=>{
+  await Message.deleteMany();
+  res.status(200).json({msg:"Delete kr dia BC"})
 })
 
 export default messageRoute;
