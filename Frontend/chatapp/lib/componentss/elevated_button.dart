@@ -17,7 +17,7 @@ class CustomElevatedButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
       onPressed: onPressed,
       child: AutoSizeText(
@@ -26,7 +26,7 @@ class CustomElevatedButton extends StatelessWidget {
           minFontSize: 16,
       style: GoogleFonts.montserrat(
         fontWeight: FontWeight.w600,
-        color: Colors.white
+        color: Theme.of(context).colorScheme.inversePrimary,
       ),),
     );
   }

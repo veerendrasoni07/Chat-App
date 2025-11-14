@@ -26,6 +26,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -51,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 15 * scale,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color:Theme.of(context).colorScheme.inversePrimary,
                 ),
               ),
               SizedBox(height: height * 0.02),
@@ -71,10 +72,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 style: GoogleFonts.openSans(
                     fontSize: 18 * scale,
                     fontWeight: FontWeight.bold),
+                cursorColor: Theme.of(context).colorScheme.inversePrimary,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   labelStyle: GoogleFonts.openSans(
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.inversePrimary,
                       fontSize: 16 * scale,
                       fontWeight: FontWeight.bold),
                   enabledBorder:
@@ -97,20 +99,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   return null;
                 },
                 obscureText: isShown == false ? true : false,
+                cursorColor: Theme.of(context).colorScheme.inversePrimary,
                 style: GoogleFonts.openSans(
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.inversePrimary,
                     fontSize: 18 * scale,
                     fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
                   labelText: 'Password',
                   labelStyle: GoogleFonts.openSans(
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.inversePrimary,
                       fontSize: 16 * scale,
                       fontWeight: FontWeight.bold),
                       suffixIcon: IconButton(
                         icon: Icon(
                           isShown == false ? Icons.visibility_off : Icons.visibility,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.inversePrimary,
                         ),
                         onPressed: () {
                           setState(() {
@@ -131,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     "Forgot Password?",
                     style: GoogleFonts.nunito(
-                        color: Colors.white, fontSize: 14 * scale),
+                        color:Theme.of(context).colorScheme.inversePrimary, fontSize: 14 * scale),
                   ),
                 ],
               ),
@@ -139,7 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
+                    backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15)),
                     minimumSize: Size(width * 0.75, height * 0.065),
@@ -154,7 +157,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Text(
                     "Login",
                     style: GoogleFonts.montserrat(
-                        color: Colors.white,
+                        color:  Theme.of(context).colorScheme.inversePrimary,
                         fontSize: 20 * scale,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 3),

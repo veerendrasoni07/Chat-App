@@ -1,4 +1,5 @@
 import 'package:chatapp/global_variable.dart';
+import 'package:chatapp/service/sound_manager.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -28,14 +29,16 @@ class SocketService {
 
   void sendMessage(String receiverId,String senderId,String message){
     socket.emit('send-direct-message',{
-      'receiverId':receiverId,
       'senderId':senderId,
+      'receiverId':receiverId,
       'message':message
     });
+    SoundManager.playSendSound();
   }
 
   void listenMessage(String event, Function(dynamic) callback) {
     socket.on(event, callback);
+
   }
 
   void userStatus(Function (dynamic) callback){

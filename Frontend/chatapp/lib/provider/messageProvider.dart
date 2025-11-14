@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:chatapp/controller/message_controller.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/service/socket_service.dart';
+import 'package:chatapp/service/sound_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MessageProvider extends StateNotifier<List<Message>> {
@@ -21,63 +21,62 @@ class MessageProvider extends StateNotifier<List<Message>> {
     state = messages;
   }
 
-  // Future<void> sendMessage({required String userMessage}) async {
-  //   final message = await controller.sendMessage(
-  //       message: userMessage, receiverId: receiverId);
-  //   state = [...state, message];
-  // }
-
   Future<void> sendMessage({required String senderId,required String receiverId,required String userMessage})async{
     try{
+      final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+      final newMessage = Message(id: tempId, senderId: senderId, receiverId: receiverId, message: userMessage, status: 'sending', createdAt: DateTime.now());
+      state = [...state, newMessage];
       socket.sendMessage(receiverId, senderId, userMessage);
     }catch(e){
       throw Exception(e.toString());
     }
   }
 
-  // void listenMessage() {
-  //   socket.listenMessage('newMessage', (data) {
-  //     final msg = jsonDecode(jsonEncode(data));
-  //     var message = Message.fromMap(msg);
-  //     if(message.senderId == receiverId){
-  //       socket.markAsSeen(message.id);
-  //       message = message.copyWith(status: 'seen');
-  //     }
-  //     state = [...state, message];
-  //   });
-  //
-  //   // listen for status updates
-  //   socket.listenMessageStatus((data){
-  //     final status = data['status'];
-  //     final messageId = data['messageId'];
-  //     updateMessageStatus(messageId, status);
-  //   });
-  // }
   void listenMessage() {
     socket.listenMessage('newMessage', (data) {
-      print("🔥 Incoming newMessage: $data");
       var message = Message.fromMap(data);
-
-      // Only mark as seen if it's from the person this chat is open with
-      if (message.senderId == receiverId) {
-        if(_isChatOpen){
-          socket.markAsSeen(message.id);
-          message = message.copyWith(status: 'seen');
-        }
-        else{
-          message = message.copyWith(status: 'delivered');
-        }
+      if (message.senderId != receiverId && message.receiverId != receiverId) {
+        print("⏭️ Ignoring message not related to this chat");
+        return;
       }
 
-      state = [...state, message];
+      // Check if this is a message we sent (replace instead of duplicate)
+      final existingIndex = state.indexWhere((m) =>
+      m.senderId == message.senderId &&
+          m.receiverId == message.receiverId &&
+          m.message == message.message &&
+          m.status == 'sending'); // match the temp one we sent
+
+      if (existingIndex != -1) {
+        // Replace temp message with the real one from backend
+        final updatedList = [...state];
+        updatedList[existingIndex] =
+            message.copyWith(status: 'sent'); // or whatever backend sends
+        state = updatedList;
+      } else {
+        // New message from receiver
+        if (message.senderId == receiverId) {
+          if (_isChatOpen) {
+            socket.markAsSeen(message.id);
+            message = message.copyWith(status: 'seen');
+          } else {
+            message = message.copyWith(status: 'delivered');
+          }
+          SoundManager.playReceiveSound();
+        }
+
+        state = [...state, message];
+      }
     });
-    // Listen for message status updates (delivered/seen)
+
+    // Listen for message status updates
     socket.listenMessageStatus((data) {
       final messageId = data['messageId'];
       final status = data['status'];
       updateMessageStatus(messageId, status);
     });
   }
+
 
 
   void updateMessageStatus(String messageId, String status) {
@@ -110,7 +109,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
 }
 
 final messageProvider =
-StateNotifierProvider.family<MessageProvider, List<Message>, String>(
+StateNotifierProvider.autoDispose.family<MessageProvider, List<Message>, String>(
       (ref, receiverId) {
     final socket = ref.read(socketProvider);
     return MessageProvider(MessageController(), receiverId, socket);

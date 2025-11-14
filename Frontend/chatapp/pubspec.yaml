@@ -44,6 +44,7 @@ dependencies:
   flutter_animate: ^4.5.2
   uuid: ^4.5.2
   flutter_screenutil: ^5.9.3
+  audioplayers: ^6.5.1
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +76,8 @@ flutter:
     - assets/animation/globe.json
     - assets/animation/cat_typing.json
     - assets/animation/saying_hi_animation.json
+    - assets/sounds/mixkit-interface-hint-notification-911.wav
+    - assets/sounds/mixkit-sci-fi-interface-zoom-890.wav
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -5,6 +6,7 @@ import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/service/sound_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,6 +40,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(messageProvider(widget.receiverId).notifier).chatOpened(userId);
     });
+    SoundManager.preload();
     scrollController.addListener((){
       var isAtBottomNow = scrollController.position.pixels >= scrollController.position.maxScrollExtent - 100 ;
       if(isAtBottomNow != isAtBottom){
@@ -46,8 +49,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         });
       }
     });
-
   }
+
+
 
 
   void scrollToBottom(){
@@ -258,6 +262,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         return Icon(Icons.done_all, color: Colors.grey);
       case 'sent':
         return Icon(Icons.done, color: Colors.grey);
+      case 'saving':
+        return Icon(Icons.save, color: Colors.grey);
       default:
         return const SizedBox.shrink();
     }

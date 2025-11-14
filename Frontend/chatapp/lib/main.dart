@@ -58,11 +58,7 @@ class MyApp extends ConsumerWidget {
       themeMode: theme,
 
       debugShowCheckedModeBanner: false,
-      routes: {
-        '/home': (context) => HomeScreen(),
-        '/register': (context) => RegisterScreen(),
-        '/login': (context) => LoginScreen(),
-      },
+ 
     );
   }
 }
