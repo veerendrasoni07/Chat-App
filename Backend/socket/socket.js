@@ -6,6 +6,8 @@ import Message from '../models/messages.js';
 import Group from '../models/group.js'; 
 import GroupMessage from '../models/groupMessage.js';
 import Conversation from '../models/converation.js';
+import Interaction from '../models/interaction.js';
+
 const app = express();
 const server = http.createServer(app);
 
@@ -196,15 +198,67 @@ if (user?.groups?.length) {
     try {
       const user = await User.findOne({username:username});
       if(!user){
+        console.log("user name is not approved");
         socket.emit('username-approval',true);
       }
       else{
+        console.log("username approved")
         socket.emit('username-approval',false);
       }
     } catch (error) {
       console.log(error);
     }
   });
+
+
+
+  socket.on('send-request',async({fromUserId,toUserId})=>{
+    try {
+  
+        const toUserData = await User.findById(toUserId);
+        const fromUserData = await User.findById(fromUserId);
+        const existInteraction = await Interaction.findOne({fromUser:fromUserId,toUser:toUserId});
+        if(existInteraction){
+            return console.log("Request Already sent or accepted or rejected");
+        }
+        await Interaction.create({
+            toUser:toUserId,
+            fromUser:fromUserId,
+            status:'pending'
+        });
+
+        toUserData.requests.push({
+            from:fromUserId,
+            fullname:fromUserData.fullname,
+            status:'pending',
+            image:fromUserData.profilePic,
+        });
+        fromUserData.sentRequest.push({
+            to:toUserId,
+            fullname:toUserData.fullname,
+            image:toUserData.profilePic,
+            status:'pending'
+        });
+        await toUserData.save();
+        await fromUserData.save();
+        io.to(fromUserId).emit('sent-request',{
+            'to':toUserId,
+            'fullname':toUserData.fullname,
+            'image':toUserData.profilePic,
+            'status':'pending'
+        });
+        io.to(toUserId).emit('request-received',{
+            'from':fromUserId,
+            'fullname':fromUserData.fullname,
+            'status':'pending',
+            'image':fromUserData.profilePic,
+        });
+        console.log("request is sent to the person");
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
 
   socket.on('disconnect', async () => {
     console.log('Socket disconnected:', socket.id);
@@ -226,4 +280,4 @@ if (user?.groups?.length) {
 });
 
 
-export { app, server, io,activeChats };
+export { app, server, io,activeChats};

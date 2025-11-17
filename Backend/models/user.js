@@ -29,6 +29,9 @@ const userSchema = new mongoose.Schema({
   gender:{
     type:String,
   },
+  location:{
+    type:String,
+  },
   username:{
     type:String,
     required:true,
@@ -36,7 +39,10 @@ const userSchema = new mongoose.Schema({
   },
   isOnline:{type:Boolean},
   lastSeen:{type:Date},
-  groups:[String]
+  groups:[String],
+  sentRequest:[{to:mongoose.Schema.Types.ObjectId,status:String,fullname:String,image:String}],
+  requests:[{from:mongoose.Schema.Types.ObjectId,status:String,fullname:String,image:String}],
+  connections : [{type:mongoose.Schema.Types.ObjectId,ref:'User'}]
 
 },{timestamps:true});
 

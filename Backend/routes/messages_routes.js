@@ -89,7 +89,6 @@ messageRoute.get('/api/get-messages/:receiverId', auth, async (req, res) => {
     const conversation = await Conversation.findOne({
       participants: { $all: [userId, receiverId] }
     }).populate('messages');
-
     res.status(200).json(conversation ? conversation.messages : []);
   } catch (err) {
     console.log(err);
