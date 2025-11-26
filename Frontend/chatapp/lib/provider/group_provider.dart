@@ -10,6 +10,7 @@ class GroupProvider extends StateNotifier<List<Group>>{
   GroupProvider(this.service):super([]){
     syncGroups();
     addGroup();
+    joinGroup();
   }
 
 
@@ -21,8 +22,13 @@ class GroupProvider extends StateNotifier<List<Group>>{
     });
   }
 
+  void joinGroup(){
+    service.joinGroup();
+  }
+
   void syncGroups(){
     service.syncGroups((data){
+      print("These are the groups that we have connected");
       print(data);
       // data is already List<dynamic>
       final List<Group> groups = (data as List<dynamic>)

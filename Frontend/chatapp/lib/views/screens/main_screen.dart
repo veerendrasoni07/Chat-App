@@ -1,16 +1,22 @@
 import 'dart:ui';
+import 'package:chatapp/provider/friends_provider.dart';
+import 'package:chatapp/views/screens/details/add_friend_screen.dart';
+import 'package:chatapp/views/screens/details/new_group_screen.dart';
+import 'package:chatapp/views/screens/details/notification_screen.dart';
 import 'package:chatapp/views/screens/nav_screens/camera_screen.dart';
 import 'package:chatapp/views/screens/nav_screens/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends ConsumerState<MainScreen> {
   int selectedIndex = 0;
   final PageController pageController = PageController();
 
@@ -42,44 +48,40 @@ class _MainScreenState extends State<MainScreen> {
         physics: const BouncingScrollPhysics(),
         children: pages,
       ),
+
       bottomNavigationBar: _buildGlassNavBar(),
     );
   }
 
-  // Center Floating Add Button
-  // Widget _centerAddButton() {
-  //   return GestureDetector(
-  //     onTap: () {
-  //       // TODO: Add your action here
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Add button tapped')),
-  //       );
-  //     },
-  //     child: Container(
-  //       height: 68,
-  //       width: 68,
-  //       decoration: BoxDecoration(
-  //         shape: BoxShape.circle,
-  //         gradient: const LinearGradient(
-  //           colors: [Colors.purpleAccent, Colors.blueAccent],
-  //         ),
-  //         boxShadow: [
-  //           BoxShadow(
-  //             color: Colors.blueAccent.withOpacity(0.4),
-  //             blurRadius: 12,
-  //             spreadRadius: 1,
-  //           ),
-  //         ],
-  //       ),
-  //       child: const Icon(Icons.add, color: Colors.white, size: 36),
-  //     ),
-  //   );
-  // }
+  //Center Floating Add Button
+  Widget _centerAddButton() {
+    return GestureDetector(
+      onTap: ()=> {},
+      child: Container(
+        height: 68,
+        width: 68,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [Colors.purpleAccent, Colors.blueAccent],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blueAccent.withOpacity(0.4),
+              blurRadius: 12,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: const Icon(Icons.add, color: Colors.white, size: 36),
+      ),
+    );
+  }
 
   Widget _buildGlassNavBar() {
     return Container(
       height: MediaQuery.of(context).size.height * 0.075,
-      width: MediaQuery.of(context).size.height * 0.45,
+      width: MediaQuery.of(context).size.width * 0.2,
       margin: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -91,9 +93,8 @@ class _MainScreenState extends State<MainScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              color: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.2),
               borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -118,9 +119,12 @@ class _MainScreenState extends State<MainScreen> {
         child: Icon(
           active ? icon2 : icon1,
           size: 28,
-          color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary.withOpacity(0.5),
+          color: active ? Theme.of(context).colorScheme.inverseSurface : Theme.of(context).colorScheme.inversePrimary.withOpacity(0.5),
         ),
       ),
     );
   }
 }
+
+
+

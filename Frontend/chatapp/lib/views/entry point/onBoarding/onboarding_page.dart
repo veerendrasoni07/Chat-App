@@ -192,7 +192,7 @@ class _ChooseLoginOrSignUpState extends State<ChooseLoginOrSignUp> {
             ),
             Padding(
               padding:  EdgeInsets.symmetric(horizontal: size.width * 0.02, vertical: size.height * 0.02),
-              child: CustomElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpFlow())), buttonText: "Sign Up"),
+              child: CustomElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) =>  const SignUpFlow())), buttonText: "Sign Up"),
             ),
           ],
         ),

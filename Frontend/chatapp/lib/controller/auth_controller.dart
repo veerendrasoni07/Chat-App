@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:chatapp/global_variable.dart';
+import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/tokenProvider.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:chatapp/views/entry%20point/authentication/login_screen.dart';
+import 'package:chatapp/views/screens/main_screen.dart';
 import 'package:chatapp/views/screens/nav_screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +45,7 @@ class AuthController{
         showSnackBar(context, 'Account created successfully');
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => MainScreen()),
               (route) => false, // remove all previous routes
         );
       }
@@ -104,6 +106,53 @@ class AuthController{
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=>LoginScreen()) , (route) => false);
     showSnackBar(context, 'Logged out successfully');
   }
+
+  Future<bool> usernameCheck(String username)async {
+    try {
+      http.Response response = await http.get(
+          Uri.parse('$uri/api/username-check/$username'),
+        headers: <String,String>{
+            'Content-Type':'application/json; charset=UTF-8'
+        }
+      );
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body)['msg'];
+        return data;
+      }else{
+        throw Exception('Failed to check username');
+      }
+    }
+    catch(e){
+      throw Exception(e);
+    }
+  }
+
+
+
+  // Future<List<User>> getAllUsers({required String userId})async{
+  //   try{
+  //     http.Response response = await http.get(
+  //         Uri.parse('$uri/api/get-all-friends/$userId'),
+  //       headers: <String,String>{
+  //           'Content-Type':'application/json; charset=UTF-8'
+  //       }
+  //     );
+  //
+  //     if(response.statusCode == 200){
+  //       final List<dynamic> data = jsonDecode(response.body);
+  //       final List<User> users = data.map((user)=>User.fromMap(user)).toList();
+  //       return users;
+  //     }
+  //     else{
+  //       throw Exception("New Error Occurred");
+  //     }
+  //
+  //   }catch(w){
+  //     print(w);
+  //     throw Exception(w.toString());
+  //   }
+  // }
+
 
 
 }

@@ -1,3 +1,4 @@
+
 import 'package:chatapp/global_variable.dart';
 import 'package:chatapp/service/sound_manager.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -75,6 +76,13 @@ class SocketService {
     socket.on('sync-groups', callback);
   }
 
+  void joinGroup(){
+    socket.on('join-group', (data){
+      final groupId = data['groupId'];
+      socket.emit("join-group-room", groupId);
+    });
+  }
+
   void sendGroupMessage(String groupId,String senderId,String message){
     print(message);
     socket.emit('send-group-message',{
@@ -90,20 +98,64 @@ class SocketService {
     socket.on("group-message", callback);
   }
 
-  // username check
-  void usernameCheck(String username){
-    socket.emit('username-check',{
-      'username':username,
+
+  // ----- request/friend helpers -----
+  void sendRequest(String fromUserId, String toUserId) {
+    socket.emit('send-request', {
+      'fromUserId': fromUserId,
+      'toUserId': toUserId,
     });
-    listenUsernameApproval();
   }
 
-  dynamic listenUsernameApproval(){
-    socket.on('username-approval', (data){
-      return data;
+  // server -> me (when I get a request)
+  void receivedRequest(Function(dynamic) callback) {
+    socket.on('request-received', callback);
+  }
+
+  // server -> sender (confirmation that send succeeded / to update UI for sender)
+  void sentRequest(Function(dynamic) callback) {
+    socket.on('sent-request', callback);
+  }
+
+  // caller -> server (I accept a request). Pass payload as map.
+  void acceptRequest(Map<String, dynamic> payload) {
+    socket.emit('accept-request', payload);
+  }
+
+  // server -> clients: emitted after accept flow completes
+  void requestAccepted(Function(dynamic) callback) {
+    socket.on('request-accepted', callback);
+  }
+
+  void requestRejected(String fromId,String toId){
+    socket.emit('request-rejected',{
+      'fromId':fromId,
+      'toId':toId
     });
   }
-  
+
+
+  // typing
+  void userTyping(String senderId,String receiverId){
+    socket.emit('typing',{
+      'senderId':senderId,
+      'receiverId':receiverId
+    });
+  }
+
+  void stopTyping(String senderId,String receiverId){
+    socket.emit('stop-typing',{
+      'senderId':senderId,
+      'receiverId':receiverId
+    });
+  }
+
+  void listenTyping(Function (dynamic) callBack){
+    socket.on('typing', callBack);
+  }
+  void listenStopTyping(Function (dynamic) callBack){
+    socket.on('stop-typing', callBack);
+  }
   
 
   void dispose() {

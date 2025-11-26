@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:chatapp/controller/auth_controller.dart';
-import 'package:chatapp/provider/socket_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -27,6 +26,7 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final AuthController _authController = AuthController();
   Timer? debounce;
   String? gender;
   bool isPassShown = false;
@@ -40,16 +40,20 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
   ];
 
 
-  void checkUserName(String username){
-    final socket = ref.read(socketProvider);
-    socket.usernameCheck(username);
+  void checkUserName(String username)async{
+    final bool userName = await _authController.usernameCheck(username);
+    setState(() {
+      isUserNameExist = userName;
+    });
   }
 
   void userNameOnChanged(String value){
     if(debounce?.isActive ?? false ){
+      print("cancel kr dia is ki maa ki ");
       debounce?.cancel();
     }
     debounce = Timer(Duration(milliseconds: 800), (){
+      print("check kr dia");
       checkUserName(value.trim());
     });
   }
@@ -91,7 +95,6 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final socket = ref.read(socketProvider);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -205,12 +208,12 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                           ),
                         ),
                       ),
-                      if (isUserNameExist == true && _userNameController.text.isNotEmpty)
+                      if (isUserNameExist == false && _userNameController.text.isNotEmpty)
                         const Text(
                           "Username already exists",
                           style: TextStyle(color: Colors.red),
                         )
-                      else if (isUserNameExist == false)
+                      else
                         const Text(
                           "Username is available",
                           style: TextStyle(color: Colors.green),
@@ -219,7 +222,7 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                       CustomElevatedButton(
                         buttonText: "Next",
                         onPressed: (){
-                          if(!isUserNameExist && _formKeys[1].currentState!.validate()){
+                          if(isUserNameExist && _formKeys[1].currentState!.validate()){
                             nextPage();
                           }
                         },

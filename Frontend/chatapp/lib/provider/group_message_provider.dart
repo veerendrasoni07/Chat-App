@@ -27,9 +27,12 @@ class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
 
   void listenGroupMessage() {
     service.listenGroupMessage((data) {
+      print("Group msg sun rha hun main ");
       print(data);
       final msg = GroupMessage.fromMap(data);
-      state = [...state, msg];
+      if(msg.groupId == groupId){
+        state = [...state, msg];
+      }
     });
   }
 
@@ -37,7 +40,7 @@ class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
 
 }
 
-final groupMessageProvider = StateNotifierProvider.family<GroupMessageProvider,List<GroupMessage>,String>((ref,groupId){
+final groupMessageProvider = StateNotifierProvider.autoDispose.family<GroupMessageProvider,List<GroupMessage>,String>((ref,groupId){
   final service = ref.read(socketProvider);
   return GroupMessageProvider(GroupController(), service,groupId);
 });

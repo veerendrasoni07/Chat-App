@@ -1,18 +1,21 @@
 import 'dart:async';
 import 'dart:ui';
-
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:chatapp/controller/friend_controller.dart';
+import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
+import 'package:chatapp/provider/typing_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/service/socket_service.dart';
 import 'package:chatapp/service/sound_manager.dart';
+import 'package:chatapp/views/screens/details/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String fullname;
@@ -31,7 +34,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
   bool isAtBottom = true;
-
+  Timer? debounce;
+  bool isTyping = false;
   @override
   void initState() {
     // TODO: implement initState
@@ -51,7 +55,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
-
+  void userTyping(SocketService socket,String senderId,String receiverId){
+    if(!isTyping){
+      isTyping=true;
+      socket.userTyping(senderId, receiverId);
+    }
+    debounce?.cancel();
+    debounce = Timer(Duration(milliseconds: 700), (){
+      isTyping = false;
+      socket.stopTyping(senderId, receiverId);
+    });
+  }
 
 
   void scrollToBottom(){
@@ -87,6 +101,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final status = ref.watch(statusListener);
     final receiverStatus = status[widget.receiverId];
     final isOnline = receiverStatus?.isOnline ?? false;
+    final socket = ref.watch(socketProvider);
+    final isFriendTyping= ref.watch(typingProvider(widget.receiverId));
     final lastSeen = receiverStatus?.lastSeen;
     final user = ref.watch(userProvider);
     return PopScope(
@@ -121,17 +137,55 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                  icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.inversePrimary,),
                 ),
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AutoSizeText(
-                      widget.fullname,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
+                    GestureDetector(
+                      onTap: () {
+                        final friends = ref.read(friendsProvider);
+                        final friend = friends.firstWhere(
+                              (u) => u.id == widget.receiverId
+                        );
+
+                        if (friend == null) {
+                          // fallback → fetch from server
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FutureBuilder(
+                                future: FriendController().getUserById(userId: widget.receiverId),
+                                builder: (context, snap) {
+                                  if (!snap.hasData) {
+                                    return Scaffold(
+                                      body: Center(child: CircularProgressIndicator()),
+                                    );
+                                  }
+                                  return ProfileScreen(user: snap.data!);
+                                },
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProfileScreen(user: friend),
+                          ),
+                        );
+                      },
+                      child: AutoSizeText(
+                        widget.fullname,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Row(
@@ -144,6 +198,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   : Colors.red,
                           size: 10.r,
                         ),
+                        SizedBox(width: 5,),
                         AutoSizeText(
                           isOnline
                               ? "Online"
@@ -153,14 +208,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Theme.of(context).colorScheme.inversePrimary,
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                backgroundColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.1),
                 elevation: 0,
               ),
             ),
@@ -195,7 +250,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           Text(
                             message.message,
                             style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.inversePrimary,
                               fontWeight: FontWeight.w700,
                             ),
                           ).animate().fade().scale(),
@@ -217,6 +272,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     scrollToBottom();
                   }, icon: Icon(Icons.arrow_circle_down_sharp)),
                 ),
+            if(isFriendTyping)
+              Padding(
+                padding:  EdgeInsets.symmetric(
+                  vertical: 15.h,
+                  horizontal: 10.0.w,
+                ),
+                child: Row(
+                  children: [
+                    Text("Typing...",style: GoogleFonts.montserrat(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
+                    ),)
+                  ],
+                )
+              ),
+
             Padding(
               padding:  EdgeInsets.symmetric(
                 vertical: 15.h,
@@ -224,6 +295,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
               child: TextField(
                 controller: messageController,
+                onChanged:(value)=>userTyping(socket,user!.id,widget.receiverId),
                 decoration: InputDecoration(
                   hintText: 'Type a message',
                   border: OutlineInputBorder(
@@ -231,10 +303,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  fillColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.2),
                   contentPadding: EdgeInsets.all(10.sp),
-                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
-                  prefixIcon: Icon(Icons.door_back_door_outlined,color: Theme.of(context).colorScheme.primary,),
+                  hintStyle: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+                  prefixIcon: Icon(Icons.door_back_door_outlined,color: Theme.of(context).colorScheme.inversePrimary,),
                   suffixIcon: IconButton(
                     onPressed: () async {
                       await ref
@@ -243,7 +315,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       scrollController.jumpTo(scrollController.position.maxScrollExtent);
                       messageController.clear();
                     },
-                    icon: Icon(Icons.send,color: Theme.of(context).colorScheme.primary,),
+                    icon: Icon(Icons.send,color: Theme.of(context).colorScheme.inversePrimary,),
                   ),
                 ),
               ),

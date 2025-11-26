@@ -1,5 +1,6 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+
 import 'dart:convert';
+
 
 class User {
   final String id;
@@ -8,9 +9,13 @@ class User {
   final String profilePic;
   final String gender;
   final String token;
+  final String location;
+
+  final List<String> connections;
+  final String username;
   final bool isOnline;
 
-  User({required this.id,required this.fullname, required this.email, required this.profilePic, required this.gender,required this.token,required this.isOnline});
+  User({required this.id,required this.fullname, required this.email, required this.profilePic, required this.gender,required this.username,required this.token,required this.isOnline,required this.location,required this.connections});
 
 
   Map<String, dynamic> toMap() {
@@ -21,7 +26,10 @@ class User {
       'profilePic': profilePic,
       'gender': gender,
       'token':token,
-      'isOnline':isOnline
+      'isOnline':isOnline,
+      'location':location,
+      'username':username,
+      'connections':connections
     };
   }
 
@@ -34,6 +42,9 @@ class User {
       gender: map['gender'] ?? '',
       token: map['token'] ?? '',
       isOnline: map['isOnline'] ?? false,
+      location: map['location'] ?? '',
+      username: map['username'] ?? '',
+      connections: List<String>.from(map['connections'] ?? []),
     );
   }
 

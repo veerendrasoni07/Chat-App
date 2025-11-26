@@ -9,35 +9,42 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 class GroupController{
 
-  Future<void> createNewGroup({required String groupName,required List<User> members,required String groupId,required BuildContext context})async {
-    try{
+  Future<void> createNewGroup({
+    required String groupName,
+    required List<User> members,
+    required BuildContext context
+  }) async {
+    try {
       SharedPreferences preferences = await SharedPreferences.getInstance();
       final token = preferences.getString('token');
-      final List<String> memberIds = members.map((member) => member.id).toList();
-      final group = Group(id: '', groupName: groupName, groupId: groupId, groupMembers: memberIds, groupAdmin: [], groupDescription: '');
-      http.Response response = await http.post(
-          Uri.parse('$uri/api/create-group'),
-        body: group.toJson(),
-        headers: <String,String>{
-            'Content-Type':'application/json; charset=UTF-8',
-            'x-auth-token':token!,
+
+      final memberIds = members.map((m) => m.id).toList();
+
+      final body = jsonEncode({
+        "groupName": groupName,
+        "groupMembers": memberIds
+      });
+
+      final res = await http.post(
+        Uri.parse("$uri/api/create-group"),
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth-token": token!,
         },
+        body: body,
       );
 
-      if(response.statusCode == 200){
-        debugPrint("Group created successfully");
-        showSnackBar(context, "Hehehehehehe");
+      if (res.statusCode == 200) {
+        showSnackBar(context, "Group Created");
         Navigator.pop(context);
-      }else{
-        if (!context.mounted) return; // ✅ Safe guard
-        showSnackBar(context, jsonDecode(response.body));
+      } else {
+        showSnackBar(context, jsonDecode(res.body)["msg"]);
       }
 
-    }catch(e){
-      throw Exception("We got the error:${e.toString()}");
+    } catch (e) {
+      throw Exception("Error creating group: $e");
     }
   }
-
   Future<List<Group>> fetchGroups()async{
     try{
       SharedPreferences preferences = await SharedPreferences.getInstance();

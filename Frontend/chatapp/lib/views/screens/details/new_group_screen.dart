@@ -102,7 +102,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                         runSpacing: 4,
                         children: List.generate(selectedUsers.length, (index) {
                           return Chip(
-                            color: WidgetStateProperty.all( Theme.of(context).colorScheme.primary.withOpacity(0.2)),
+                            color: WidgetStateProperty.all( Theme.of(context).colorScheme.inversePrimary.withOpacity(0.2)),
                             label: Text(selectedUsers[index].fullname,style: GoogleFonts.montserrat(fontSize: 14.sp,color: Theme.of(context).colorScheme.primary,fontWeight: FontWeight.w700)),
                             deleteIcon: Icon(Icons.cancel),
                             onDeleted: ()=> setState(() {
@@ -182,7 +182,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                           onPressed: () async{
                             var uuid = Uuid();
                             final groupId = uuid.v4();
-                            GroupController().createNewGroup(groupName: controller.text, members: selectedUsers, groupId:groupId , context: context);
+                            GroupController().createNewGroup(groupName: controller.text, members: selectedUsers,context: context);
                             // Handle creation
                           },
                           child: Text(

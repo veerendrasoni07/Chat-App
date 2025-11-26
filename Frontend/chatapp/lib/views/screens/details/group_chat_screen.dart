@@ -78,7 +78,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.inversePrimary),
               ),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,13 +88,13 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                     style: GoogleFonts.montserrat(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.inversePrimary,
                     ),
                   ),
 
                 ],
               ),
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              backgroundColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.1),
               elevation: 0,
             ),
           ),
@@ -129,7 +129,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                         Text(
                           message.message,
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.inversePrimary,
                             fontWeight: FontWeight.w700,
                           ),
                         ).animate().fade().scale(),
@@ -162,10 +162,10 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                fillColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.2),
                 contentPadding: EdgeInsets.all(10.sp),
-                hintStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
-                prefixIcon: Icon(Icons.door_back_door_outlined,color: Theme.of(context).colorScheme.primary,),
+                hintStyle: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+                prefixIcon: Icon(Icons.door_back_door_outlined,color: Theme.of(context).colorScheme.inversePrimary,),
                 suffixIcon: IconButton(
                   onPressed: () async {
                     print(widget.groupId);
@@ -174,7 +174,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                         .sendGroupMessage(senderId: user!.id,message: messageController.text);
                     messageController.clear();
                   },
-                  icon: Icon(Icons.send,color: Theme.of(context).colorScheme.primary,),
+                  icon: Icon(Icons.send,color: Theme.of(context).colorScheme.inversePrimary,),
                 ),
               ),
             ),
