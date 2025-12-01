@@ -1,9 +1,6 @@
 import 'dart:convert';
-
 import 'package:chatapp/global_variable.dart';
 import 'package:chatapp/models/interaction.dart';
-import 'package:chatapp/models/request.dart';
-import 'package:chatapp/models/sent_request.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/request_provider.dart';

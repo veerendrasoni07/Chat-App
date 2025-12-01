@@ -343,7 +343,9 @@ class _RequestTileState extends ConsumerState<_RequestTile>
   }
 
   void _onRejectPressed(Interaction req) {
-    // Implement your reject flow. For now just remove with a small fade.
-    // You may also call a socket.emit('reject-request', {...}) here.
+    final socket = ref.read(socketProvider);
+    final requestP = ref.read(requestProvider(req.fromUser.id).notifier);
+    socket.requestRejected(req.fromUser.id, req.toUser.id);
+    requestP.removeByFrom(req.fromUser.id);
   }
 }

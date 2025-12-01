@@ -7,6 +7,7 @@ import 'package:chatapp/provider/request_provider.dart';
 import 'package:chatapp/provider/sent_request_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/views/screens/details/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,6 +31,9 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     final socket = ref.read(socketProvider);
     socket.sendRequest(fromUserId, toUserId);
   }
+
+
+
 
   void onChangeUsername(String username) {
     if (debounce?.isActive ?? false) debounce?.cancel();
@@ -71,7 +75,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.inversePrimary;
-
     final fromUser = ref.watch(userProvider);
     final friends = ref.watch(friendsProvider);
     final sentRequest = ref.watch(sentRequestProvider);
@@ -202,84 +205,99 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
         sentRequest.any((x) => x.toUser.id == u.id);
         bool alreadyFriend = friends.any((x)=>x.id == u.id);
 
-        return Container(
-          padding:
-          EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-          decoration: BoxDecoration(
-            color: primary.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(18.r),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: primary.withOpacity(0.3),
-                child: Text(
-                  u.fullname[0].toUpperCase(),
-                  style: TextStyle(color: primary, fontSize: 18),
-                ),
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfileScreen(user: u),
               ),
-              SizedBox(width: 12.w),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      u.fullname,
-                      style: GoogleFonts.poppins(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: primary),
-                    ),
-                    Text(
-                      "@${u.username}",
-                      style: GoogleFonts.poppins(
-                        fontSize: 13.sp,
-                        color: primary.withOpacity(0.7),
+            );
+          },
+          child: Container(
+            padding:
+            EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: primary.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(18.r),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: primary.withOpacity(0.3),
+                  child: Text(
+                    u.fullname[0].toUpperCase(),
+                    style: TextStyle(color: primary, fontSize: 18),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+          
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        u.fullname,
+                        style: GoogleFonts.poppins(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: primary),
                       ),
+                      Text(
+                        "@${u.username}",
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.sp,
+                          color: primary.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                alreadyFriend ? GestureDetector(
+                  onTap:(){},
+                  child: AnimatedContainer(
+                      duration: Duration(milliseconds: 350),
+                    padding:  EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.r),
+                      color: Colors.green,
                     ),
-                  ],
-                ),
-              ),
-              alreadyFriend ? GestureDetector(
-                onTap:(){},
-                child: AnimatedContainer(
-                    duration: Duration(milliseconds: 350),
-                  padding:  EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12.r),
-                    color: Colors.green,
+                    curve: Curves.easeInOut,
+                    child: Row(
+                      children: [
+                        Icon(Icons.done),
+                        Text("Friend")
+                      ],
+                    )
                   ),
-                  curve: Curves.easeInOut,
-                  child: Row(
-                    children: [
-                      Icon(Icons.done),
-                      Text("Friend")
-                    ],
-                  )
-                ),
-              ) :
-              GestureDetector(
-                onTap:alreadySent ? (){} : () => sendFriendRequest(fromUserId, u.id),
-                child: AnimatedContainer(
-                    duration: Duration(milliseconds: 250),
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12.r),
-                    color: alreadySent ? Colors.deepOrange : Colors.purple,
+                ) :
+                GestureDetector(
+                  onTap:alreadySent ? (){} : () => sendFriendRequest(fromUserId, u.id),
+                  child: AnimatedContainer(
+                      duration: Duration(milliseconds: 250),
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.r),
+                      color: alreadySent ? Colors.grey.shade400 : Colors.blueAccent,
+                    ),
+                    curve: Curves.easeInOut,
+                    child: alreadySent ? Text("Pending") :Row(
+                      children: [
+                        Icon(Icons.done,color: Theme.of(context).colorScheme.primary,),
+                        Text("Add",style: GoogleFonts.poppins(
+                          fontSize: 14.sp,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600
+                        ),)
+                      ],
+                    ),
                   ),
-                  curve: Curves.easeInOut,
-                  child: alreadySent ? Text("Pending") :Row(
-                    children: [
-                      Icon(Icons.done),
-                      Text("Add")
-                    ],
-                  ),
-                ),
-              )
-
-            ],
+                )
+          
+              ],
+            ),
           ),
         );
       },

@@ -1,8 +1,10 @@
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/group_message_provider.dart';
 import 'package:chatapp/provider/messageProvider.dart';
+import 'package:chatapp/provider/socket_provider.dart';
 
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:flutter/material.dart';
@@ -17,12 +19,14 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 
 class GroupChatScreen extends ConsumerStatefulWidget {
+  final User user;
   final String fullname;
   final String groupId;
   const GroupChatScreen({
     super.key,
     required this.fullname,
     required this.groupId,
+    required this.user,
   });
 
   @override
@@ -33,10 +37,21 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
   final TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
   bool isAtBottom = true;
+
+
+  void groupChatOpened(){
+    final socket = ref.read(socketProvider);
+    socket.groupMessageOpened(widget.user.id, widget.groupId);
+  }
+
+
+
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    groupChatOpened();
     scrollController.addListener((){
       var isAtBottomNow = scrollController.position.pixels >= scrollController.position.maxScrollExtent - 50;
       if(isAtBottomNow != isAtBottom){

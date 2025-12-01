@@ -43,7 +43,7 @@ class RequestProvider extends StateNotifier<List<Interaction>> {
   }
 
   void removeByFrom(String fromId) {
-    state = state.where((r) => r.id != fromId).toList();
+    state = state.where((r) => r.fromUser.id != fromId).toList();
   }
   
 

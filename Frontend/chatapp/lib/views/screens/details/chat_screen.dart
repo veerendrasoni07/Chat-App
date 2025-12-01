@@ -16,6 +16,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String fullname;
@@ -77,6 +78,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     // TODO: implement dispose
     super.dispose();
     messageController.dispose();
+    debounce?.cancel();
     print('Disposed');
   }
 
@@ -102,7 +104,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final receiverStatus = status[widget.receiverId];
     final isOnline = receiverStatus?.isOnline ?? false;
     final socket = ref.watch(socketProvider);
-    final isFriendTyping= ref.watch(typingProvider(widget.receiverId));
+    final isFriendTyping = ref.watch(typingProvider(widget.receiverId));
     final lastSeen = receiverStatus?.lastSeen;
     final user = ref.watch(userProvider);
     return PopScope(
@@ -280,10 +282,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 child: Row(
                   children: [
-                    Text("Typing...",style: GoogleFonts.montserrat(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontWeight: FontWeight.bold,
-                    ),)
+                    Lottie.asset('assets/animation/Typing.json',height: 50.h,width: 50.w),
                   ],
                 )
               ),

@@ -26,7 +26,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.95),
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.transparent,

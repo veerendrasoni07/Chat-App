@@ -7,27 +7,16 @@ class TypingProvider extends StateNotifier<bool>{
   SocketService service;
   String receiverId;
   TypingProvider(this.service,this.receiverId):super(false){
-    listenTyping();
-    stopTyping();
-  }
-
-  void listenTyping(){
-    service.listenTyping((data){
-      final senderId = data['senderId'];
+    service.typingStream.stream.listen((event){
+      print("Kuch to hora hai");
+      final senderId = event.senderId;
       if(senderId == receiverId){
-        state = true;
+        state = event.isTyping;
       }
     });
   }
 
-  void stopTyping(){
-    service.listenStopTyping((data){
-      final senderId = data['senderId'];
-      if(senderId == receiverId){
-        state = false;
-      }
-    });
-  }
+
 
 }
 

@@ -2,7 +2,9 @@ import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/controller/friend_controller.dart';
+import 'package:chatapp/models/user.dart';
 import 'package:chatapp/models/user_status.dart';
+import 'package:chatapp/provider/activity_provider.dart';
 import 'package:chatapp/provider/combined_chat_provider.dart';
 import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/views/screens/details/new_group_screen.dart';
@@ -45,6 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final chats = ref.watch(combinedChatProvider);
+    final activities = ref.watch(activityProvider);
     final status = ref.watch(statusListener);
 
     return Scaffold(
@@ -65,7 +68,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 itemCount: chats.length,
                 itemBuilder: (context, index) {
                   final item = chats[index];
-                  return _buildChatTile(context, item, ref);
+                  return _buildChatTile(context, item, user!,ref);
                 },
               ),
             )
@@ -80,6 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ---------------------------- GLASS CAPSULE HEADER ----------------------------
   Widget _buildGlassCapsuleHeader(BuildContext context, user) {
+    final activities = ref.watch(activityProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
       child: ClipRRect(
@@ -153,17 +157,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                 Spacer(),
 
-                IconButton(
-                  icon: Icon(Icons.notifications, color: Theme
-                      .of(context)
-                      .colorScheme
-                      .inversePrimary),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => NotificationScreen()),
-                    );
-                  },
+                Stack(
+                  children:[
+
+                    IconButton(
+                    icon: Icon(Icons.favorite_border_outlined, color: Theme
+                        .of(context)
+                        .colorScheme
+                        .inversePrimary,size: 30,),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => NotificationScreen()),);
+                      },
+                    ),
+                    if(activities.isNotEmpty)
+                      Positioned(
+                          top: 5,
+                          right: 5,
+                          child: CircleAvatar(
+                            radius: 8,
+                            backgroundColor: Colors.red,
+                          )
+                      ),
+
+                  ]
                 ),
 
                 Icon(Icons.menu, color: Theme
@@ -288,7 +306,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ---------------------------- CHAT TILE ----------------------------
-  Widget _buildChatTile(BuildContext context, dynamic item, WidgetRef ref) {
+  Widget _buildChatTile(BuildContext context, dynamic item,User user ,WidgetRef ref) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ClipRRect(
@@ -380,6 +398,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           GroupChatScreen(
                             fullname: item.name,
                             groupId: item.id,
+                            user: user,
                           ),
                     ),
                   );

@@ -6,6 +6,7 @@ import 'package:chatapp/provider/tokenProvider.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:chatapp/views/entry%20point/authentication/login_screen.dart';
+import 'package:chatapp/views/entry%20point/onBoarding/onboarding_page.dart';
 import 'package:chatapp/views/screens/main_screen.dart';
 import 'package:chatapp/views/screens/nav_screens/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -103,7 +104,7 @@ class AuthController{
     await preferences.remove('user');
     await preferences.remove('token');
     ref.read(userProvider.notifier).signOut();
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=>LoginScreen()) , (route) => false);
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=>OnboardingPage()) , (route) => false);
     showSnackBar(context, 'Logged out successfully');
   }
 

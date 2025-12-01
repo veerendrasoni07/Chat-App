@@ -1,5 +1,8 @@
 
+import 'dart:async';
+
 import 'package:chatapp/global_variable.dart';
+import 'package:chatapp/models/typing_event.dart';
 import 'package:chatapp/service/sound_manager.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -20,6 +23,7 @@ class SocketService {
     socket.onConnect((_) {
       print('Socket connected: ${socket.id}');
       socket.emit('join', userId); // Join user room
+      setupTypingListeners();
     });
 
     socket.onConnectError((err) => print('Connect Error: $err'));
@@ -91,11 +95,16 @@ class SocketService {
       'message':message
     });
   }
-
-
-
+  
   void listenGroupMessage(Function (dynamic) callback){
     socket.on("group-message", callback);
+  }
+  
+  void groupMessageOpened(String userId,String groupId){
+    socket.emit('group-chat-opened',{
+      'userId',userId,
+      'groupId',groupId
+    });
   }
 
 
@@ -114,7 +123,7 @@ class SocketService {
 
   // server -> sender (confirmation that send succeeded / to update UI for sender)
   void sentRequest(Function(dynamic) callback) {
-    socket.on('sent-request', callback);
+    socket.on('request-sent', callback);
   }
 
   // caller -> server (I accept a request). Pass payload as map.
@@ -128,7 +137,7 @@ class SocketService {
   }
 
   void requestRejected(String fromId,String toId){
-    socket.emit('request-rejected',{
+    socket.emit('request-reject',{
       'fromId':fromId,
       'toId':toId
     });
@@ -136,26 +145,45 @@ class SocketService {
 
 
   // typing
-  void userTyping(String senderId,String receiverId){
-    socket.emit('typing',{
-      'senderId':senderId,
-      'receiverId':receiverId
+
+  final typingStream = StreamController<TypingEvent>.broadcast();
+
+  void setupTypingListeners() {
+    socket.on("typing", (data) {
+      typingStream.add(
+        TypingEvent(
+          senderId: data["senderId"],
+          receiverId: data["receiverId"],
+          isTyping: true,
+        ),
+      );
+    });
+
+    socket.on("stop-typing", (data) {
+      typingStream.add(
+        TypingEvent(
+          senderId: data["senderId"],
+          receiverId: data["receiverId"],
+          isTyping: false,
+        ),
+      );
     });
   }
 
-  void stopTyping(String senderId,String receiverId){
-    socket.emit('stop-typing',{
-      'senderId':senderId,
-      'receiverId':receiverId
+  void userTyping(String senderId, String receiverId) {
+    socket.emit("typing", {
+      "senderId": senderId,
+      "receiverId": receiverId,
     });
   }
 
-  void listenTyping(Function (dynamic) callBack){
-    socket.on('typing', callBack);
+  void stopTyping(String senderId, String receiverId) {
+    socket.emit("stop-typing", {
+      "senderId": senderId,
+      "receiverId": receiverId,
+    });
   }
-  void listenStopTyping(Function (dynamic) callBack){
-    socket.on('stop-typing', callBack);
-  }
+
   
 
   void dispose() {

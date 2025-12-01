@@ -1,18 +1,20 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The main profile screen widget
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   final User user;
   const ProfileScreen({super.key, required this.user});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
+class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with TickerProviderStateMixin {
   // For 3D tilt
   double tiltX = 0.0;
@@ -221,6 +223,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
                   // Dots indicator
                   _DotsIndicator(controller: pageController, itemCount: 4),
+
+
+                  ElevatedButton(onPressed: ()=>AuthController().logout(context, ref), child: Text("Logout"))
                 ],
               ),
             ),

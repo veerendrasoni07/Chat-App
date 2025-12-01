@@ -126,75 +126,171 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 }
 
-class ChooseLoginOrSignUp extends StatefulWidget {
+
+class ChooseLoginOrSignUp extends StatelessWidget {
   const ChooseLoginOrSignUp({super.key});
 
   @override
-  State<ChooseLoginOrSignUp> createState() => _ChooseLoginOrSignUpState();
-}
-
-class _ChooseLoginOrSignUpState extends State<ChooseLoginOrSignUp> {
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: Container(
-        height: size.height,
         width: size.width,
+        height: size.height,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-               Color.fromARGB(255, 255, 217, 0),
-              Color.fromARGB(255, 198, 158, 15),
+              Color(0xFFFFD700),
+              Color(0xFFC79E13),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-        
-        
-            Icon(Icons.chat, size: 100, color: Colors.white),
-            SizedBox(height: 20),          
-        
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: size.width * 0.02, vertical: size.height * 0.02),
-              child: CustomElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen())), buttonText: "Login"),
-            ),
-            Row(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: Divider(
-                    color: Colors.grey[400],
-                    thickness: 1,
-                    indent: 20,
-                    endIndent: 10,
+                // App Icon
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.20),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.chat_bubble_outline,
+                    size: 80,
+                    color: Colors.white,
                   ),
                 ),
+
+                const SizedBox(height: 30),
+
+                // Title
                 Text(
-                  "OR",
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.bold,
+                  "Welcome",
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
-                Expanded(
-                  child: Divider(
-                    color: Colors.grey[400],
-                    thickness: 1,
-                    indent: 10,
-                    endIndent: 20,
+
+                const SizedBox(height: 10),
+
+                Text(
+                  "Chat. Connect. Explore.",
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
                   ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Login Button
+                AuthButton(
+                  text: "Login",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const LoginScreen()),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 14),
+
+                // OR Divider
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Divider(
+                        thickness: 1.2,
+                        color: Colors.white54,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        "OR",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const Expanded(
+                      child: Divider(
+                        thickness: 1.2,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                // Signup Button
+                AuthButton(
+                  text: "Sign Up",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const SignUpFlow()),
+                    );
+                  },
                 ),
               ],
             ),
-            Padding(
-              padding:  EdgeInsets.symmetric(horizontal: size.width * 0.02, vertical: size.height * 0.02),
-              child: CustomElevatedButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) =>  const SignUpFlow())), buttonText: "Sign Up"),
-            ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// --------------------------
+// Reusable Button
+// --------------------------
+class AuthButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+
+  const AuthButton({
+    super.key,
+    required this.text,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black87,
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        onPressed: onTap,
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

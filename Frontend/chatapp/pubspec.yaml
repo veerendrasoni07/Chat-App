@@ -74,6 +74,7 @@ flutter:
     - assets/images/blue_snow_night_background.jpg
     - assets/images/snow_tree_background.jpg
     - assets/animation/globe.json
+    - assets/animation/Typing.json
     - assets/animation/cat_typing.json
     - assets/animation/saying_hi_animation.json
     - assets/sounds/mixkit-interface-hint-notification-911.wav

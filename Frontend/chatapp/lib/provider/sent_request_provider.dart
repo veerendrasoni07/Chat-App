@@ -15,14 +15,12 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
     // When server confirms a sent-request (so we get canonical data)
     socketService.sentRequest((data) {
       if (data == null) return;
-
-      final request = Interaction.fromMap(Map<String, dynamic>.from(data));
-      final exists = state.any((r) => r.id == request.id);
-
+      final request = Interaction.fromMap(data);
+      final exists = state.any((r) => r.toUser.id == request.toUser.id);
       if (!exists) {
         state = [request, ...state];
       } else {
-        state = state.map((r) => r.id == request.id ? request : r).toList();
+        state = state.map((r) => r.toUser.id == request.toUser.id ? request : r).toList();
       }
     });
 
@@ -33,7 +31,7 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
 
       // Update the matching interaction
       state = state.map((req) {
-        return req.id == updated.id ? updated : req;
+        return req.toUser.id == updated.toUser.id ? updated : req;
       }).toList();
     });
 

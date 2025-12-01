@@ -1,12 +1,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:chatapp/models/user.dart';
+
 class GroupMessage {
   final String id;
   final String groupId;
   final String senderId;
   final String message;
-  final List<String> seenBy;
+  final List<User> seenBy;
   final DateTime createdAt;
 
   GroupMessage({
@@ -36,9 +38,8 @@ class GroupMessage {
       senderId: map['senderId']?.toString() ?? '',
       message: map['message']?.toString() ?? '',
       seenBy: (map['seenBy'] as List?)
-          ?.map((e) => e.toString())
+          ?.map((e) => User.fromMap(e))
           .toList()
-          .cast<String>()
           ?? [],
 
       createdAt:map['createdAt'] != null ? DateTime.parse(map['createdAt'] as String) : DateTime.now(),
