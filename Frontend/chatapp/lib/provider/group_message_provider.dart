@@ -10,6 +10,8 @@ class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
   final String groupId;
   GroupMessageProvider(this.controller, this.service,this.groupId) :super([]){
     listenGroupMessage();
+    getAllGroupMessage();
+    groupMessageSeenStatus();
   }
 
   Future<void> sendGroupMessage({required String senderId,required String message}) async {
@@ -33,6 +35,28 @@ class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
       if(msg.groupId == groupId){
         state = [...state, msg];
       }
+    });
+  }
+
+  void groupMessageSeenStatus(){
+    service.groupMessageSeen((data){
+      final userId = data['userId'];
+      if (userId == null) return;
+
+      // Update only messages that did not already contain this user in seenBy.
+      state = [
+        for (final msg in state)
+          msg.seenBy.any((u) => u.id == userId)
+              ? msg
+              : msg.copyWith(seenBy: [...msg.seenBy, userId])
+      ];
+    });
+  }
+
+
+  void getAllGroupMessage(){
+    controller.getAllGroupMessages(groupId: groupId).then((value) {
+      state = value;
     });
   }
 

@@ -7,8 +7,10 @@ import 'package:chatapp/models/user_status.dart';
 import 'package:chatapp/provider/activity_provider.dart';
 import 'package:chatapp/provider/combined_chat_provider.dart';
 import 'package:chatapp/provider/friends_provider.dart';
+import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/new_group_screen.dart';
 import 'package:chatapp/views/screens/details/notification_screen.dart';
+import 'package:chatapp/views/widgets/chat_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -46,8 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
-    final chats = ref.watch(combinedChatProvider);
-    final activities = ref.watch(activityProvider);
+    final chats = ref.watch(chatListProvider);
     final status = ref.watch(statusListener);
 
     return Scaffold(
@@ -68,7 +69,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 itemCount: chats.length,
                 itemBuilder: (context, index) {
                   final item = chats[index];
-                  return _buildChatTile(context, item, user!,ref);
+                  return ChatTile(chatId: item.id, isGroup: item.isGroup);
                 },
               ),
             )
@@ -107,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ProfileScreen(user: user!),
+                          builder: (_) => AccountScreen( backgroundType: 'artist',),
                         ),
                       ),
                   child: CircleAvatar(

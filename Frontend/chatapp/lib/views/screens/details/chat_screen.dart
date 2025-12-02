@@ -217,6 +217,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                   ],
                 ),
+                actions: [
+                  IconButton(onPressed: (){}, icon: Icon(Icons.call)),
+                  IconButton(onPressed: (){}, icon: Icon(Icons.video_camera_back_rounded))
+                ],
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.1),
                 elevation: 0,
               ),

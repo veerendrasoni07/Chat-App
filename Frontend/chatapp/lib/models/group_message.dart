@@ -49,4 +49,18 @@ class GroupMessage {
   String toJson() => json.encode(toMap());
 
   factory GroupMessage.fromJson(String source) => GroupMessage.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  GroupMessage copyWith({ String? id,String? groupId ,String? senderId, String? message, List<User>? seenBy ,DateTime? createdAt}){
+    return GroupMessage(
+        id: id ?? this.id,
+        senderId: senderId ?? this.senderId,
+        message: message ?? this.message,
+        seenBy: seenBy ?? this.seenBy,
+        groupId: groupId ?? this.groupId,
+        createdAt: createdAt ?? this.createdAt
+    );
+  }
+
+
+
 }

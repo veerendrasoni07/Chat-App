@@ -102,9 +102,13 @@ class SocketService {
   
   void groupMessageOpened(String userId,String groupId){
     socket.emit('group-chat-opened',{
-      'userId',userId,
-      'groupId',groupId
+      'userId':userId,
+      'groupId':groupId
     });
+  }
+
+  void groupMessageSeen(Function (dynamic) callBack){
+    socket.on('groupMessageStatus', callBack);
   }
 
 
