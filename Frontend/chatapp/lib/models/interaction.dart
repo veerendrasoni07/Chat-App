@@ -23,7 +23,7 @@ class Interaction {
   factory Interaction.fromMap(Map<String, dynamic> map) {
     return Interaction(
       id: map['_id']?.toString() ?? '',
-      fromUser: User.fromMap(map['fromUser'] as Map<String, dynamic>),
+      fromUser: User.fromMap(map['fromUser'] as Map<String, dynamic>) ,
       toUser: User.fromMap(map['toUser'] as Map<String, dynamic>),
       status: map['status'] as String,
     );

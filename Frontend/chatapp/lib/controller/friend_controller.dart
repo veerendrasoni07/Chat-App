@@ -47,6 +47,8 @@ class FriendController{
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
         final List<User> users = data.map((user)=> User.fromMap(user)).toList();
+        print("fasdfasdfjasdjfhaskjdf");
+        print(response.body);
         ref.read(friendsProvider.notifier).setAllFriends(users);
       }
       else{

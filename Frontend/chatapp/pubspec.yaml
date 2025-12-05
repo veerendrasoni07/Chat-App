@@ -44,6 +44,12 @@ dependencies:
   flutter_animate: ^4.5.2
   uuid: ^4.5.2
   flutter_screenutil: ^5.9.3
+  just_audio: ^0.10.5
+  audio_waveforms: ^2.0.1
+  record: ^6.1.2
+  cloudinary_public: ^0.23.1
+  path: ^1.9.1
+  path_provider: ^2.1.5
   audioplayers: ^6.5.1
 
 dev_dependencies:
@@ -79,6 +85,11 @@ flutter:
     - assets/animation/saying_hi_animation.json
     - assets/sounds/mixkit-interface-hint-notification-911.wav
     - assets/sounds/mixkit-sci-fi-interface-zoom-890.wav
+    - assets/icons/chat.png
+    - assets/icons/add-post.png
+    - assets/icons/camera.png
+    - assets/icons/home.png
+    - assets/icons/like.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

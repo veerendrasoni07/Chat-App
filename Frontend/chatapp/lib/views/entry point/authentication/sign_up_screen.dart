@@ -107,6 +107,7 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
               )
             : null,
       ),
+
       body: SafeArea(
         child: PageView(
           controller: _pageController,

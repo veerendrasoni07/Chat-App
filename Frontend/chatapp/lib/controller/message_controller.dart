@@ -1,6 +1,10 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:chatapp/models/message.dart';
+import 'package:chatapp/provider/messageProvider.dart';
+import 'package:chatapp/utils/manage_http_request.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:chatapp/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,38 +13,7 @@ import '../global_variable.dart';
 
 class MessageController{
 
-  Future<Message> sendMessage({required String message,required String receiverId})async{
-    try{
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      final token = preferences.getString('token');
-      if(token == null){
-        throw Exception('No token found');
-      }
-      http.Response response = await http.post(
-          Uri.parse('$uri/api/send-message/$receiverId'),
-          body: jsonEncode({
-            'message':message,
-          }),
-          headers: <String,String>{
-            'Content-Type':'application/json; charset=UTF-8',
-            'x-auth-token':token
-          });
-      if(response.statusCode == 200){
-        final data = jsonDecode(response.body);
-        final Message message = Message.fromMap(data);
-        print('Message sent successfully :${message}');
-        return message;
 
-      }else{
-        print(response.body);
-        throw Exception('Failed to send message:${response.statusCode}');
-      }
-    }
-    catch(e){
-      print(e.toString());
-      throw Exception(e);
-    }
-  }
 
   Future<List<Message>> getMessages({required String receiverId})async{
     try{
@@ -70,6 +43,42 @@ class MessageController{
     }catch(e){
       print(e.toString());
       throw Exception(e);
+    }
+  }
+
+
+  Future<Message> sendVoiceMessage({required File audio,required String senderId,required String receiverId,required double duration,required context,required WidgetRef ref})async{
+    try{
+      final cloudinary = CloudinaryPublic("dktwuay7l", "Social Media");
+      final res = await cloudinary.uploadFile(
+          CloudinaryFile.fromFile(audio.path, resourceType: CloudinaryResourceType.Video)
+      );
+      final secure_url = res.secureUrl;
+      http.Response response = await http.post(
+          Uri.parse('$uri/api/voice-message'),
+        headers: <String,String>{
+            'Content-Type':'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'senderId':senderId,
+          'receiverId':receiverId,
+          'message':secure_url,
+          'duration':duration,
+        })
+      );
+
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        final msg = Message.fromMap(data);
+        return msg;
+        showSnackBar(context, "voice message sent");
+      }
+      else{
+        throw Exception('Failed to send voice message');
+      }
+
+    }catch(e){
+      throw Exception(e.toString());
     }
   }
 

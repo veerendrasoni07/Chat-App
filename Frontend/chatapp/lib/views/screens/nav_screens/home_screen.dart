@@ -33,7 +33,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final FriendController _friendController = FriendController();
-  void fetchAllFriends(){
+
+  void fetchAllFriends() {
     _friendController.getAllFriends(ref: ref);
   }
 
@@ -52,146 +53,276 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final status = ref.watch(statusListener);
 
     return Scaffold(
-      backgroundColor: Theme
-          .of(context)
-          .colorScheme
-          .primary,
-      body: SafeArea(
-        child: Column(
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .primary,
+        body: Stack(
           children: [
-            _buildGlassCapsuleHeader(context, user),
-            _buildFriendOrbit(context, ref, status),
-            Divider(color: Colors.white12, thickness: 0.4),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: 6),
-                physics: BouncingScrollPhysics(),
-                itemCount: chats.length,
-                itemBuilder: (context, index) {
-                  final item = chats[index];
-                  return ChatTile(chatId: item.id, isGroup: item.isGroup);
-                },
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF450072),
+                    const Color(0xFF270249),
+                    const Color(0xFF1F0033)
+                  ],
+                ),
               ),
-            )
+            ),
+
+            SafeArea(
+              child: Padding(
+                padding:const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  children: [
+                    _buildGlassCapsuleHeader(context, user!),
+                    _buildFriendOrbit(context, ref, status),
+                    Divider(color: Colors.white12, thickness: 0.4),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.symmetric(vertical: 6),
+                        physics: BouncingScrollPhysics(),
+                        itemCount: chats.length,
+                        itemBuilder: (context, index) {
+                          final item = chats[index];
+                          return ChatTile(chatId: item.id, isGroup: item.isGroup);
+                        },
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton:_buildRadialMenu(context, ref)
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: _buildRadialMenu(context, ref)
     );
-    
   }
 
   // ---------------------------- GLASS CAPSULE HEADER ----------------------------
-  Widget _buildGlassCapsuleHeader(BuildContext context, user) {
+  Widget _buildGlassCapsuleHeader(BuildContext context,User user) {
     final activities = ref.watch(activityProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            decoration: BoxDecoration(
-              color: Theme
-                  .of(context)
-                  .colorScheme
-                  .inversePrimary
-                  .withOpacity(0.1),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () =>
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AccountScreen( backgroundType: 'artist',),
-                        ),
-                      ),
-                  child: CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.white.withOpacity(0.25),
-                    child: Text(
-                      user?.fullname[0] ?? "?",
-                      style: TextStyle(
-                        color: Theme
-                            .of(context)
-                            .colorScheme
-                            .inversePrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 5),
-                GestureDetector(
-                  onTap: () =>
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AddFriendScreen(),
-                        ),
-                      ),
-                  child: CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.white.withOpacity(0.25),
-                    child: Icon(Icons.search_rounded,color: Theme.of(context).colorScheme.inversePrimary,)
-                  ),
-                ),
-
-                Spacer(),
-
-                Text(
-                  "Orbit",
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Theme
-                        .of(context)
-                        .colorScheme
-                        .inversePrimary,
-                  ),
-                ),
-
-                Spacer(),
-
-                Stack(
-                  children:[
-
-                    IconButton(
-                    icon: Icon(Icons.favorite_border_outlined, color: Theme
-                        .of(context)
-                        .colorScheme
-                        .inversePrimary,size: 30,),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => NotificationScreen()),);
-                      },
-                    ),
-                    if(activities.isNotEmpty)
-                      Positioned(
-                          top: 5,
-                          right: 5,
-                          child: CircleAvatar(
-                            radius: 8,
-                            backgroundColor: Colors.red,
-                          )
-                      ),
-
-                  ]
-                ),
-
-                Icon(Icons.menu, color: Theme
-                    .of(context)
-                    .colorScheme
-                    .inversePrimary),
-              ],
-            ),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(0.35), width: 1),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.10),
+              Colors.white.withOpacity(0.04)
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: BackdropFilter(filter: ImageFilter.blur(
+                  sigmaY: 40,
+                  sigmaX: 40
+                )),
+              ),
+              Row(
+                children: [
+                  /// ------------------------ PROFILE BUTTON (iOS GLASS) ------------------------
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AccountScreen(backgroundType: 'artist',user: user,),
+                      ),
+                    ),
+                    child: Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.25),
+                          width: 1.2,
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.18),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.18),
+                            blurRadius: 18,
+                            offset: Offset(0, 6),
+                          )
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Text(
+                              user.fullname[0],
+                              style: GoogleFonts.poppins(
+                                fontSize: 22,
+                                height: 1,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white.withOpacity(0.95),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(width: 8),
+
+                  /// ------------------------ SEARCH BUTTON (iOS GLASS) ------------------------
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => AddFriendScreen()),
+                    ),
+                    child: Container(
+                      width: 45,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.25),
+                          width: 1.1,
+                        ),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.16),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Icon(
+                            Icons.search_rounded,
+                            size: 24,
+                            color: Colors.white.withOpacity(0.95),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Spacer(),
+
+                  /// ------------------------ TITLE ------------------------
+                  Text(
+                    "Orbit",
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white.withOpacity(0.95),
+                    ),
+                  ),
+
+                  Spacer(),
+
+                  /// ------------------------ NOTIFICATION BUTTON (GLASS) ------------------------
+                  Stack(
+                    children: [
+                      Container(
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.25),
+                            width: 1.1,
+                          ),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.16),
+                              Colors.white.withOpacity(0.05),
+                            ],
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                            child: IconButton(
+                              icon: Icon(Icons.favorite_border_outlined,
+                                  size: 22, color: Colors.white.withOpacity(0.95)),
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => NotificationScreen()),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      if (activities.isNotEmpty)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                          ),
+                        )
+                    ],
+                  ),
+
+                  SizedBox(width: 8),
+
+                  /// ------------------------ MENU BUTTON (GLASS) ------------------------
+                  Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.25)),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.16),
+                          Colors.white.withOpacity(0.05),
+                        ],
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Icon(
+                          Icons.menu,
+                          size: 24,
+                          color: Colors.white.withOpacity(0.95),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+
+            ],
+          )
         ),
       ),
     );
@@ -219,26 +350,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Stack(
                   children: [
                     GestureDetector(
-                      onTap: (){
+                      onTap: () {
                         final friends = ref.read(friendsProvider);
                         final friend = friends.firstWhere(
-                              (u) => u.id == f.id
+                                (u) => u.id == f.id
                         );
                         if (friend == null) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => FutureBuilder(
-                                future: FriendController().getUserById(userId: f.id),
-                                builder: (context, snap) {
-                                  if (!snap.hasData) {
-                                    return Scaffold(
-                                      body: Center(child: CircularProgressIndicator()),
-                                    );
-                                  }
-                                  return ProfileScreen(user: snap.data!);
-                                },
-                              ),
+                              builder: (_) =>
+                                  FutureBuilder(
+                                    future: FriendController().getUserById(
+                                        userId: f.id),
+                                    builder: (context, snap) {
+                                      if (!snap.hasData) {
+                                        return Scaffold(
+                                          body: Center(
+                                              child: CircularProgressIndicator()),
+                                        );
+                                      }
+                                      return ProfileScreen(user: snap.data!);
+                                    },
+                                  ),
                             ),
                           );
                           return;
@@ -250,21 +384,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         );
                       },
-                      child: CircleAvatar(
-                        radius: 28,
-                        backgroundColor:  Theme
-                            .of(context)
-                            .colorScheme
-                            .inversePrimary.withOpacity(0.15),
-                        child: Text(
-                          f.fullname[0],
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Theme
-                                .of(context)
-                                .colorScheme
-                                .inversePrimary,
-                            fontWeight: FontWeight.bold,
+                      child: Container(
+                        width: 55,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withOpacity(0.25)),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.16),
+                              Colors.white.withOpacity(0.05),
+                            ],
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                            child: Center(
+                              child: Text(
+                                f.fullname[0],
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14.sp,
+                                  height: 1,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white
+                                ),
+                              )
+                            )
                           ),
                         ),
                       ),
@@ -287,12 +433,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 SizedBox(height: 4),
                 AutoSizeText(
-                  f.fullname.split(" ").first,
+                  f.fullname
+                      .split(" ")
+                      .first,
                   style: GoogleFonts.poppins(
                       color: Theme
                           .of(context)
                           .colorScheme
-                          .inversePrimary,
+                          .primary,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.8
                   ),
@@ -305,130 +453,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
-  // ---------------------------- CHAT TILE ----------------------------
-  Widget _buildChatTile(BuildContext context, dynamic item,User user ,WidgetRef ref) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-          child: Container(
-            padding: EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Theme
-                  .of(context)
-                  .colorScheme
-                  .inversePrimary
-                  .withOpacity(0.08),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: ListTile(
-              leading: GestureDetector(
-                onTap: () {
-                  final friends = ref.read(friendsProvider);
-                  final friend = friends.firstWhere(
-                        (u) => u.id == item.id,
-                  );
-
-                  if (friend == null) {
-                    // fallback → fetch from server
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => FutureBuilder(
-                          future: FriendController().getUserById(userId: item.id),
-                          builder: (context, snap) {
-                            if (!snap.hasData) {
-                              return Scaffold(
-                                body: Center(child: CircularProgressIndicator()),
-                              );
-                            }
-                            return ProfileScreen(user: snap.data!);
-                          },
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProfileScreen(user: friend),
-                    ),
-                  );
-                },
-                child: CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.15),
-                  child: AutoSizeText(
-                    item.name[0],
-                    style: GoogleFonts.poppins(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              title: AutoSizeText(
-                item.name,
-                style: GoogleFonts.poppins(
-                  color: Theme
-                      .of(context)
-                      .colorScheme
-                      .inversePrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.sp,
-                  letterSpacing: 1.8
-                ),
-              ),
-              subtitle: item.unreadCount > 0
-                  ? Text(
-                "${item.unreadCount} new messages",
-                style: TextStyle(color: Colors.blueAccent),
-              )
-                  : null,
-              onTap: () {
-                if (item.isGroup) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          GroupChatScreen(
-                            fullname: item.name,
-                            groupId: item.id,
-                            user: user,
-                          ),
-                    ),
-                  );
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ChatScreen(
-                            receiverId: item.id,
-                            fullname: item.name,
-                          ),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 Widget _buildRadialMenu(BuildContext context, WidgetRef ref) {
   return Padding(
     padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height*0.10),
     child: FloatingActionButton(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.25),
-      child: Icon(Icons.add, color: Theme.of(context).colorScheme.inversePrimary),
+      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.25),
+      child: Icon(Icons.add, color: Theme.of(context).colorScheme.primary),
       onPressed: () {
         showModalBottomSheet(
           context: context,
@@ -454,7 +485,7 @@ Widget _buildRadialOptions(BuildContext context, WidgetRef ref) {
   return Container(
     padding: EdgeInsets.symmetric(horizontal: 10.w,vertical: 10.h),
     decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.inversePrimary,
+        color: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.45),
         borderRadius: BorderRadius.circular(20)
     ),
     child: Wrap(

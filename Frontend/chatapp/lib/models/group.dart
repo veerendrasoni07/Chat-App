@@ -1,12 +1,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:chatapp/models/user.dart';
+
 class Group {
   final String id;
   final String groupName;
   final String groupId;
-  final List<String> groupMembers;
-  final List<String> groupAdmin;
+  final List<User> groupMembers;
+  final List<User> groupAdmin;
   final String groupDescription;
 
   Group({
@@ -32,12 +34,12 @@ class Group {
 
   factory Group.fromMap(Map<String, dynamic> map) {
     final members = (map['groupMembers'] as List<dynamic>?)
-        ?.map((e) => e.toString())
+        ?.map((e) => User.fromMap(e))
         .toList() ??
         [];
 
     final admins = (map['groupAdmin'] as List<dynamic>?)
-        ?.map((e) => e.toString())
+        ?.map((e) => User.fromMap(e))
         .toList() ??
         [];
     return Group(

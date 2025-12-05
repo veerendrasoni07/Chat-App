@@ -43,8 +43,13 @@ class SocketService {
 
   void listenMessage(String event, Function(dynamic) callback) {
     socket.on(event, callback);
-
   }
+
+
+  void listenVoiceMessage(Function(dynamic) callback){
+    socket.on('new-voice-message', callback);
+  }
+
 
   void userStatus(Function (dynamic) callback){
     socket.on('userStatusChanged', callback);

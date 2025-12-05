@@ -1,4 +1,5 @@
 import 'package:chatapp/controller/message_controller.dart';
+import 'package:chatapp/controller/voice_service.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/service/socket_service.dart';
@@ -7,10 +8,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MessageProvider extends StateNotifier<List<Message>> {
   final MessageController controller;
+  final VoiceService _voiceService;
   final String receiverId;
   final SocketService socket;
   bool _isChatOpen = false;
-  MessageProvider(this.controller, this.receiverId, this.socket) : super([]) {
+  MessageProvider(this.controller, this.receiverId, this.socket, this._voiceService) : super([]) {
     getMessages();
     listenMessage();
   }
@@ -24,7 +26,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
   Future<void> sendMessage({required String senderId,required String receiverId,required String userMessage})async{
     try{
       final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-      final newMessage = Message(id: tempId, senderId: senderId, receiverId: receiverId, message: userMessage, status: 'sending', createdAt: DateTime.now());
+      final newMessage = Message(id: tempId, senderId: senderId, receiverId: receiverId, message: userMessage,type: 'text' , duration: 0.0, voiceUrl: '',status: 'sending', createdAt: DateTime.now());
       state = [...state, newMessage];
       socket.sendMessage(receiverId, senderId, userMessage);
     }catch(e){
@@ -78,6 +80,53 @@ class MessageProvider extends StateNotifier<List<Message>> {
   }
 
 
+  // add a VoiceService field
+
+
+// call this from UI
+  Future<void> sendVoice({
+    required String senderId,
+    required String receiverId,
+    required String filePath, // local path
+    required double duration,
+  }) async {
+    final tempId = 'voice_${DateTime.now().millisecondsSinceEpoch}';
+    final placeholder = Message(
+      id: tempId,
+      senderId: senderId,
+      receiverId: receiverId,
+      message: '', // no text
+      type: 'voice',
+      voiceUrl: filePath, // local path used for optimistic playback if desired
+      duration: duration,
+      status: 'uploading',
+      createdAt: DateTime.now(),
+    );
+
+    state = [...state, placeholder];
+
+    try {
+      // upload & notify server (this will trigger server -> socket -> newMessage)
+      await _voiceService.sendVoiceMessage(
+        senderId: senderId,
+        receiverId: receiverId,
+        filePath: filePath,
+      );
+      // Do not update state here — wait for socket event to replace placeholder.
+    } catch (e) {
+      // mark placeholder failed
+      state = state.map((m) {
+        if (m.id == tempId) {
+          return m.copyWith(status: 'failed');
+        }
+        return m;
+      }).toList();
+      rethrow;
+    }
+  }
+
+
+
 
   void updateMessageStatus(String messageId, String status) {
     state = state.map((msg) {
@@ -112,6 +161,6 @@ final messageProvider =
 StateNotifierProvider.autoDispose.family<MessageProvider, List<Message>, String>(
       (ref, receiverId) {
     final socket = ref.read(socketProvider);
-    return MessageProvider(MessageController(), receiverId, socket);
+    return MessageProvider(MessageController(), receiverId, socket,VoiceService());
   },
 );

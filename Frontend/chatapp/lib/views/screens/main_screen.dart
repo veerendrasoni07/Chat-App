@@ -70,44 +70,57 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     return Container(
       height: 70,
       margin: const EdgeInsets.all(16),
+      width: MediaQuery.of(context).size.width * 0.92,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.10),
+            Colors.white.withOpacity(0.04)
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(40),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
+          children: [
+            //Frosted Blur
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                child: const SizedBox(),
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(Icons.chat_bubble_outline_rounded, Icons.chat_bubble, 0),
-                _navItem(Icons.camera_alt_outlined, Icons.camera_alt_rounded, 1),
+                _navItem("inactive", 'assets/icons/home.png', 0),
+                _navItem("inactive", 'assets/icons/add-post.png', 1),
+                _navItem("inactive", 'assets/icons/chat.png', 2)
               ],
-            ),
-          ),
+            )
+
+          ],
         ),
       ),
     );
   }
 
-  Widget _navItem(IconData inactive, IconData activeIcon, int index) {
+  Widget _navItem(String inactive, String activeIcon, int index) {
     final isActive = _selectedIndex == index;
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: AnimatedContainer(
+        width: 50,
+        height: 50,
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(8),
-        child: Icon(
-          isActive ? activeIcon : inactive,
-          size: 28,
-          color: isActive
-              ? Theme.of(context).colorScheme.inverseSurface
-              : Theme.of(context).colorScheme.inversePrimary.withOpacity(0.5),
-        ),
+        child: Image.asset(activeIcon,color: Theme.of(context).colorScheme.primary,)
       ),
     );
   }

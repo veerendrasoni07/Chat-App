@@ -74,7 +74,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.inversePrimary;
+    final primary = theme.colorScheme.primary;
     final fromUser = ref.watch(userProvider);
     final friends = ref.watch(friendsProvider);
     final sentRequest = ref.watch(sentRequestProvider);
@@ -82,42 +82,55 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            children: [
-              _buildHeader(context, primary),
-              SizedBox(height: 16.h),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF450072),
+              const Color(0xFF270249),
+              const Color(0xFF1F0033)
+            ]
+          )
+        ),
+        child:  SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              children: [
+                _buildHeader(context, primary),
+                SizedBox(height: 16.h),
 
-              _buildSearchBar(primary),
-              SizedBox(height: 16.h),
+                _buildSearchBar(primary),
+                SizedBox(height: 16.h),
 
-              if (isLoading) _buildLoader(primary),
+                if (isLoading) _buildLoader(primary),
 
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: futureUserList.isEmpty && !isLoading
-                      ? friends.isNotEmpty ? _buildFriendsSection(friends, primary) : _buildEmptyState(primary)
-                      : _buildUserList(
-                    futureUserList,
-                    sentRequest,
-                    friends,
-                    fromUser.id,
-                    primary,
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: futureUserList.isEmpty && !isLoading
+                        ? friends.isNotEmpty ? _buildFriendsSection(friends, primary) : _buildEmptyState(primary)
+                        : _buildUserList(
+                      futureUserList,
+                      sentRequest,
+                      friends,
+                      fromUser.id,
+                      primary,
+                    ),
                   ),
                 ),
-              ),
 
 
-              SizedBox(height: 8.h),
+                SizedBox(height: 8.h),
 
-      
-            ],
+
+              ],
+            ),
           ),
         ),
-      ),
+      )
     );
   }
 
@@ -337,9 +350,9 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   backgroundColor: primary.withOpacity(0.2),
                   child: Text(fr.fullname[0], style: TextStyle(color: primary)),
                 ),
-                title: Text(fr.fullname),
-                subtitle: Text("@${fr.username}"),
-                trailing: Icon(Icons.message, color: primary),
+                title: Text(fr.fullname, style: GoogleFonts.poppins(color: primary)),
+                subtitle: Text("@${fr.username}", style: GoogleFonts.poppins(color: primary.withOpacity(0.6))),
+                trailing: Icon(Icons.messenger_rounded, color: primary),
               );
             },
           ),
