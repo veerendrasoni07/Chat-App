@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import http from 'http';
+import mongoose from 'mongoose';
 import User from '../models/user.js';
 import express from 'express';
 import Message from '../models/messages.js';
@@ -20,6 +21,7 @@ const io = new Server(server, {
 
 const onlineUsers = new Map(); // userId -> Set of socketIds
 const activeChats = new Map() ; // userId --> chatWith
+
 
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
@@ -65,7 +67,7 @@ if (user?.groups?.length) {
       {groupAdmin:userId},
       {groupMembers:userId}
     ]}
-  ).lean();
+  ).populate('groupAdmin').populate('groupMembers').lean();
   socket.emit('sync-groups',groups);
 });
 
@@ -105,6 +107,7 @@ if (user?.groups?.length) {
       const newMessage = new Message({
         message:message,
         senderId:senderId,
+        type:"text",
         receiverId:receiverId
       });
       
@@ -173,10 +176,17 @@ if (user?.groups?.length) {
   });
 
 
+  // --- Group ---
+  socket.on("join-group-room", (groupId) => {
+    socket.join(groupId);
+    console.log(`Socket ${socket.id} joined new group: ${groupId}`);
+  });
+
+
   socket.on('send-group-message', async ({ groupId, senderId, message }) => {
   try {
-    const group = await Group.findOne({groupId:groupId});
-    if (!group) return console.log('❌ Invalid group ID:', groupId);
+    const group = await Group.findById(groupId);
+    if (!group) return console.log(' Invalid group ID:', groupId);
 
     // Create and save message
     const newMessage = await GroupMessage.create({
@@ -187,77 +197,136 @@ if (user?.groups?.length) {
 
     // Emit to all sockets in that group room
     io.to(groupId).emit('group-message', newMessage);
-    console.log(`📩 Group message sent in ${groupId} from ${senderId}`);
+    console.log(` Group message sent in ${groupId} from ${senderId}`);``
   } catch (err) {
-    console.log('❌ Error sending group message:', err.message);
+    console.log(' Error sending group message:', err.message);
   }
 });
 
-
-  socket.on('username-check',async({username})=>{
-    try {
-      const user = await User.findOne({username:username});
-      if(!user){
-        console.log("user name is not approved");
-        socket.emit('username-approval',true);
-      }
-      else{
-        console.log("username approved")
-        socket.emit('username-approval',false);
-      }
-    } catch (error) {
-      console.log(error);
+  socket.on("group-chat-opened",async({userId,groupId})=>{
+    console.log(userId);
+    const objectId = new mongoose.Types.ObjectId(userId);
+    const groupMessage = await GroupMessage.find({
+      groupId:groupId
+    });
+    const user = await User.findById(objectId);
+    if(!user) {
+      console.log("User not found!");
+      return;
     }
+    for(let message of groupMessage){
+      if (!message.seenBy.includes(userId)) {
+        message.seenBy.push(userId);
+        await message.save();
+      }
+
+    } 
+    io.to(groupId).emit("groupMessageStatus", {
+            userId,
+            status: "seen"
+    });
+
   });
 
 
 
-  socket.on('send-request',async({fromUserId,toUserId})=>{
+
+
+socket.on('send-request', async ({ fromUserId, toUserId }) => {
     try {
-  
-        const toUserData = await User.findById(toUserId);
-        const fromUserData = await User.findById(fromUserId);
-        const existInteraction = await Interaction.findOne({fromUser:fromUserId,toUser:toUserId});
-        if(existInteraction){
-            return console.log("Request Already sent or accepted or rejected");
+        const existingInteraction = await Interaction.findOne({
+          $or: [
+            { fromUser: fromUserId, toUser: toUserId },
+            { fromUser: toUserId, toUser: fromUserId }
+          ],
+          status: { $in: ["pending", "accepted"] }
+        });
+
+        if (existingInteraction) {
+            console.log("Interaction already exists");
+            return;
         }
-        await Interaction.create({
-            toUser:toUserId,
-            fromUser:fromUserId,
-            status:'pending'
-        });
 
-        toUserData.requests.push({
-            from:fromUserId,
-            fullname:fromUserData.fullname,
-            status:'pending',
-            image:fromUserData.profilePic,
+        let interaction = await Interaction.create({
+            fromUser: fromUserId,
+            toUser: toUserId,
+            status: "pending"
         });
-        fromUserData.sentRequest.push({
-            to:toUserId,
-            fullname:toUserData.fullname,
-            image:toUserData.profilePic,
-            status:'pending'
-        });
-        await toUserData.save();
-        await fromUserData.save();
-        io.to(fromUserId).emit('sent-request',{
-            'to':toUserId,
-            'fullname':toUserData.fullname,
-            'image':toUserData.profilePic,
-            'status':'pending'
-        });
-        io.to(toUserId).emit('request-received',{
-            'from':fromUserId,
-            'fullname':fromUserData.fullname,
-            'status':'pending',
-            'image':fromUserData.profilePic,
-        });
-        console.log("request is sent to the person");
+        interaction = await interaction.populate([
+      { path: "fromUser" },
+      { path: "toUser" }
+    ]);
+        console.log(interaction);
+
+        io.to(toUserId).emit("request-received", interaction);
+        io.to(fromUserId).emit("request-sent", interaction);
+
     } catch (error) {
-      console.log(error);
+        console.log(error);
     }
+});
+
+
+  socket.on('accept-request', async ({ senderId, receiverId }) => {
+    try {
+        const interaction = await Interaction.findOneAndUpdate(
+            {
+                $or: [
+                    { fromUser: senderId, toUser: receiverId },
+                    { fromUser: receiverId, toUser: senderId }
+                ]
+            },
+            { status: "accepted" },
+            { new: true }
+        );
+
+        if (!interaction) return console.log("Interaction not found");
+
+        const sender = await User.findById(senderId);
+        const receiver = await User.findById(receiverId);
+
+        sender.connections.push(receiverId);
+        receiver.connections.push(senderId);
+        await sender.save();
+        await receiver.save();
+
+        io.to(senderId).emit("request-accepted", interaction);
+        io.to(receiverId).emit("request-accepted", interaction);
+
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+
+
+  socket.on("reject-request", async ({ fromId, toId }) => {
+    await Interaction.findOneAndUpdate(
+        {
+            $or: [
+                { fromUser: fromId, toUser: toId },
+                { fromUser: toId, toUser: fromId }
+            ]
+        },
+        { status: "rejected" }
+    );
   });
+
+
+  // typing indicator 
+  socket.on('typing', ({ senderId, receiverId }) => {
+
+    socket.to(receiverId).emit('typing', { senderId,receiverId });
+  });
+  
+  socket.on('stop-typing', ({ senderId, receiverId }) => {
+    socket.to(receiverId).emit('stop-typing', { senderId,receiverId });
+  });
+
+
+  
+
+
 
 
   socket.on('disconnect', async () => {

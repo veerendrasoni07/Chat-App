@@ -70,16 +70,78 @@ partnerRouter.get('/api/search-user/:userName',async(req,res)=>{
     }
 });
 
+partnerRouter.get('/api/user-connections', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-partnerRouter.get('/api/user-connections',auth,async(req,res)=>{
+    const user = await User.findById(userId)
+      .populate("connections");
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json(user.connections);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+partnerRouter.get('/api/get-all-sent-requests', auth, async(req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const requests = await Interaction.find({
+      fromUser: userId,
+      status: "pending"
+    }).populate('toUser').populate('fromUser');
+
+    res.status(200).json(requests);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const requests = await Interaction.find({
+      toUser: userId,
+    }).populate('toUser').populate('fromUser').sort({createdAt:-1});
+
+    res.status(200).json(requests);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
     try {
         const userId = req.user.id;
-        const user = await User.findById(userId);
-        const allConnection = user.connections;
-        res.status(200).json(allConnection);
+        const requests = await Interaction.find({toUser: userId,status: "pending"}).populate('fromUser').populate('toUser'); 
+        res.json(requests);
     } catch (error) {
         console.log(error);
-        res.status(500).json({error:"Internal Server Error"});
+        res.status(500).json({error:"Internal Server Error"});        
+    }
+});
+
+partnerRouter.get('/api/get-user-by-id/:userId',async(req,res)=>{
+    try {
+        const userId = req.params;
+        const user = await User.findById(userId); 
+        res.json(user);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({eror:"Internal Server Error"});        
     }
 });
 

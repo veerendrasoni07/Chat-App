@@ -13,7 +13,7 @@ const interactionSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        enum:['pending','rejected','accepted'],
+        enum:['pending','rejected','accepted','blocked','cancel-suggestion'],
         default:'pending',
     },
 },{timestamps:true})

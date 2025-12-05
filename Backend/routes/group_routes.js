@@ -7,50 +7,48 @@ import GroupMessage from '../models/groupMessage.js';
 
 const groupRouter = express.Router();
 
-groupRouter.post('/api/create-group',auth,async(req,res)=>{
+groupRouter.post('/api/create-group', auth, async (req, res) => {
     try {
-        console.log("creating group wait");
-        const {groupId,groupName,groupMembers} = req.body;
+        const { groupName, groupMembers } = req.body;
         const userId = req.user.id;
-        const validUsers = await User.find({_id:{$in:groupMembers}});
-        if(groupMembers.length!== validUsers.length){
-            return res.status(400).json({msg:"One or more members are invalid"});
+
+        const validUsers = await User.find({ _id: { $in: groupMembers } });
+        if (groupMembers.length !== validUsers.length) {
+            return res.status(400).json({ msg: "Invalid member(s)" });
         }
 
-        const newGroup = await Group.create(
-            {
-                groupAdmin:[userId],
-                groupName:groupName,
-                groupId:groupId,
-                groupMembers:groupMembers,
-            }
-        );
-        const groupData = newGroup.toObject();
-        groupData._id = groupData._id.toString();
-        groupData.groupMembers = groupData.groupMembers.map(id => id.toString());
-        groupData.groupAdmin = groupData.groupAdmin.map(id => id.toString());
-         const allMembers = [...groupMembers,userId]; 
+        const newGroup = await Group.create({
+            groupName,
+            groupMembers,
+            groupAdmin: [userId]
+        });
+
+        const allMembers = [...groupMembers, userId];
+
         await User.updateMany(
-            {_id:{$in:allMembers}},
-            {$push:{group:newGroup._id}}
+            { _id: { $in: allMembers } },
+            { $push: { groups: newGroup._id } }
         );
-        try {
-            allMembers.forEach((memberId) => {
-                io.to(memberId.toString()).emit('group-created', groupData);
-            });
-            console.log(groupData);
-        } catch (error) {
-            console.log(error);
-             return res.status(500).json({ message: "Server error", error: error.message });
-        }
-        console.log("group created");
-        res.status(200).json(groupData);
+
+        io.to(allMembers.map(id => id.toString()))
+          .emit("group-created", { ...newGroup.toObject(), id: newGroup._id });
+
+        // 🔥 NEW: Tell all online users to join this new group room
+        io.to(allMembers.map(id => id.toString())).emit("join-group", {
+            groupId: newGroup._id.toString()
+        });
+
+        res.status(200).json({
+            ...newGroup.toObject(),
+            id: newGroup._id.toString()
+        });
 
     } catch (error) {
-        console.error("Error creating group:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        console.error(error);
+        res.status(500).json({ msg: "Server error" });
     }
 });
+
 
 
 groupRouter.get('/api/get-all-groups',auth,async(req,res)=>{
@@ -61,7 +59,7 @@ groupRouter.get('/api/get-all-groups',auth,async(req,res)=>{
                 {groupMembers:userId},
                 {groupAdmin:userId}
             ]
-        }).lean();
+        }).populate('groupAdmin').populate('groupMembers').lean();
         res.status(200).json(groups);
     }catch(e){
         console.log(e);
@@ -97,14 +95,30 @@ groupRouter.post('/api/send-message-to-group/:id',auth,async(req,res)=>{
     }
 });
 
+groupRouter.get('/api/get-all-group-messages/:groupId',async(req,res)=>{
+    try {
+        const {groupId} = req.params;
+        const allGroupMessages = await GroupMessage.find({groupId}).populate('seenBy');
+        res.status(200).json(allGroupMessages);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error:"Internal Server Error"});
+    }
+});
+
 
 
 groupRouter.delete('/api/delete',async(req,res)=>{
     try {
         await Group.deleteMany();
+        res.json({msg:"Done"})
     } catch (error) {
         console.log(error);
     }
-})
+});
 
+groupRouter.delete('/api/delete-group-messages',async(req,res)=>{
+    await GroupMessage.deleteMany();
+    res.json({msg:"Done"})
+});
 export default groupRouter;

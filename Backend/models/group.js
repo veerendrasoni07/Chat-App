@@ -5,11 +5,7 @@ const groupSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    groupId:{
-        type:String,
-        required:true
-    },
-    groupAdmin:[mongoose.Types.ObjectId],
+    groupAdmin:[{type:mongoose.Types.ObjectId,ref:'User'}],
     groupDescription:{
         type:String,
     },

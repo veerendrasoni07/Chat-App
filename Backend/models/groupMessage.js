@@ -14,7 +14,8 @@ const groupMessageSchema = new mongoose.Schema({
     seenBy:[
         {
             type:mongoose.Types.ObjectId,
-            default:[]
+            default:[],
+            ref:'User'
         }
     ]
 

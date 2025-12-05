@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
 import User from '../models/user.js';
 import dotenv from 'dotenv';
+import Interaction from '../models/interaction.js';
 
 dotenv.config();
 
@@ -72,6 +73,38 @@ authRouter.put('/api/update-profile',async(req,res)=>{
         console.log(error);
         res.status(500).json({error:"Internal Server Error"});
     }
+});
+
+authRouter.get('/api/get-all-friends/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const interactions = await Interaction.find({
+      $or: [
+        { from: userId },
+        { to: userId }
+      ],
+      status: "accepted"
+    })
+    .populate("from", "fullname username profilePic isOnline lastSeen groups location gender email")
+    .populate("to", "fullname username profilePic isOnline lastSeen groups location gender email");
+
+    // Extract only friend user objects
+    const friends = interactions.map(inter => {
+      // If I am "from", my friend is "to"
+      if (inter.from._id.toString() === userId) {
+        return inter.to;
+      }
+      // Else, my friend is "from"
+      return inter.from;
+    });
+
+    res.status(200).json(friends);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 

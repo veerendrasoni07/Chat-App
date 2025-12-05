@@ -40,8 +40,6 @@ const userSchema = new mongoose.Schema({
   isOnline:{type:Boolean},
   lastSeen:{type:Date},
   groups:[String],
-  sentRequest:[{to:mongoose.Schema.Types.ObjectId,status:String,fullname:String,image:String}],
-  requests:[{from:mongoose.Schema.Types.ObjectId,status:String,fullname:String,image:String}],
   connections : [{type:mongoose.Schema.Types.ObjectId,ref:'User'}]
 
 },{timestamps:true});

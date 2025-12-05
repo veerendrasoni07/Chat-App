@@ -84,11 +84,13 @@ messageRoute.post('/api/send-message/:receiverId', auth, async (req, res) => {
 messageRoute.get('/api/get-messages/:receiverId', auth, async (req, res) => {
   try {
     const { receiverId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     const conversation = await Conversation.findOne({
       participants: { $all: [userId, receiverId] }
     }).populate('messages');
+    console.log("sfdsadfasdasasdfsa");
+    console.log(conversation);
     res.status(200).json(conversation ? conversation.messages : []);
   } catch (err) {
     console.log(err);

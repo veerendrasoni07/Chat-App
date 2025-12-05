@@ -7,6 +7,11 @@ const messageSchema = new mongoose.Schema({
         ref:'User',
         required:true
     },
+    type:{
+        type:String,
+        enum:['voice','text','video'],
+        required:true
+    },
     receiverId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'User',
@@ -18,8 +23,15 @@ const messageSchema = new mongoose.Schema({
         default:'sent'
     },
     message:{
+        type:String
+    },
+    voiceUrl:{
         type:String,
-        required:true
+        default:null,
+    },
+    voiceDuration:{
+        type:Number,
+        default:null
     }
     
 },{timestamps:true});
