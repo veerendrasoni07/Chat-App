@@ -71,7 +71,6 @@ class MessageController{
         final data = jsonDecode(response.body);
         final msg = Message.fromMap(data);
         return msg;
-        showSnackBar(context, "voice message sent");
       }
       else{
         throw Exception('Failed to send voice message');

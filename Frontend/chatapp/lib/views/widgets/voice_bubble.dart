@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:just_audio/just_audio.dart';
@@ -32,6 +33,11 @@ class _VoiceBubbleState extends State<VoiceBubble> {
 
   String? localPath;
 
+  /// STREAM SUBSCRIPTIONS
+  StreamSubscription? _positionSub;
+  StreamSubscription? _stateSub;
+  StreamSubscription? _processingSub;
+
   @override
   void initState() {
     super.initState();
@@ -41,51 +47,60 @@ class _VoiceBubbleState extends State<VoiceBubble> {
   }
 
   Future<void> _init() async {
-    /// 1. DOWNLOAD audio (waveform DOES NOT support URL)
-    print(widget.url);
+    // 1. DOWNLOAD audio file
     localPath = await _downloadAudio(widget.url);
 
-    /// 2. LOAD audio in JustAudio
-    await _player.setFilePath(localPath!);
+    if (!mounted) return;
 
+    // 2. LOAD into JustAudio
+    await _player.setFilePath(localPath!);
     total = _player.duration ?? Duration.zero;
     isAudioReady = true;
 
-    /// 3. PREPARE WAVEFORM
+    if (!mounted) return;
+
+    // 3. Prepare Waveform
     await _waveController.preparePlayer(path: localPath!);
     isWaveReady = true;
 
-    /// 4. LISTEN STREAMS
-    _player.positionStream.listen((pos) {
+    if (!mounted) return;
+
+    // 4. STREAM LISTENERS — store them and guard setState
+    _positionSub = _player.positionStream.listen((pos) {
+      if (!mounted) return;
       current = pos;
       setState(() {});
     });
 
-    _player.playerStateStream.listen((state) {
+    _stateSub = _player.playerStateStream.listen((state) {
+      if (!mounted) return;
       isPlaying = state.playing;
       setState(() {});
     });
 
-    _player.processingStateStream.listen((state)async{
-      if(state == ProcessingState.completed){
+    _processingSub = _player.processingStateStream.listen((state) async {
+      if (state == ProcessingState.completed) {
         await _player.seek(Duration.zero);
         await _waveController.seekTo(0);
         await _waveController.pausePlayer();
+
+        if (!mounted) return;
         isPlaying = false;
+        setState(() {});
       }
     });
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  /// downloads file into cache
   Future<String> _downloadAudio(String url) async {
     final dir = await getTemporaryDirectory();
     final file = File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}.aac");
 
     final bytes = await http.readBytes(Uri.parse(url));
     await file.writeAsBytes(bytes);
-
     return file.path;
   }
 
@@ -97,6 +112,11 @@ class _VoiceBubbleState extends State<VoiceBubble> {
 
   @override
   void dispose() {
+    // CANCEL SUBSCRIPTIONS to prevent memory leaks
+    _positionSub?.cancel();
+    _stateSub?.cancel();
+    _processingSub?.cancel();
+
     _player.dispose();
     _waveController.dispose();
     super.dispose();
@@ -104,18 +124,22 @@ class _VoiceBubbleState extends State<VoiceBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final bubbleColor = widget.isMe ? Colors.deepPurple : Colors.blue;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       width: MediaQuery.of(context).size.width * 0.70,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: widget.isMe ? Colors.deepPurple : Colors.blue,
+        color: bubbleColor,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           GestureDetector(
             onTap: () async {
+              if (!isAudioReady || !isWaveReady) return;
+
               if (isPlaying) {
                 await _player.pause();
                 await _waveController.pausePlayer();
@@ -154,7 +178,7 @@ class _VoiceBubbleState extends State<VoiceBubble> {
           Text(
             fmt(total),
             style: const TextStyle(color: Colors.white),
-          )
+          ),
         ],
       ),
     );

@@ -80,13 +80,16 @@ class VoiceService {
   }
 
   // Get cloudinary signature in order to upload voice directly to Cloudinary
-  Future<Map<String, dynamic>> _getCloudinarySignature() async {
+  Future<Map<String, dynamic>> getCloudinarySignature(String type) async {
     try {
       SharedPreferences preferences = await SharedPreferences.getInstance();
       final token = preferences.getString('token');
 
       http.Response response = await http.post(
         Uri.parse('$uri/api/cloudinary/sign'),
+        body: jsonEncode({
+          'type':type
+        }),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'x-auth-token': token!,
@@ -104,7 +107,7 @@ class VoiceService {
     }
   }
 
-  Future<Map<String, dynamic>> _uploadVoiceToCloudinary({
+  Future<Map<String, dynamic>> uploadVoiceToCloudinary({
     required Map<String, dynamic> signedData,
     required String filePath,
   }) async {
@@ -140,14 +143,15 @@ class VoiceService {
   }) async {
     final duration = await getDurationFromFile(filePath);
 
-    final signed = await _getCloudinarySignature();
-    final upload = await _uploadVoiceToCloudinary(
+    final signed = await getCloudinarySignature('voice');
+    final upload = await uploadVoiceToCloudinary(
       signedData: signed,
       filePath: filePath,
     );
 
     final voiceUrl = upload["secure_url"];
     final cloudDuration = upload["duration"] ?? duration;
+    final publicId = upload['public_id'];
 
     SharedPreferences pref = await SharedPreferences.getInstance();
     final token = pref.getString('token');
@@ -158,8 +162,9 @@ class VoiceService {
       body: jsonEncode({
         "senderId": senderId,
         "receiverId": receiverId,
-        "voiceUrl": voiceUrl,
-        "duration": cloudDuration,
+        "publicId":publicId,
+        "uploadUrl": voiceUrl,
+        "uploadDuration": cloudDuration,
       }),
     );
 
@@ -169,4 +174,8 @@ class VoiceService {
 
     return {"url": voiceUrl, "duration": cloudDuration};
   }
+
+
+
+
 }

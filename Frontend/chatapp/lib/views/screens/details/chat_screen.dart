@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:chatapp/models/message.dart';
 import 'package:chatapp/views/widgets/voice_bubble.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:record/record.dart';
@@ -47,8 +50,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Timer? debounce;
   bool isTyping = false;
   bool isRecording = false;
+  XFile? pickedImage;
 
-
+  bool isImage = false;
+  bool isVideo = false;
 
 
   @override
@@ -70,6 +75,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         });
       }
     });
+  }
+
+  void pickImageFromGallery()async{
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
+    if(image!=null){
+      setState(() {
+        pickedImage = image;
+        isImage = true;
+      });
+    }
   }
 
   void userTyping(SocketService socket, String senderId, String receiverId) {
@@ -267,6 +283,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 const Color(0xFF450072),
                 const Color(0xFF270249),
                 const Color(0xFF1F0033),
+                const Color(0xFF140021),
               ],
             ),
           ),
@@ -279,6 +296,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemBuilder: (context, index) {
                     final message = messages[index];
                     final isMe = message.senderId == user!.id;
+                    print("URL URL URL URL");
+                    print(message.uploadUrl);
                     return AnimatedSwitcher(
                       duration: Duration(milliseconds: 350),
                       child: Align(
@@ -319,8 +338,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     ],
                                   ),
                                 )
-                                : VoiceBubble(
-                                  url: message.voiceUrl ?? '',
+                                : message.type == 'image' ? _buildImage(message) : VoiceBubble(
+                                  url: message.uploadUrl ?? '',
                                   isMe: isMe,
                                 ),
                       ),
@@ -359,92 +378,123 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   horizontal: 10.0.w,
                 ),
                 child:
-                     TextField(
-                          controller: messageController,
-                          onChanged:
-                              (value) => userTyping(
-                                socket,
-                                user!.id,
-                                widget.receiverId,
-                              ),
-                          decoration: InputDecoration(
-                            hintText: 'Type a message',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide.none,
-                            ),
-                            filled: true,
-                            fillColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.2),
-                            contentPadding: EdgeInsets.all(10.sp),
-                            hintStyle: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.door_back_door_outlined,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            suffixIcon: SizedBox(
-                              width: 90.w,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  // Microphone button with gesture detection
-                                  GestureDetector(
-                                    onLongPressStart: (details) async {
-
-                                      await _voiceService.startRecording();
-
-                                      setState(() => isRecording = true);
-                                    },
-
-
-                                    onLongPressEnd: (_) async {
-
-                                      final filePath = await _voiceService
-                                          .stopRecording();
-
-                                      if (filePath != null) {
-                                        final duration = await _voiceService
-                                            .getDurationFromFile(filePath);
-
-                                        await ref
-                                            .read(
-                                              messageProvider(
-                                                widget.receiverId,
-                                              ).notifier,
-                                            )
-                                            .sendVoice(
-                                              senderId: user!.id,
-                                              receiverId: widget.receiverId,
-                                              filePath: filePath,
-                                              duration: duration,
-                                            );
-                                      }
-
-                                      setState(() {
-                                        isRecording = false;
-                                      });
-                                    },
-
-                                    child: CircleAvatar(
-                                      radius: 22,
-                                      backgroundColor:
-                                          isRecording
-                                              ? Colors.red
-                                              : Colors.blue,
-                                      child: Icon(
-                                        Icons.mic,
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                     Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         if(pickedImage!=null)
+                           Chip(
+                             onDeleted: (){
+                               setState(() {
+                                 pickedImage = null;
+                               });
+                             },
+                               label: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,)
+                           ),
+                         TextField(
+                              controller: messageController,
+                              onChanged:
+                                  (value) => userTyping(
+                                    socket,
+                                    user!.id,
+                                    widget.receiverId,
                                   ),
-                                ],
+                              decoration: InputDecoration(
+                                hintText: 'Type a message',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.2),
+                                contentPadding: EdgeInsets.all(10.sp),
+                                hintStyle: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.door_back_door_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                suffixIcon: SizedBox(
+                                  width: 120.w,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
+                                      // Microphone button with gesture detection
+                                      GestureDetector(
+                                        onLongPressStart: (details) async {
+                         
+                                          await _voiceService.startRecording();
+                         
+                                          setState(() => isRecording = true);
+                                        },
+                         
+                         
+                                        onLongPressEnd: (_) async {
+                         
+                                          final filePath = await _voiceService
+                                              .stopRecording();
+                         
+                                          if (filePath != null) {
+                                            final duration = await _voiceService
+                                                .getDurationFromFile(filePath);
+                         
+                                            await ref
+                                                .read(
+                                                  messageProvider(
+                                                    widget.receiverId,
+                                                  ).notifier,
+                                                )
+                                                .sendVoice(
+                                                  senderId: user!.id,
+                                                  receiverId: widget.receiverId,
+                                                  filePath: filePath,
+                                                  duration: duration,
+                                                );
+                                          }
+                         
+                                          setState(() {
+                                            isRecording = false;
+                                          });
+                                        },
+                         
+                                        child: CircleAvatar(
+                                          radius: 14.r,
+                                          backgroundColor:
+                                              isRecording
+                                                  ? Colors.red
+                                                  : Colors.blue,
+                                          child: Icon(
+                                            Icons.mic,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                          onPressed: (){
+                                            if(isImage) {
+                                              ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!.path, message: messageController.text);
+                                              setState(() {
+                                                pickedImage = null;
+                                                isImage = false;
+                                                messageController.clear();
+                                              });
+
+                                            }
+                                            else{
+                                              ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
+                                            }
+                                          },
+                                          icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                       ],
+                     ),
               ),
             ],
           ),
@@ -452,6 +502,66 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
   }
+
+  Widget _buildImage(Message message) {
+    final isNetwork = message.uploadUrl.startsWith('http');
+    if (isNetwork) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2
+          ),
+        ),
+        child: Column(
+          children: [
+            Image.network(
+              message.uploadUrl,
+              height: 150.h,
+              width: 150.w,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stack) =>
+              const Icon(Icons.broken_image, size: 60, color: Colors.red),
+              loadingBuilder: (context, child, progress) {
+                if (progress == null) return child;
+                return const SizedBox(
+                  height: 150,
+                  width: 150,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              },
+            ),
+            Text(message.message)
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2
+          )
+        ),
+        child: Column(
+          children: [
+            Image.file(
+              File(message.uploadUrl),
+              height: 150.h,
+              width: 150.w,
+              fit: BoxFit.cover,
+            ),
+            Text(message.message)
+          ],
+        ),
+      );
+    }
+  }
+
 
   Widget _buildStatusIcon(String status) {
     switch (status) {

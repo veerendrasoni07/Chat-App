@@ -120,8 +120,8 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               Theme.of(context).colorScheme.inversePrimary.withOpacity(0.15),
               backgroundImage:
               activity.fromUser.profilePic != null &&
-                  activity.fromUser.profilePic!.isNotEmpty
-                  ? NetworkImage(activity.fromUser.profilePic!)
+                  activity.fromUser.profilePic.isNotEmpty
+                  ? NetworkImage(activity.fromUser.profilePic)
                   : null,
               child: activity.fromUser.profilePic == null ||
                   activity.fromUser.profilePic!.isEmpty

@@ -6,13 +6,13 @@ class Message {
   final String senderId;
   final String receiverId;
   final String type;
-  final double duration;
-  final String voiceUrl;
+  final double uploadDuration;
+  final String uploadUrl;
   final String message;
   final String status;
   final DateTime? createdAt;
 
-  Message({required this.id, required this.senderId, required this.receiverId, required this.message,required this.status,required this.type,required this.duration,required this.voiceUrl,required this.createdAt});
+  Message({required this.id, required this.senderId, required this.receiverId, required this.message,required this.status,required this.type,required this.uploadDuration,required this.uploadUrl,required this.createdAt});
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -22,8 +22,8 @@ class Message {
       'message': message,
       'status':status,
       'type':type,
-      'duration':duration,
-      'voiceUrl':voiceUrl,
+      'uploadDuration':uploadDuration,
+      'uploadUrl':uploadUrl,
       'createdAt': createdAt?.toIso8601String(),
     };
   }
@@ -36,8 +36,8 @@ class Message {
       message: (map['message'] ?? '').toString(),
       status: (map['status'] ?? 'sent').toString(),
       type: (map['type'] ?? '').toString(),
-      duration: (map['duration'] ?? 0.0) as double,
-      voiceUrl: (map['voiceUrl'] ?? '').toString(),
+      uploadDuration: (map['uploadDuration'] ?? 0.0) as double,
+      uploadUrl: (map['uploadUrl'] ?? '').toString(),
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
@@ -45,7 +45,7 @@ class Message {
   }
 
 
-  Message copyWith({ String? id, String? senderId, String? receiverId, String? message, String? status, String? type, double? duration, String? voiceUrl, DateTime? createdAt}){
+  Message copyWith({ String? id, String? senderId, String? receiverId, String? message, String? status, String? type, double? uploadDuration, String? uploadUrl, DateTime? createdAt}){
     return Message(
       id: id ?? this.id,
       senderId: senderId ?? this.senderId,
@@ -53,8 +53,8 @@ class Message {
       message: message ?? this.message,
         status: status ?? this.status,
         type: type ?? this.type,
-        duration: duration ?? this.duration,
-        voiceUrl: voiceUrl ?? this.voiceUrl,
+        uploadDuration: uploadDuration ?? this.uploadDuration,
+        uploadUrl: uploadUrl ?? this.uploadUrl,
         createdAt: createdAt ?? this.createdAt
     );
   }
