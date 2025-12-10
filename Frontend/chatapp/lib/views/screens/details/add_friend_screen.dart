@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:chatapp/componentss/responsive.dart';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/interaction.dart';
 import 'package:chatapp/models/user.dart';
@@ -95,39 +97,45 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
           )
         ),
         child:  SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              children: [
-                _buildHeader(context, primary),
-                SizedBox(height: 16.h),
+          child: LayoutBuilder(
+            builder: (context,constraints){
+              final size = ResponsiveClass(constraints.maxHeight,constraints.maxWidth);
+              return Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  children: [
+                    _buildHeader(context, primary,size),
+                    SizedBox(height: size.hp(3)),
 
-                _buildSearchBar(primary),
-                SizedBox(height: 16.h),
+                    _buildSearchBar(primary,size),
+                    SizedBox(height: size.hp(3)),
 
-                if (isLoading) _buildLoader(primary),
+                    if (isLoading) _buildLoader(primary,size),
 
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: futureUserList.isEmpty && !isLoading
-                        ? friends.isNotEmpty ? _buildFriendsSection(friends, primary) : _buildEmptyState(primary)
-                        : _buildUserList(
-                      futureUserList,
-                      sentRequest,
-                      friends,
-                      fromUser.id,
-                      primary,
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        child: futureUserList.isEmpty && !isLoading
+                            ? friends.isNotEmpty ? _buildFriendsSection(friends, primary) : _buildEmptyState(primary,size)
+                            : _buildUserList(
+                          futureUserList,
+                          sentRequest,
+                          friends,
+                          fromUser.id,
+                          primary,
+                          size
+                        ),
+                      ),
                     ),
-                  ),
+
+
+                    SizedBox(height: size.hp(3)),
+
+
+                  ],
                 ),
-
-
-                SizedBox(height: 8.h),
-
-
-              ],
-            ),
+              );
+            },
           ),
         ),
       )
@@ -135,13 +143,13 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   }
 
   // ---------------- BEAUTIFUL HEADER ----------------
-  Widget _buildHeader(BuildContext context, Color primary) {
+  Widget _buildHeader(BuildContext context, Color primary,ResponsiveClass size) {
     return Row(
       children: [
-        Text(
+        AutoSizeText(
           "Add Friends",
           style: GoogleFonts.poppins(
-            fontSize: 22.sp,
+            fontSize: size.font(25),
             fontWeight: FontWeight.w700,
             color: primary,
           ),
@@ -149,52 +157,52 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
         Spacer(),
         IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.close, color: primary, size: 26),
+          icon: Icon(Icons.close, color: primary, size: size.font(26)),
         ),
       ],
     );
   }
 
   // ---------------- SEARCH BAR ----------------
-  Widget _buildSearchBar(Color primary) {
+  Widget _buildSearchBar(Color primary,ResponsiveClass size) {
     return Container(
       decoration: BoxDecoration(
         color: primary.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(size.wp(4)),
       ),
       child: TextField(
         onChanged: onChangeUsername,
         autocorrect: true,
         style:
-        GoogleFonts.poppins(fontSize: 16.sp, color: primary),
+        GoogleFonts.poppins(fontSize: size.font(16), color: primary),
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.search_rounded, color: primary),
           hintText: "Search username",
           hintStyle: GoogleFonts.poppins(
-              color: primary.withOpacity(0.6), fontSize: 14.sp),
+              color: primary.withOpacity(0.6), fontSize: size.font(14)),
           border: InputBorder.none,
           contentPadding:
-          EdgeInsets.symmetric(vertical: 12.h, horizontal: 10.w),
+          EdgeInsets.symmetric(vertical:size.hp(3.5), horizontal: size.wp(3.5)),
         ),
       ),
     );
   }
 
   // ---------------- LOADER ----------------
-  Widget _buildLoader(Color primary) {
+  Widget _buildLoader(Color primary,ResponsiveClass size) {
     return Padding(
-      padding: EdgeInsets.only(top: 10.h),
+      padding: EdgeInsets.only(top: size.wp(4)),
       child: CircularProgressIndicator(strokeWidth: 2.2, color: primary),
     );
   }
 
   // ---------------- EMPTY UI ----------------
-  Widget _buildEmptyState(Color primary) {
+  Widget _buildEmptyState(Color primary,ResponsiveClass size) {
     return Center(
-      child: Text(
+      child: AutoSizeText(
         "Start typing to search",
         style: GoogleFonts.poppins(
-          fontSize: 15.sp,
+          fontSize: size.font(15),
           color: primary.withOpacity(0.6),
         ),
       ),
@@ -208,10 +216,11 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       List<User> friends,
       String fromUserId,
       Color primary,
+      ResponsiveClass size
       ) {
     return ListView.separated(
       itemCount: users.length,
-      separatorBuilder: (_, __) => SizedBox(height: 12.h),
+      separatorBuilder: (_, __) => SizedBox(height: size.hp(2.5)),
       itemBuilder: (context, index) {
         final u = users[index];
         final alreadySent =
@@ -230,22 +239,22 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
           },
           child: Container(
             padding:
-            EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+            EdgeInsets.symmetric(horizontal: size.wp(3), vertical: 12.h),
             decoration: BoxDecoration(
               color: primary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(18.r),
+              borderRadius: BorderRadius.circular(size.wp(4)),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 24,
+                  radius: size.wp(5),
                   backgroundColor: primary.withOpacity(0.3),
                   child: Text(
                     u.fullname[0].toUpperCase(),
-                    style: TextStyle(color: primary, fontSize: 18),
+                    style: TextStyle(color: primary, fontSize: size.font(18)),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: size.wp(3)),
           
                 Expanded(
                   child: Column(
@@ -254,14 +263,14 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                       Text(
                         u.fullname,
                         style: GoogleFonts.poppins(
-                            fontSize: 16.sp,
+                            fontSize: size.font(16),
                             fontWeight: FontWeight.w600,
                             color: primary),
                       ),
                       Text(
                         "@${u.username}",
                         style: GoogleFonts.poppins(
-                          fontSize: 13.sp,
+                          fontSize: size.font(13),
                           color: primary.withOpacity(0.7),
                         ),
                       ),
@@ -272,16 +281,16 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   onTap:(){},
                   child: AnimatedContainer(
                       duration: Duration(milliseconds: 350),
-                    padding:  EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    padding:  EdgeInsets.symmetric(horizontal: size.wp(2), vertical: size.hp(2)),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(size.wp(3)),
                       color: Colors.green,
                     ),
                     curve: Curves.easeInOut,
                     child: Row(
                       children: [
                         Icon(Icons.done),
-                        Text("Friend")
+                        AutoSizeText("Friend")
                       ],
                     )
                   ),
@@ -290,16 +299,16 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   onTap:alreadySent ? (){} : () => sendFriendRequest(fromUserId, u.id),
                   child: AnimatedContainer(
                       duration: Duration(milliseconds: 250),
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    padding: EdgeInsets.symmetric(horizontal: size.wp(2), vertical: size.hp(2.5)),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.r),
                       color: alreadySent ? Colors.grey.shade400 : Colors.blueAccent,
                     ),
                     curve: Curves.easeInOut,
-                    child: alreadySent ? Text("Pending") :Row(
+                    child: alreadySent ? AutoSizeText("Pending") :Row(
                       children: [
                         Icon(Icons.done,color: Theme.of(context).colorScheme.primary,),
-                        Text("Add",style: GoogleFonts.poppins(
+                        AutoSizeText("Add",style: GoogleFonts.poppins(
                           fontSize: 14.sp,
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600

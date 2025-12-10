@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:chatapp/componentss/responsive.dart';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:flutter/material.dart';
@@ -65,102 +66,40 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
           ),
 
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: SingleChildScrollView(
+              child: LayoutBuilder(
+                builder: (context,constraint){
+                  final size = ResponsiveClass(constraint.maxHeight, constraint.maxWidth);
+                  return  Column(
                     children: [
-                      IconButton(
-                        onPressed: () =>Navigator.pop(context),
-                        icon: Icon(Icons.arrow_back_ios_new, size: 28,color:primary),
-                      ),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           IconButton(
-                              onPressed: () {},
-                              icon:  Icon(Icons.qr_code_2, size: 28,color:primary)),
-                          IconButton(
-                              onPressed: () =>AuthController().logout(context, ref),
-                              icon: Icon(Icons.more_vert, size: 28,color:primary)),
+                            onPressed: () =>Navigator.pop(context),
+                            icon: Icon(Icons.arrow_back_ios_new, size: size.wp(2.5),color:primary),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                  onPressed: () {},
+                                  icon:  Icon(Icons.qr_code_2, size: size.wp(2.5),color:primary)),
+                              IconButton(
+                                  onPressed: () =>AuthController().logout(context, ref),
+                                  icon: Icon(Icons.more_vert, size: size.wp(2.5),color:primary)),
+                            ],
+                          ),
                         ],
                       ),
+                      _buildHeader(widget.user,size),
+                      SizedBox(height: size.hp(5)),
+                      _interactiveTiltCard(),
+                      SizedBox(height: size.hp(5)),
+                      SizedBox(height: size.hp(5)),
+                      _buildSettingsList(context,ref,size),
                     ],
-                  ),
-                  _buildHeader(widget.user),
-                  const SizedBox(height: 35),
-                  _interactiveTiltCard(),
-                  const SizedBox(height: 35),
-                  Container(
-                    height: 50, // Define a height for your custom tab bar area
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.35), width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        )
-                      ],
-                      gradient: LinearGradient(
-                          colors: [
-                        Colors.white.withOpacity(0.10),
-                        Colors.white.withOpacity(0.04)
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    ),
-                    child:ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                            child: Stack(
-                              children: [
-                                BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: 40,
-                                    sigmaY: 40,
-                                  ),
-                                ),
-                                TabBar(
-                                    controller: _tabController,
-                                    //indicatorPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-
-                                    //splashFactory: NoSplash.splashFactory, // No ripple
-                                    dividerColor: Colors.white.withOpacity(0.35),
-                                    labelColor: Colors.white,
-                                    unselectedLabelColor: Colors.white.withOpacity(0.45),
-                                    tabs: [
-                                      Tab(
-                                        icon:Icon(Icons.grid_view_rounded,size: 30,) ,
-                                      ),
-                                      Tab(
-                                        icon:Icon(Icons.camera_alt_rounded,size: 30,) ,
-                                      ),
-                                      Tab(
-                                        icon:Icon(Icons.favorite,size: 30,) ,
-                                      )
-                                    ]
-                                ),
-                              ],
-                            )
-                        ),
-
-
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController, // If using a custom TabController
-
-                      children: <Widget>[
-                        Center(child: Text('Content for Tab 1')),
-                        Center(child: Text('Content for Tab 2')),
-                        Center(child: Text('Content for Tab 3')),
-                      ],
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -169,31 +108,31 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
     );
   }
 
-  // -------------------- HEADER --------------------
-  Widget _buildHeader(User user) {
+
+  Widget _buildHeader(User user,ResponsiveClass size) {
     return Row(
       children: [
-        _glassAvatar(user.profilePic,user.fullname),
-        const SizedBox(width: 18),
+        _glassAvatar(user.profilePic,user.fullname,size),
+        SizedBox(width: size.wp(3)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(user.fullname,
                   style: GoogleFonts.poppins(
-                      fontSize: 22,
+                      fontSize: size.font(28),
                       fontWeight: FontWeight.w600,
                       color: Colors.white)),
-              const SizedBox(height: 2),
+              SizedBox(height: size.hp(2)),
               Text(user.email,
                   style: GoogleFonts.poppins(
                       fontSize: 14, color: Colors.white70)),
-              const SizedBox(height: 10),
+              SizedBox(height: size.hp(2.5)),
               Row(
                 children: [
-                  _iosButton("Following"),
-                  const SizedBox(width: 10),
-                  _iosButton("Message"),
+                  _iosButton("Following",size),
+                  SizedBox(width: size.wp(2)),
+                  _iosButton("Message",size),
                 ],
               )
             ],
@@ -203,28 +142,28 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
     );
   }
 
-  // -------------- iOS Capsule Buttons --------------
-  Widget _iosButton(String text) {
+
+  Widget _iosButton(String text,ResponsiveClass size) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      padding:  EdgeInsets.symmetric(horizontal: size.wp(4), vertical: size.hp(1)),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(size.wp(2)),
           color: Colors.white.withOpacity(0.12),
           border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
       child: Text(
         text,
         style: GoogleFonts.poppins(
-            fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+            fontSize: size.font(13), color: Colors.white, fontWeight: FontWeight.w500),
       ),
     );
   }
 
-  // -------------- Premium Glass Avatar --------------
-  Widget _glassAvatar(String profilePic,String text) {
+
+  Widget _glassAvatar(String profilePic,String text,ResponsiveClass size) {
     return Container(
-      width: 90,
-      height: 90,
+      width: size.wp(30),
+      height: size.hp(30),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(26),
           gradient: LinearGradient(
@@ -260,7 +199,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
     );
   }
 
-  // ---------------- Interactive Tilt Card ----------------
+
   Widget _interactiveTiltCard() {
     return Listener(
       onPointerUp: (_) => setState(() {
@@ -303,7 +242,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
     );
   }
 
-  // ---------------- Premium Stats Glass Card ----------------
+
   Widget _glassStatsCard() {
     return Container(
       width: MediaQuery.of(context).size.width * 0.92,
@@ -364,10 +303,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _statColumn("251", "Posts"),
-              _statColumn("1.2K", "Followers"),
-              _statColumn("52K", "Views"),
-              _statColumn("8K", "Likes"),
+              _statColumn("1.8K", "Messages"),
+              _statColumn("36", "Contacts"),
+              _statColumn("412", "Media"),
+              _statColumn("2 yrs", "Joined"),
             ],
           ),
           Divider(
@@ -377,15 +316,18 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              "App developer | Builder | Growth mindset 🚀",
-              style:
-              GoogleFonts.poppins(fontSize: 15, color: Colors.white70),
+              widget.user.bio.isNotEmpty == true
+                  ? widget.user.bio
+                  : "Available",
+              style: GoogleFonts.poppins(
+                  fontSize: 15, color: Colors.white70),
             ),
           )
         ],
       ),
     );
   }
+
 
   Widget _statColumn(String value, String label) {
     return Column(
@@ -399,4 +341,47 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
       ],
     );
   }
+}
+Widget _buildSettingsList(context,WidgetRef ref,ResponsiveClass size) {
+  return Column(
+    children: [
+      _settingsTile(Icons.person, "Edit Profile", () {},size),
+      _settingsTile(Icons.lock, "Privacy", () {},size),
+      _settingsTile(Icons.image, "Media & Storage", () {},size),
+      _settingsTile(Icons.block, "Blocked Users", () {},size),
+      _settingsTile(Icons.logout, "Logout", () {
+        AuthController().logout(context, ref);
+      },size),
+    ],
+  );
+}
+
+Widget _settingsTile(IconData icon, String title, VoidCallback onTap,ResponsiveClass size) {
+  return Container(
+    margin:  EdgeInsets.only(bottom: size.wp(2)),
+    padding:  EdgeInsets.symmetric(horizontal: size.wp(4), vertical: size.hp(1)),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(18),
+      color: Colors.white.withOpacity(0.08),
+      border: Border.all(color: Colors.white.withOpacity(0.15)),
+    ),
+    child: Row(
+      children: [
+        Icon(icon, color: Colors.white, size: size.wp(5)),
+        SizedBox(width: size.wp(3)),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: size.font(14),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Icon(Icons.arrow_forward_ios_rounded,
+            color: Colors.white.withOpacity(0.4), size: size.wp(3)),
+      ],
+    ),
+  );
 }

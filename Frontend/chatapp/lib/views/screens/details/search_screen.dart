@@ -32,36 +32,38 @@ class _SearchScreenState extends State<SearchScreen> {
     return  Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body:  SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.75,
-                      child: TextField(
-                        controller: controller,
-                        cursorColor: Colors.green,
-                        decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.2),
-                            hintText: "Search",
-                            prefixIcon: Hero(tag: "search_animation",child: Icon(Icons.search_rounded,color: Theme.of(context).colorScheme.inversePrimary,)).animate().shake(duration: Duration(seconds: 2)),
-                            hintStyle: GoogleFonts.montserrat(fontSize: 15,color: Theme.of(context).colorScheme.inversePrimary,fontWeight: FontWeight.w700),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20)
-                            )
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.75,
+                        child: TextField(
+                          controller: controller,
+                          cursorColor: Colors.green,
+                          decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.2),
+                              hintText: "Search",
+                              prefixIcon: Hero(tag: "search_animation",child: Icon(Icons.search_rounded,color: Theme.of(context).colorScheme.inversePrimary,)).animate().shake(duration: Duration(seconds: 2)),
+                              hintStyle: GoogleFonts.montserrat(fontSize: 15,color: Theme.of(context).colorScheme.inversePrimary,fontWeight: FontWeight.w700),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(20)
+                              )
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(child: TextButton(onPressed: ()=>Navigator.pop(context), child: AutoSizeText("Cancel",style: GoogleFonts.montserrat(color: Theme.of(context).colorScheme.inversePrimary,fontWeight: FontWeight.w600,fontSize: 14.sp),)))
-                  ],
-                ),
-              )
-            ],
+                      Expanded(child: TextButton(onPressed: ()=>Navigator.pop(context), child: AutoSizeText("Cancel",style: GoogleFonts.montserrat(color: Theme.of(context).colorScheme.inversePrimary,fontWeight: FontWeight.w600,fontSize: 14.sp),)))
+                    ],
+                  ),
+                )
+              ],
+            ),
           )
       ),
     );

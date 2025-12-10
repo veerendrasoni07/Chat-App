@@ -22,6 +22,8 @@ class ChatTile extends ConsumerWidget {
     final name = isGroup
         ? ref.watch(groupInfoProvider(chatId))?.groupName ?? 'Group'
         : ref.watch(friendInfoProvider(chatId))?.fullname ?? 'User';
+    final picture = isGroup ? ref.watch(groupInfoProvider(chatId))?.groupPic ?? 'Group'
+        : ref.watch(friendInfoProvider(chatId))?.fullname ?? 'User';
     final List<User> groupMembers = isGroup ? ref.watch(groupInfoProvider(chatId))!.groupMembers : [];
     final List<User> groupAdmins = isGroup ? ref.watch(groupInfoProvider(chatId))!.groupAdmin : [];
     // tiny derived data — will rebuild only if these particular values change
@@ -75,7 +77,7 @@ class ChatTile extends ConsumerWidget {
                   onTap: () {
                     if (isGroup) {
                       Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => GroupChatScreen(fullname: name, groupId: chatId, user: ref.read(userProvider)!,groupMembers: groupMembers,groupAdmin: groupAdmins,)
+                          builder: (_) => GroupChatScreen(fullname: name, groupId: chatId, user: ref.read(userProvider)!,groupMembers: groupMembers,groupAdmin: groupAdmins,groupPic: picture,)
                       ));
                     } else {
                       Navigator.push(context, MaterialPageRoute(

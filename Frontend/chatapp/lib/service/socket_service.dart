@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:chatapp/global_variable.dart';
 import 'package:chatapp/models/typing_event.dart';
 import 'package:chatapp/service/sound_manager.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -199,3 +200,90 @@ class SocketService {
     socket.dispose();
   }
 }
+
+extension CallEvents on SocketService{
+
+  // join call room
+  void joinCall(String meetingId,String userId){
+    socket.emit('join-call',{
+      'meetingId':meetingId,
+      'userId':userId
+    });
+  }
+
+  void leaveCall(String meetingId,String userId){
+    socket.emit('leave-call',{
+      'meetingId':meetingId,
+      'userId':userId
+    });
+  }
+
+  void sendOffer(String targetSocketId,RTCSessionDescription sdp,String userId){
+    socket.emit('offer',{
+      'targetSocketId':targetSocketId,
+      'sdp':sdp.toMap(),
+      'from':{
+        'userId':userId,
+        'socketId':socket.id
+      }
+    });
+  }
+
+  void sendAnswer(String targetSocketId,RTCSessionDescription sdp,String userId){
+    socket.emit('answer',{
+      'targetSocketId':targetSocketId,
+      'sdp':sdp.toMap(),
+      'from':{
+        'userId':userId,
+        'socketId':socket.id
+      }
+    });
+  }
+
+  void sendICE(String targetSocketId,RTCIceCandidate candidate,String userId){
+    socket.emit('ice-candidate',{
+      'targetSocketId':targetSocketId,
+      'candidate':{
+        'candidate':candidate.candidate,
+        'sdpMid':candidate.sdpMid,
+        'sdpMLineIndex':candidate.sdpMLineIndex
+      },
+      'from':{
+        'userId':userId,
+        'socketId':socket.id
+      }
+    });
+  }
+
+  void onUserJoinedCall(Function (dynamic) callBack){
+    socket.on('user-joined-call', callBack);
+  }
+
+  void onUserLeftCall(Function (dynamic) callBack){
+    socket.on('user-left-call', callBack);
+  }
+
+  void onOffer(Function (dynamic) callBack){
+    socket.on('offer', callBack);
+  }
+
+  void onAnswer(Function (dynamic) callBack){
+    socket.on('answer', callBack);
+  }
+  
+  void onICE(Function (dynamic) callBack){
+    socket.on('ice-candidate', callBack);
+  }
+
+
+
+
+
+
+
+
+
+}
+
+
+

@@ -48,6 +48,8 @@ class _VoiceBubbleState extends State<VoiceBubble> {
 
   Future<void> _init() async {
     // 1. DOWNLOAD audio file
+    print("Print hoga blk ");
+    print(widget.url);
     localPath = await _downloadAudio(widget.url);
 
     if (!mounted) return;
@@ -93,6 +95,31 @@ class _VoiceBubbleState extends State<VoiceBubble> {
     if (mounted) {
       setState(() {});
     }
+  }
+  @override
+  void didUpdateWidget(covariant VoiceBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // If URL changed (placeholder → final Cloudinary URL)
+    if (oldWidget.url != widget.url) {
+      _reload();
+    }
+  }
+  Future<void> _reload() async {
+    // stop old player
+    await _player.stop();
+    await _waveController.stopPlayer();
+
+    // reset flags
+    isWaveReady = false;
+    isAudioReady = false;
+    isPlaying = false;
+    localPath = null;
+
+    // reinitialize with new URL
+    _init();
+
+    if (mounted) setState(() {});
   }
 
   Future<String> _downloadAudio(String url) async {

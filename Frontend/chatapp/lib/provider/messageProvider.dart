@@ -47,9 +47,9 @@ class MessageProvider extends StateNotifier<List<Message>> {
 
         // FIXED: detect placeholder (sending OR uploading)
         final existingIndex = state.indexWhere((m) =>
-        m.senderId == message.senderId &&
+            m.senderId == message.senderId &&
             m.receiverId == message.receiverId &&
-            m.message == message.message &&
+                m.type == message.type &&
             (m.status == 'sending' || m.status == 'uploading')
         );
 
@@ -138,7 +138,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
     required String filePath, // local path
     required String message,
   }) async {
-    final tempId = 'voice_${DateTime.now().millisecondsSinceEpoch}';
+    final tempId = 'image_${DateTime.now().millisecondsSinceEpoch}';
     final placeholder = Message(
       id: tempId,
       senderId: senderId,

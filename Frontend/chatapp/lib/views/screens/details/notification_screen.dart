@@ -8,6 +8,7 @@ import 'package:chatapp/views/screens/details/chat_screen.dart';
 import 'package:chatapp/views/screens/details/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../provider/userProvider.dart';
 
 class NotificationScreen extends ConsumerStatefulWidget {
@@ -20,171 +21,197 @@ class NotificationScreen extends ConsumerStatefulWidget {
 class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   final FriendController _friendController = FriendController();
 
-  Future<void> getAllRequests() async {
+  Future<void> _load() async {
     _friendController.getAllRequests(ref);
   }
 
   @override
   void initState() {
     super.initState();
-    getAllRequests();
+    _load();
   }
 
   @override
   Widget build(BuildContext context) {
-    final requests = ref.watch(requestProvider(ref.read(userProvider)!.id));
-    final activities = ref.watch(activityProvider);
     final user = ref.watch(userProvider);
+    final requests = ref.watch(requestProvider(user!.id));
+    final activities = ref.watch(activityProvider);
+    final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          "Notifications",
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.inversePrimary,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-      ),
 
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+
+      body: Stack(
         children: [
-          // --- Requests Header ---
-          if (requests.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                "Friend Requests",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF450072),
+                  const Color(0xFF270249),
+                  const Color(0xFF1F0033)
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-
-          // --- Requests List ---
-          ...requests.map((req) => _RequestTile(
-            key: ValueKey(req.id),
-            req: req,
-            userId: user!.id,
-          )),
-
-          const SizedBox(height: 20),
-
-          // --- Activities Header ---
-          if (activities.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                "Recent Activity",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                _header(context, primary),
+                Expanded(
+                  child:  ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      // Requests Title
+                      if (requests.isNotEmpty) _sectionTitle(context, "Friend Requests"),
+            
+                      ...requests.map((req) => _RequestTile(
+                        key: ValueKey(req.id),
+                        req: req,
+                        userId: user.id,
+                      )),
+            
+                      if (requests.isNotEmpty) const SizedBox(height: 20),
+            
+                      // Activity Title
+                      if (activities.isNotEmpty) _sectionTitle(context, "Recent Activity"),
+            
+                      // Empty UI
+                      if (requests.isEmpty && activities.isEmpty)
+                        _emptyState(context),
+            
+                      // Activity List
+                      ...activities.map((a) => _activityTile(context, a)),
+                    ],
+                  ),
+                )
+              ],
             ),
-
-          // EMPTY STATE
-          if (requests.isEmpty && activities.isEmpty)
-            _buildEmptyState(context),
-
-          // --- Activities List ---
-          ...activities.map((activity) => _activityTile(context, activity)),
+          ),
         ],
+      )
+    );
+  }
+
+  Widget _sectionTitle(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
-  Widget _activityTile(BuildContext context, Interaction activity) {
+
+  Widget _activityTile(BuildContext context, Interaction a) {
     return GestureDetector(
-      onTap: ()=>Navigator.push(context, MaterialPageRoute(builder: (_)=>ProfileScreen(user: activity.fromUser))),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          color: Theme.of(context).colorScheme.inversePrimary.withOpacity(0.08),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProfileScreen(user: a.fromUser),
         ),
+      ),
+      child: _glassTile(
+        context: context,
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor:
-              Theme.of(context).colorScheme.inversePrimary.withOpacity(0.15),
-              backgroundImage:
-              activity.fromUser.profilePic != null &&
-                  activity.fromUser.profilePic.isNotEmpty
-                  ? NetworkImage(activity.fromUser.profilePic)
-                  : null,
-              child: activity.fromUser.profilePic == null ||
-                  activity.fromUser.profilePic!.isEmpty
-                  ? Text(
-                activity.fromUser.fullname[0].toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-                  : null,
-            ),
+            _avatar(context, a.fromUser.profilePic, a.fromUser.fullname),
             const SizedBox(width: 14),
-      
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    activity.fromUser.fullname,
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16),
+                    a.fromUser.fullname,
+                    style: _titleStyle(context),
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    "@${activity.fromUser.username}",
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .inversePrimary
-                          .withOpacity(0.6),
-                      fontSize: 13,
-                    ),
+                    "@${a.fromUser.username}",
+                    style: _subtitleStyle(context),
                   ),
                 ],
               ),
             ),
-      
-            IconButton(onPressed: ()=>Navigator.push(context, MaterialPageRoute(builder: (_)=>ChatScreen(fullname: activity.fromUser.fullname, receiverId: activity.fromUser.id))),icon:Icon(Icons.messenger),
-                color: Theme.of(context).colorScheme.inversePrimary),
+
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatScreen(
+                      fullname: a.fromUser.fullname,
+                      receiverId: a.fromUser.id,
+                    ),
+                  ),
+                );
+              },
+              icon: Icon(Icons.messenger_outline),
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ],
         ),
       ),
     );
   }
 
+  Widget _avatar(BuildContext context, String pic, String name) {
+    return CircleAvatar(
+      radius: 26,
+      backgroundColor:
+      Theme.of(context).colorScheme.primary.withOpacity(0.15),
+      backgroundImage: pic.isNotEmpty ? NetworkImage(pic) : null,
+      child: pic.isEmpty
+          ? Text(
+        name[0].toUpperCase(),
+        style: _titleStyle(context),
+      )
+          : null,
+    );
+  }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Text(
-        "No pending requests",
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.inversePrimary,
-          fontSize: 16,
+  TextStyle _titleStyle(BuildContext context) {
+    return TextStyle(
+      color: Theme.of(context).colorScheme.primary,
+      fontWeight: FontWeight.w600,
+      fontSize: 16,
+    );
+  }
+
+  TextStyle _subtitleStyle(BuildContext context) {
+    return TextStyle(
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+      fontSize: 13,
+    );
+  }
+
+  Widget _emptyState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 40),
+      child: Center(
+        child: Text(
+          "No notifications",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontSize: 16,
+          ),
         ),
       ),
     );
   }
 }
 
-/// Separate stateful widget for each tile so it owns animation state properly
+/// ----------------------
+///  REQUEST TILE
+/// ----------------------
+
 class _RequestTile extends ConsumerStatefulWidget {
   final Interaction req;
   final String userId;
@@ -198,93 +225,66 @@ class _RequestTileState extends ConsumerState<_RequestTile>
     with SingleTickerProviderStateMixin {
   bool accepted = false;
 
-  // small delay before removing tile from provider to allow animation
-  static const Duration _acceptedShowDuration = Duration(milliseconds: 450);
-
   @override
   Widget build(BuildContext context) {
     final req = widget.req;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .inversePrimary
-                  .withOpacity(0.08),
-              borderRadius: BorderRadius.circular(20),
+    return _glassTile(
+      context: context,
+      child: Row(
+        children: [
+          // Avatar
+          CircleAvatar(
+            radius: 26,
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .primary
+                .withOpacity(0.15),
+            child: Text(
+              req.fromUser.fullname[0].toUpperCase(),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
             ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: Theme.of(context)
-                      .colorScheme
-                      .inversePrimary
-                      .withOpacity(0.15),
-                  child: Text(
-                    req.fromUser.fullname[0].toUpperCase(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    req.fromUser.fullname,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+          ),
 
-                // Animated switcher for accept/reject -> accepted
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, anim) =>
-                      FadeTransition(opacity: anim, child: child),
-                  child: accepted
-                      ? _acceptedButton(context)
-                      : Row(
-                    key: const ValueKey("buttons"),
-                    children: [
-                      _actionButton(
-                        label: "Accept",
-                        color: Colors.greenAccent,
-                        onTap: () => _onAcceptPressed(req),
-                      ),
-                      const SizedBox(width: 10),
-                      _actionButton(
-                        label: "Reject",
-                        color: Colors.redAccent,
-                        onTap: () => _onRejectPressed(req),
-                      ),
-                    ],
-                  ),
-                ),
+          const SizedBox(width: 16),
+
+          Expanded(
+            child: Text(
+              req.fromUser.fullname,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          ),
+
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: accepted
+                ? _accepted()
+                : Row(
+              children: [
+                _button(context, "Accept", Colors.greenAccent,
+                        () => _accept(req)),
+                const SizedBox(width: 10),
+                _button(context, "Reject", Colors.redAccent,
+                        () => _reject(req)),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _acceptedButton(BuildContext context) {
+  Widget _accepted() {
     return Container(
-      key: const ValueKey("accepted"),
+      key: const ValueKey("acc"),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.greenAccent.withOpacity(0.25),
@@ -302,17 +302,14 @@ class _RequestTileState extends ConsumerState<_RequestTile>
     );
   }
 
-  Widget _actionButton({
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+  Widget _button(
+      BuildContext ctx, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.25),
+          color: color.withOpacity(0.18),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.6)),
         ),
@@ -320,32 +317,77 @@ class _RequestTileState extends ConsumerState<_RequestTile>
           label,
           style: TextStyle(
             color: color,
-            fontWeight: FontWeight.bold,
             fontSize: 13,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
   }
 
-  void _onAcceptPressed(Interaction req) {
+  void _accept(Interaction req) {
     setState(() => accepted = true);
-
-    // Optimistic UI: ask server to accept
     final socket = ref.read(socketProvider);
     socket.acceptRequest({
       'senderId': req.fromUser.id,
       'receiverId': widget.userId,
     });
-
-    // Remove request from provider after short delay so animation finishes
-
   }
 
-  void _onRejectPressed(Interaction req) {
+  void _reject(Interaction req) {
     final socket = ref.read(socketProvider);
-    final requestP = ref.read(requestProvider(req.fromUser.id).notifier);
     socket.requestRejected(req.fromUser.id, req.toUser.id);
-    requestP.removeByFrom(req.fromUser.id);
+    ref.read(requestProvider(req.fromUser.id).notifier)
+        .removeByFrom(req.fromUser.id);
   }
+}
+
+/// ----------------------
+///  FROSTED GLASS CONTAINER
+/// ----------------------
+
+Widget _glassTile({required BuildContext context, required Widget child}) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 14),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(22),
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.06),
+      border: Border.all(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+      ),
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: child,
+        ),
+      ),
+    ),
+  );
+}
+Widget _header(BuildContext context, Color primary) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(Icons.arrow_back_ios_new, size: 28, color: primary),
+        ),
+        Text(
+          "Notification",
+          style: GoogleFonts.poppins(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        SizedBox()
+      ],
+    ),
+  );
 }

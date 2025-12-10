@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:chatapp/models/message.dart';
+import 'package:chatapp/views/screens/details/call_screen.dart';
 import 'package:chatapp/views/widgets/voice_bubble.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:just_audio/just_audio.dart';
@@ -65,17 +66,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
     SoundManager.preload();
 
-    scrollController.addListener(() {
-      var isAtBottomNow =
-          scrollController.position.pixels >=
-          scrollController.position.maxScrollExtent - 100;
-      if (isAtBottomNow != isAtBottom) {
-        setState(() {
-          isAtBottom = isAtBottomNow;
-        });
-      }
-    });
   }
+
+
+
+
 
   void pickImageFromGallery()async{
     final picker = ImagePicker();
@@ -100,18 +95,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
-  void scrollToBottom() {
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
-      duration: Duration(seconds: 1),
-      curve: Curves.fastOutSlowIn,
-    );
-  }
+
 
   @override
   void dispose() {
     messageController.dispose();
-    scrollController.dispose();
+
 
 
     debounce?.cancel();
@@ -258,7 +247,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_)=>CallScreen(userId: user!.id, meetingId: "Swasti123")));
+                    },
                     icon: Icon(
                       Icons.video_camera_back_rounded,
                       color: Theme.of(context).colorScheme.primary,
@@ -296,8 +287,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemBuilder: (context, index) {
                     final message = messages[index];
                     final isMe = message.senderId == user!.id;
-                    print("URL URL URL URL");
-                    print(message.uploadUrl);
+                    print("Message Object");
+                    print(message.toJson());
                     return AnimatedSwitcher(
                       duration: Duration(milliseconds: 350),
                       child: Align(
@@ -347,15 +338,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   },
                 ),
               ),
-              if (!isAtBottom)
-                Center(
-                  child: IconButton(
-                    onPressed: () {
-                      scrollToBottom();
-                    },
-                    icon: Icon(Icons.arrow_circle_down_sharp),
-                  ),
-                ),
+           
               if (isFriendTyping)
                 Padding(
                   padding: EdgeInsets.symmetric(

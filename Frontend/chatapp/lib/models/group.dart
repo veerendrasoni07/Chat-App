@@ -7,6 +7,7 @@ class Group {
   final String id;
   final String groupName;
   final String groupId;
+  final String groupPic;
   final List<User> groupMembers;
   final List<User> groupAdmin;
   final String groupDescription;
@@ -16,6 +17,7 @@ class Group {
     required this.groupName,
     required this.groupId,
     required this.groupMembers,
+    required this.groupPic,
     required this.groupAdmin,
     required this.groupDescription,
   });
@@ -46,6 +48,7 @@ class Group {
       id: map['_id'] ?? '',
       groupName: map['groupName'] ?? '',
       groupId: map['groupId'] ?? '',
+      groupPic: map['groupPic'] ?? '',
       groupMembers: members,
       groupAdmin: admins,
       groupDescription: map['groupDescription'] ?? '',

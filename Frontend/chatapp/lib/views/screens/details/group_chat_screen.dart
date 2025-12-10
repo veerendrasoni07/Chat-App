@@ -7,6 +7,7 @@ import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/views/screens/details/group_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 class GroupChatScreen extends ConsumerStatefulWidget {
   final User user;
   final List<User> groupMembers;
+  final String groupPic;
   final List<User> groupAdmin;
   final String fullname;
   final String groupId;
@@ -30,6 +32,7 @@ class GroupChatScreen extends ConsumerStatefulWidget {
     required this.groupAdmin,
     required this.fullname,
     required this.groupId,
+    required this.groupPic,
     required this.user,
   });
 
@@ -102,12 +105,15 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AutoSizeText(
-                    widget.fullname,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                  GestureDetector(
+                    onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (_)=>GroupScreen(groupMembers: widget.groupMembers,groupName: widget.fullname,proPic: widget.groupPic,groupAdmin: widget.groupAdmin,))),
+                    child: AutoSizeText(
+                      widget.fullname,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
                   Text("${widget.groupAdmin.map((u){
@@ -157,6 +163,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                 itemCount: groupMessage.length,
                 itemBuilder: (context, index) {
                   final message = groupMessage[index];
+
                   final isMe = message.senderId == user!.id;
                   return Align(
                     alignment:

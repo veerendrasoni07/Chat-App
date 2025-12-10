@@ -10,6 +10,7 @@ import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/new_group_screen.dart';
 import 'package:chatapp/views/screens/details/notification_screen.dart';
+import 'package:chatapp/views/screens/details/setting_screen.dart';
 import 'package:chatapp/views/widgets/chat_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -109,6 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
       child: Container(
+        width: MediaQuery.of(context).size.width * 0.95,
         padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -138,50 +140,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => AccountScreen(backgroundType: 'artist',user: user,),
-                      ),
+                      MaterialPageRoute(builder: (_) => AccountScreen(backgroundType: "artist", user: user)),
                     ),
                     child: Container(
-                      width: 52,
-                      height: 52,
+                      width: 45,
+                      height: 45,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Colors.white.withOpacity(0.25),
-                          width: 1.2,
+                          width: 1.1,
                         ),
                         gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                           colors: [
-                            Colors.white.withOpacity(0.18),
+                            Colors.white.withOpacity(0.16),
                             Colors.white.withOpacity(0.05),
                           ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.18),
-                            blurRadius: 18,
-                            offset: Offset(0, 6),
-                          )
-                        ],
                       ),
                       child: ClipOval(
                         child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: Text(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Center(
+                            child: AutoSizeText(
                               user.fullname[0],
                               style: GoogleFonts.poppins(
-                                fontSize: 22,
+                                fontSize: 14.sp,
                                 height: 1,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white.withOpacity(0.95),
-                              ),
-                            ),
-                          ),
+                                color: Theme.of(context).colorScheme.primary
+                            ),)
+                          )
                         ),
                       ),
                     ),
@@ -294,26 +283,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SizedBox(width: 8),
 
                   /// ------------------------ MENU BUTTON (GLASS) ------------------------
-                  Container(
-                    width: 45,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.25)),
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.16),
-                          Colors.white.withOpacity(0.05),
-                        ],
+                  GestureDetector(
+                    onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (_)=>SettingsScreen(user: user))),
+                    child: Container(
+                      width: 45,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withOpacity(0.25)),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.16),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: ClipOval(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                        child: Icon(
-                          Icons.menu,
-                          size: 24,
-                          color: Colors.white.withOpacity(0.95),
+                      child: ClipOval(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Icon(
+                            Icons.menu,
+                            size: 24,
+                            color: Colors.white.withOpacity(0.95),
+                          ),
                         ),
                       ),
                     ),
