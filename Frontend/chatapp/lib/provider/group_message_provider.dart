@@ -1,4 +1,6 @@
 import 'package:chatapp/controller/group_controller.dart';
+import 'package:chatapp/localDB/provider/isar_provider.dart';
+import 'package:chatapp/localDB/service/isar_services.dart';
 import 'package:chatapp/models/group_message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/service/socket_service.dart';
@@ -7,8 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
   final GroupController controller;
   final SocketService service;
+  final IsarService _isarService;
   final String groupId;
-  GroupMessageProvider(this.controller, this.service,this.groupId) :super([]){
+  GroupMessageProvider(this.controller, this.service,this._isarService,this.groupId) :super([]){
     listenGroupMessage();
     getAllGroupMessage();
     groupMessageSeenStatus();
@@ -34,6 +37,7 @@ class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
       final msg = GroupMessage.fromMap(data);
       if(msg.groupId == groupId){
         state = [...state, msg];
+        _isarService.saveGroupMessage(msg);
       }
     });
   }
@@ -66,6 +70,6 @@ class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
 
 final groupMessageProvider = StateNotifierProvider.autoDispose.family<GroupMessageProvider,List<GroupMessage>,String>((ref,groupId){
   final service = ref.read(socketProvider);
-  return GroupMessageProvider(GroupController(), service,groupId);
+  return GroupMessageProvider(GroupController(), service,IsarService(ref.read(isarProvider)),groupId);
 });
 

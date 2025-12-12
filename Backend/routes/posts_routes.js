@@ -8,10 +8,10 @@ const postRouter = express.Router();
 
 postRouter.post('/api/post-pictures',auth,async(req,res)=>{
     try {
-        const {pictures,caption,tags,location} = req.body;
+        const {pictureUrls,caption,tags,location} = req.body;
 
         const post = await Post.create({
-            post:pictures,
+            post:pictureUrls,
             tag:tags,
             location:location,
             caption:caption,

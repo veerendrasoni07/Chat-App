@@ -37,7 +37,22 @@ const userSchema = new mongoose.Schema({
     required:true,
     unique:true
   },
+  phone:{
+    type:Number
+  },
+  joined:{
+    type:Boolean
+  },
+  meetingId:{
+    type:mongoose.Types.ObjectId
+  },
+  isAlive:{
+    type:Boolean,
+  },
   isOnline:{type:Boolean},
+  bio:{
+    type:String,
+  },
   lastSeen:{type:Date},
   groups:[String],
   connections : [{type:mongoose.Schema.Types.ObjectId,ref:'User'}]

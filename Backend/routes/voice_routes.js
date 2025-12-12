@@ -12,7 +12,7 @@ const voiceRouter = express.Router();
 
 voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
     try {
-        const { senderId, receiverId, voiceUrl, publicId, duration } = req.body;
+        const { senderId, receiverId, uploadUrl, publicId, uploadDuration } = req.body;
 
         // Basic ownership/auth check
         if (req.user.id !== senderId) {
@@ -20,20 +20,20 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
         }
 
         try {
-            const url = new URL(voiceUrl);
+            const url = new URL(uploadUrl);
             if (!url.host.endsWith('res.cloudinary.com') && !url.host.includes(process.env.CLOUD_NAME)) {
-                res.status(400).json({ msg: "Invalid voice url" });
+                 return res.status(400).json({ msg: "Invalid voice url" });
             }
         } catch (error) {
             console.log(error);
-            res.status(500).json({ error: "Invalid voice url Error" });
+            return res.status(500).json({ error: "Invalid voice url Error" });
         }
 
         // verify public_id exists & get metadata from cloudinary 
-        let actualDuration = duration;
+        let actualDuration = uploadDuration;
         if (publicId) {
             try {
-                const resource = cloudinary.v2.api.resource(publicId, { resource_type: 'video' });
+                const resource = await cloudinary.v2.api.resource(publicId, { resource_type: 'video' });
                 if (resource.duration) {
                     actualDuration = resource.duration;
                 }
@@ -46,13 +46,13 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
             senderId,
             receiverId,
             type: "voice",
-            voiceUrl,
-            voiceDuration: duration,
+            uploadUrl:uploadUrl,
+            voiceDuration: actualDuration,
         });
 
         let conversation = await Conversation.findOne({
             participants: { $all: [receiverId, senderId] }
-        })
+        });
         if (!conversation) {
             conversation = await Conversation.create(
                 {

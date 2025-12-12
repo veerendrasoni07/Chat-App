@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:chatapp/localDB/service/isar_services.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
@@ -7,6 +8,7 @@ import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:chatapp/models/user.dart';
+import 'package:isar/isar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../global_variable.dart';
@@ -15,17 +17,17 @@ class MessageController{
 
 
 
-  Future<List<Message>> getMessages({required String receiverId})async{
+  Future<List<Message>> getMessages({required String receiverId,required DateTime lastMessageDate})async{
     try{
       print("receiverId:$receiverId");
       SharedPreferences preferences = await SharedPreferences.getInstance();
       final token = preferences.getString('token');
-      print(token);
       if(token == null){
         throw Exception('No token found');
       }
+
       http.Response response = await http.get(
-          Uri.parse('$uri/api/get-messages/$receiverId'),
+          Uri.parse('$uri/api/get-messages/$receiverId/$lastMessageDate'),
         headers: <String,String>{
             'Content-Type':'application/json; charset=UTF-8',
           'x-auth-token':token

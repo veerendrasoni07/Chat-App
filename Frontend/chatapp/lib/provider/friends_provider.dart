@@ -1,12 +1,16 @@
+import 'package:chatapp/localDB/provider/isar_provider.dart';
+import 'package:chatapp/localDB/service/isar_services.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class FriendProvider extends StateNotifier<List<User>>{
-  FriendProvider():super([]);
+  final IsarService _isarService;
+  FriendProvider(this._isarService):super([]);
 
   void setAllFriends(List<User> friends){
     state = friends;
+    _isarService.saveFriends(friends);
   }
 
 }
-final friendsProvider = StateNotifierProvider<FriendProvider,List<User>>((ref)=>FriendProvider());
+final friendsProvider = StateNotifierProvider<FriendProvider,List<User>>((ref)=>FriendProvider(IsarService(ref.read(isarProvider))));

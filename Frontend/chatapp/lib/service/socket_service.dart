@@ -33,11 +33,12 @@ class SocketService {
   }
 
 
-  void sendMessage(String receiverId,String senderId,String message){
+  void sendMessage(String receiverId,String senderId,String message,String tempId){
     socket.emit('send-direct-message',{
       'senderId':senderId,
       'receiverId':receiverId,
-      'message':message
+      'message':message,
+      'tempId':tempId
     });
     SoundManager.playSendSound();
   }

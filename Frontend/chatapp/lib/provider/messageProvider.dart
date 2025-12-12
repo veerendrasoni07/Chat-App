@@ -1,6 +1,8 @@
 import 'package:chatapp/controller/image_service.dart';
 import 'package:chatapp/controller/message_controller.dart';
 import 'package:chatapp/controller/voice_service.dart';
+import 'package:chatapp/localDB/provider/isar_provider.dart';
+import 'package:chatapp/localDB/service/isar_services.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/service/socket_service.dart';
@@ -11,17 +13,18 @@ class MessageProvider extends StateNotifier<List<Message>> {
   final MessageController controller;
   final VoiceService _voiceService;
   final ImageService _imageService;
+  final IsarService _isarService;
   final String receiverId;
   final SocketService socket;
   bool _isChatOpen = false;
-  MessageProvider(this.controller, this.receiverId, this.socket, this._voiceService, this._imageService) : super([]) {
+  MessageProvider(this.controller, this.receiverId, this.socket, this._voiceService,this._isarService ,this._imageService) : super([]) {
     getMessages();
     listenMessage();
   }
 
   Future<void> getMessages() async {
-    print(receiverId);
-    final messages = await controller.getMessages(receiverId: receiverId);
+    DateTime lastMessageDate = await _isarService.lastMessageDate();
+    final messages = await controller.getMessages(receiverId: receiverId,lastMessageDate: lastMessageDate);
     state = messages;
   }
 
@@ -30,7 +33,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
       final tempId = DateTime.now().millisecondsSinceEpoch.toString();
       final newMessage = Message(id: tempId, senderId: senderId, receiverId: receiverId, message: userMessage,type: type , uploadDuration: duration, uploadUrl: uploadUrl,status: 'sending', createdAt: DateTime.now());
       state = [...state, newMessage];
-      socket.sendMessage(receiverId, senderId, userMessage);
+      socket.sendMessage(receiverId, senderId, userMessage,tempId);
     }catch(e){
       throw Exception(e.toString());
     }
@@ -38,7 +41,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
 
   void listenMessage() {
 
-      socket.listenMessage('newMessage', (data) {
+      socket.listenMessage('newMessage', (data) async{
         var message = Message.fromMap(data);
 
         // only messages for this chat
@@ -58,6 +61,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
           final updated = [...state];
           updated[existingIndex] = message.copyWith(status: 'sent');
           state = updated;
+          // _isarService.saveMessage(message);
           return;
         }
 
@@ -73,6 +77,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
         }
 
         state = [...state, message];
+        //_isarService.saveMessage(message);
       });
 
 
@@ -210,6 +215,6 @@ final messageProvider =
 StateNotifierProvider.autoDispose.family<MessageProvider, List<Message>, String>(
       (ref, receiverId) {
     final socket = ref.read(socketProvider);
-    return MessageProvider(MessageController(), receiverId, socket,VoiceService(),ImageService());
+    return MessageProvider(MessageController(), receiverId, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService());
   },
 );

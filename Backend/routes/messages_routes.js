@@ -5,6 +5,7 @@ import Conversation from '../models/converation.js';
 import User from '../models/user.js';
 import { io } from '../socket/socket.js';
 import {activeChats} from '../socket/socket.js';
+import { create } from 'domain';
 
 const messageRoute = express.Router();
 
@@ -81,17 +82,27 @@ messageRoute.post('/api/send-message/:receiverId', auth, async (req, res) => {
 });
 
 // Get messages
-messageRoute.get('/api/get-messages/:receiverId', auth, async (req, res) => {
+messageRoute.get('/api/get-messages/:receiverId/:lastMessageDate', auth, async (req, res) => {
   try {
-    const { receiverId } = req.params;
+    const { receiverId,lastMessageDate } = req.params;
     const userId = req.user.id;
 
     const conversation = await Conversation.findOne({
       participants: { $all: [userId, receiverId] }
-    }).populate('messages');
+    });
+    if(!conversation){
+      return res.status(200).json([]);
+    }
+    const filteredMessages = await Message.find({
+      $or:[
+        {senderId:req.user.id},
+        {receiverId:receiverId}
+      ],
+      createdAt:{$gt:new Date(lastMessageDate)}
+    });
     console.log("sfdsadfasdasasdfsa");
-    console.log(conversation);
-    res.status(200).json(conversation ? conversation.messages : []);
+    console.log(filteredMessages);
+    res.status(200).json(filteredMessages);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Internal Server Error" });

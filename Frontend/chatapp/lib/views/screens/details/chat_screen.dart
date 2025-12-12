@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:chatapp/localDB/models/message_isar.dart';
 import 'package:chatapp/models/message.dart';
+import 'package:chatapp/provider/message_service_class.dart';
+import 'package:chatapp/provider/message_stream_provider.dart';
 import 'package:chatapp/views/screens/details/call_screen.dart';
 import 'package:chatapp/views/widgets/voice_bubble.dart';
 import 'package:image_picker/image_picker.dart';
@@ -110,7 +113,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final messages = ref.watch(messageProvider(widget.receiverId));
+    //final messages = ref.watch(messageProvider(widget.receiverId));
     final status = ref.watch(statusListener);
     final receiverStatus = status[widget.receiverId];
     final isOnline = receiverStatus?.isOnline ?? false;
@@ -118,6 +121,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isFriendTyping = ref.watch(typingProvider(widget.receiverId));
     final lastSeen = receiverStatus?.lastSeen;
     final user = ref.watch(userProvider);
+    final messageSyncProvider = ref.watch(messageStreamProvider(widget.receiverId));
 
     return PopScope(
       canPop: true,
@@ -265,229 +269,451 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ),
         extendBodyBehindAppBar: true,
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFF450072),
-                const Color(0xFF270249),
-                const Color(0xFF1F0033),
-                const Color(0xFF140021),
-              ],
-            ),
-          ),
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMe = message.senderId == user!.id;
-                    print("Message Object");
-                    print(message.toJson());
-                    return AnimatedSwitcher(
-                      duration: Duration(milliseconds: 350),
-                      child: Align(
-                        alignment:
-                            isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child:
-                            message.type == 'text'
-                                ? Container(
-                                  padding: EdgeInsets.all(10),
-                                  margin: EdgeInsets.symmetric(
-                                    vertical: 5.h,
-                                    horizontal: 10.w,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isMe
-                                            ? Colors.deepPurpleAccent
-                                            : Colors.blue,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        message.message,
-                                        style: GoogleFonts.poppins(
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ).animate().fade().scale(),
-                                      if (isMe) ...[
-                                        SizedBox(height: 3),
-                                        _buildStatusIcon(message.status),
-                                      ],
-                                    ],
-                                  ),
-                                )
-                                : message.type == 'image' ? _buildImage(message) : VoiceBubble(
-                                  url: message.uploadUrl ?? '',
-                                  isMe: isMe,
-                                ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-           
-              if (isFriendTyping)
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 15.h,
-                    horizontal: 10.0.w,
+        body: messageSyncProvider.when(
+            data: (messages){
+              return  Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF450072),
+                        const Color(0xFF270249),
+                        const Color(0xFF1F0033),
+                        const Color(0xFF140021),
+                      ],
+                    ),
                   ),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Lottie.asset(
-                        'assets/animation/Typing.json',
-                        height: 50.h,
-                        width: 50.w,
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            final isMe = message.senderId == user!.id;
+                            print("Message Object");
+                            return AnimatedSwitcher(
+                              duration: Duration(milliseconds: 350),
+                              child: Align(
+                                alignment:
+                                    isMe ? Alignment.centerRight : Alignment.centerLeft,
+                                child:
+                                    message.type == 'text'
+                                        ? Container(
+                                          padding: EdgeInsets.all(10),
+                                          margin: EdgeInsets.symmetric(
+                                            vertical: 5.h,
+                                            horizontal: 10.w,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                isMe
+                                                    ? Colors.deepPurpleAccent
+                                                    : Colors.blue,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                message.message,
+                                                style: GoogleFonts.poppins(
+                                                  color:
+                                                      Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ).animate().fade().scale(),
+                                              if (isMe) ...[
+                                                SizedBox(height: 3),
+                                                _buildStatusIcon(message.status),
+                                              ],
+                                            ],
+                                          ),
+                                        )
+                                        : message.type == 'image' ? _buildImage(message) : VoiceBubble(
+                                          url: message.uploadUrl ?? '',
+                                          isMe: isMe,
+                                        ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 15.h,
-                  horizontal: 10.0.w,
-                ),
-                child:
-                     Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         if(pickedImage!=null)
-                           Chip(
-                             onDeleted: (){
-                               setState(() {
-                                 pickedImage = null;
-                               });
-                             },
-                               label: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,)
-                           ),
-                         TextField(
-                              controller: messageController,
-                              onChanged:
-                                  (value) => userTyping(
-                                    socket,
-                                    user!.id,
-                                    widget.receiverId,
-                                  ),
-                              decoration: InputDecoration(
-                                hintText: 'Type a message',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.2),
-                                contentPadding: EdgeInsets.all(10.sp),
-                                hintStyle: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.door_back_door_outlined,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                suffixIcon: SizedBox(
-                                  width: 120.w,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
-                                      // Microphone button with gesture detection
-                                      GestureDetector(
-                                        onLongPressStart: (details) async {
-                         
-                                          await _voiceService.startRecording();
-                         
-                                          setState(() => isRecording = true);
-                                        },
-                         
-                         
-                                        onLongPressEnd: (_) async {
-                         
-                                          final filePath = await _voiceService
-                                              .stopRecording();
-                         
-                                          if (filePath != null) {
-                                            final duration = await _voiceService
-                                                .getDurationFromFile(filePath);
-                         
-                                            await ref
-                                                .read(
-                                                  messageProvider(
-                                                    widget.receiverId,
-                                                  ).notifier,
-                                                )
-                                                .sendVoice(
-                                                  senderId: user!.id,
-                                                  receiverId: widget.receiverId,
-                                                  filePath: filePath,
-                                                  duration: duration,
-                                                );
-                                          }
-                         
-                                          setState(() {
-                                            isRecording = false;
-                                          });
-                                        },
-                         
-                                        child: CircleAvatar(
-                                          radius: 14.r,
-                                          backgroundColor:
-                                              isRecording
-                                                  ? Colors.red
-                                                  : Colors.blue,
-                                          child: Icon(
-                                            Icons.mic,
-                                            color: Colors.white,
+
+                      if (isFriendTyping)
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 15.h,
+                            horizontal: 10.0.w,
+                          ),
+                          child: Row(
+                            children: [
+                              Lottie.asset(
+                                'assets/animation/Typing.json',
+                                height: 50.h,
+                                width: 50.w,
+                              ),
+                            ],
+                          ),
+                        ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 15.h,
+                          horizontal: 10.0.w,
+                        ),
+                        child:
+                             Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 if(pickedImage!=null)
+                                   Chip(
+                                     onDeleted: (){
+                                       setState(() {
+                                         pickedImage = null;
+                                       });
+                                     },
+                                       label: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,)
+                                   ),
+                                 TextField(
+                                      controller: messageController,
+                                      onChanged:
+                                          (value) => userTyping(
+                                            socket,
+                                            user!.id,
+                                            widget.receiverId,
+                                          ),
+                                      decoration: InputDecoration(
+                                        hintText: 'Type a message',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(15),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                        filled: true,
+                                        fillColor: Theme.of(
+                                          context,
+                                        ).colorScheme.primary.withOpacity(0.2),
+                                        contentPadding: EdgeInsets.all(10.sp),
+                                        hintStyle: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        prefixIcon: Icon(
+                                          Icons.door_back_door_outlined,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        suffixIcon: SizedBox(
+                                          width: 120.w,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
+                                              // Microphone button with gesture detection
+                                              GestureDetector(
+                                                onLongPressStart: (details) async {
+
+                                                  await _voiceService.startRecording();
+
+                                                  setState(() => isRecording = true);
+                                                },
+
+
+                                                onLongPressEnd: (_) async {
+
+                                                  final filePath = await _voiceService
+                                                      .stopRecording();
+
+                                                  if (filePath != null) {
+                                                    final duration = await _voiceService
+                                                        .getDurationFromFile(filePath);
+
+                                                    await ref
+                                                        .read(
+                                                          messageProvider(
+                                                            widget.receiverId,
+                                                          ).notifier,
+                                                        )
+                                                        .sendVoice(
+                                                          senderId: user!.id,
+                                                          receiverId: widget.receiverId,
+                                                          filePath: filePath,
+                                                          duration: duration,
+                                                        );
+                                                  }
+
+                                                  setState(() {
+                                                    isRecording = false;
+                                                  });
+                                                },
+
+                                                child: CircleAvatar(
+                                                  radius: 14.r,
+                                                  backgroundColor:
+                                                      isRecording
+                                                          ? Colors.red
+                                                          : Colors.blue,
+                                                  child: Icon(
+                                                    Icons.mic,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                  onPressed: (){
+                                                    if(isImage) {
+                                                      ref.read(messageServiceProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, uploadUrl: pickedImage!.path, message: messageController.text, uploadDuration: 0.0);
+                                                      setState(() {
+                                                        pickedImage = null;
+                                                        isImage = false;
+                                                        messageController.clear();
+                                                      });
+
+                                                    }
+                                                    else{
+                                                      ref.read(messageServiceProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, message : messageController.text.isEmpty ? '' : messageController.text, type: 'text',);
+                                                    }
+                                                  },
+                                                  icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
+                                            ],
                                           ),
                                         ),
                                       ),
-                                      IconButton(
-                                          onPressed: (){
-                                            if(isImage) {
-                                              ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!.path, message: messageController.text);
-                                              setState(() {
-                                                pickedImage = null;
-                                                isImage = false;
-                                                messageController.clear();
-                                              });
-
-                                            }
-                                            else{
-                                              ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
-                                            }
-                                          },
-                                          icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                       ],
-                     ),
-              ),
-            ],
-          ),
-        ),
+                                    ),
+                               ],
+                             ),
+                      ),
+                    ],
+                  ),
+                );
+            },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error: $err')),
+        ) ,
+        // body: Container(
+        //   decoration: BoxDecoration(
+        //     gradient: LinearGradient(
+        //       begin: Alignment.topLeft,
+        //       end: Alignment.bottomRight,
+        //       colors: [
+        //         const Color(0xFF450072),
+        //         const Color(0xFF270249),
+        //         const Color(0xFF1F0033),
+        //         const Color(0xFF140021),
+        //       ],
+        //     ),
+        //   ),
+        //   child: Column(
+        //     children: [
+        //       Expanded(
+        //         child: ListView.builder(
+        //           controller: scrollController,
+        //           itemCount: messages.length,
+        //           itemBuilder: (context, index) {
+        //             final message = messages[index];
+        //             final isMe = message.senderId == user!.id;
+        //             print("Message Object");
+        //             print(message.toJson());
+        //             return AnimatedSwitcher(
+        //               duration: Duration(milliseconds: 350),
+        //               child: Align(
+        //                 alignment:
+        //                     isMe ? Alignment.centerRight : Alignment.centerLeft,
+        //                 child:
+        //                     message.type == 'text'
+        //                         ? Container(
+        //                           padding: EdgeInsets.all(10),
+        //                           margin: EdgeInsets.symmetric(
+        //                             vertical: 5.h,
+        //                             horizontal: 10.w,
+        //                           ),
+        //                           decoration: BoxDecoration(
+        //                             color:
+        //                                 isMe
+        //                                     ? Colors.deepPurpleAccent
+        //                                     : Colors.blue,
+        //                             borderRadius: BorderRadius.circular(10),
+        //                           ),
+        //                           child: Column(
+        //                             crossAxisAlignment: CrossAxisAlignment.end,
+        //                             children: [
+        //                               Text(
+        //                                 message.message,
+        //                                 style: GoogleFonts.poppins(
+        //                                   color:
+        //                                       Theme.of(
+        //                                         context,
+        //                                       ).colorScheme.primary,
+        //                                   fontWeight: FontWeight.w700,
+        //                                 ),
+        //                               ).animate().fade().scale(),
+        //                               if (isMe) ...[
+        //                                 SizedBox(height: 3),
+        //                                 _buildStatusIcon(message.status),
+        //                               ],
+        //                             ],
+        //                           ),
+        //                         )
+        //                         : message.type == 'image' ? _buildImage(message) : VoiceBubble(
+        //                           url: message.uploadUrl ?? '',
+        //                           isMe: isMe,
+        //                         ),
+        //               ),
+        //             );
+        //           },
+        //         ),
+        //       ),
+        //
+        //       if (isFriendTyping)
+        //         Padding(
+        //           padding: EdgeInsets.symmetric(
+        //             vertical: 15.h,
+        //             horizontal: 10.0.w,
+        //           ),
+        //           child: Row(
+        //             children: [
+        //               Lottie.asset(
+        //                 'assets/animation/Typing.json',
+        //                 height: 50.h,
+        //                 width: 50.w,
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //       Padding(
+        //         padding: EdgeInsets.symmetric(
+        //           vertical: 15.h,
+        //           horizontal: 10.0.w,
+        //         ),
+        //         child:
+        //              Column(
+        //                crossAxisAlignment: CrossAxisAlignment.start,
+        //                children: [
+        //                  if(pickedImage!=null)
+        //                    Chip(
+        //                      onDeleted: (){
+        //                        setState(() {
+        //                          pickedImage = null;
+        //                        });
+        //                      },
+        //                        label: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,)
+        //                    ),
+        //                  TextField(
+        //                       controller: messageController,
+        //                       onChanged:
+        //                           (value) => userTyping(
+        //                             socket,
+        //                             user!.id,
+        //                             widget.receiverId,
+        //                           ),
+        //                       decoration: InputDecoration(
+        //                         hintText: 'Type a message',
+        //                         border: OutlineInputBorder(
+        //                           borderRadius: BorderRadius.circular(15),
+        //                           borderSide: BorderSide.none,
+        //                         ),
+        //                         filled: true,
+        //                         fillColor: Theme.of(
+        //                           context,
+        //                         ).colorScheme.primary.withOpacity(0.2),
+        //                         contentPadding: EdgeInsets.all(10.sp),
+        //                         hintStyle: TextStyle(
+        //                           color: Theme.of(context).colorScheme.primary,
+        //                         ),
+        //                         prefixIcon: Icon(
+        //                           Icons.door_back_door_outlined,
+        //                           color: Theme.of(context).colorScheme.primary,
+        //                         ),
+        //                         suffixIcon: SizedBox(
+        //                           width: 120.w,
+        //                           child: Row(
+        //                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //                             children: [
+        //                               IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
+        //                               // Microphone button with gesture detection
+        //                               GestureDetector(
+        //                                 onLongPressStart: (details) async {
+        //
+        //                                   await _voiceService.startRecording();
+        //
+        //                                   setState(() => isRecording = true);
+        //                                 },
+        //
+        //
+        //                                 onLongPressEnd: (_) async {
+        //
+        //                                   final filePath = await _voiceService
+        //                                       .stopRecording();
+        //
+        //                                   if (filePath != null) {
+        //                                     final duration = await _voiceService
+        //                                         .getDurationFromFile(filePath);
+        //
+        //                                     await ref
+        //                                         .read(
+        //                                           messageProvider(
+        //                                             widget.receiverId,
+        //                                           ).notifier,
+        //                                         )
+        //                                         .sendVoice(
+        //                                           senderId: user!.id,
+        //                                           receiverId: widget.receiverId,
+        //                                           filePath: filePath,
+        //                                           duration: duration,
+        //                                         );
+        //                                   }
+        //
+        //                                   setState(() {
+        //                                     isRecording = false;
+        //                                   });
+        //                                 },
+        //
+        //                                 child: CircleAvatar(
+        //                                   radius: 14.r,
+        //                                   backgroundColor:
+        //                                       isRecording
+        //                                           ? Colors.red
+        //                                           : Colors.blue,
+        //                                   child: Icon(
+        //                                     Icons.mic,
+        //                                     color: Colors.white,
+        //                                   ),
+        //                                 ),
+        //                               ),
+        //                               IconButton(
+        //                                   onPressed: (){
+        //                                     if(isImage) {
+        //                                       ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!.path, message: messageController.text);
+        //                                       setState(() {
+        //                                         pickedImage = null;
+        //                                         isImage = false;
+        //                                         messageController.clear();
+        //                                       });
+        //
+        //                                     }
+        //                                     else{
+        //                                       ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
+        //                                     }
+        //                                   },
+        //                                   icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
+        //                             ],
+        //                           ),
+        //                         ),
+        //                       ),
+        //                     ),
+        //                ],
+        //              ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ),
     );
   }
 
-  Widget _buildImage(Message message) {
-    final isNetwork = message.uploadUrl.startsWith('http');
+  Widget _buildImage(MessagesIsar message) {
+    final isNetwork = message.uploadUrl!.startsWith('http');
     if (isNetwork) {
       return Container(
         decoration: BoxDecoration(
@@ -501,7 +727,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           children: [
             Image.network(
-              message.uploadUrl,
+              message.uploadUrl!,
               height: 150.h,
               width: 150.w,
               fit: BoxFit.cover,
@@ -533,7 +759,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           children: [
             Image.file(
-              File(message.uploadUrl),
+              File(message.uploadUrl!),
               height: 150.h,
               width: 150.w,
               fit: BoxFit.cover,

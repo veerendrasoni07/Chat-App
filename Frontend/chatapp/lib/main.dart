@@ -1,3 +1,8 @@
+import 'package:chatapp/localDB/models/group_isar.dart';
+import 'package:chatapp/localDB/models/group_message_isar.dart';
+import 'package:chatapp/localDB/models/message_isar.dart';
+import 'package:chatapp/localDB/models/user_isar.dart';
+import 'package:chatapp/localDB/provider/isar_provider.dart';
 import 'package:chatapp/provider/theme_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/theme/dark_theme.dart';
@@ -6,17 +11,26 @@ import 'package:chatapp/views/entry%20point/onBoarding/onboarding_page.dart';
 import 'package:chatapp/views/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+void main() async{
+  final dir = await getApplicationDocumentsDirectory();
+  final directory = dir.path;
+  final isar = await Isar.open(
+      [
+        UserIsarSchema,
+        MessagesIsarSchema,
+        GroupIsarSchema,
+        GroupMessageIsarSchema
+      ],
+      directory: directory
+  );
   runApp(
       ProviderScope(
-          child: ScreenUtilInit(
-            designSize: ScreenUtil.defaultSize,
-              minTextAdapt: true,
-              child: const MyApp()
-          )
+        overrides: [isarProvider.overrideWithValue(isar)],
+          child: const MyApp()
       )
   );
 }

@@ -22,7 +22,8 @@ const signLimiter = ratelimit({
 signRouter.post('/api/cloudinary/sign',auth,signLimiter,async(req,res)=>{
     try {
         const userId = req.user.id;
-        const folder = `voice/${userId}`;
+        const {type} = req.body;
+        const folder = `${type}/${userId}`;
 
         const timestamp = Math.floor(Date.now()/1000);
 

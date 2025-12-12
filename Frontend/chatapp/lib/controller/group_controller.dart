@@ -73,38 +73,7 @@ class GroupController{
     }
   }
 
-  Future<GroupMessage> sendMessage({required String message,required String groupId})async{
-    try{
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      final token = preferences.getString('token');
-      if(token == null){
-        throw Exception('No token found');
-      }
-      http.Response response = await http.post(
-          Uri.parse('$uri/api/send-message-to-group/$groupId'),
-          body: jsonEncode({
-            'message':message,
-          }),
-          headers: <String,String>{
-            'Content-Type':'application/json; charset=UTF-8',
-            'x-auth-token':token
-          });
-      if(response.statusCode == 200){
-        final data = jsonDecode(response.body)['newMessage'];
-        final GroupMessage message = GroupMessage.fromMap(data);
-        print('Message sent successfully :${message.toJson()}');
-        return message;
 
-      }else{
-        print(response.body);
-        throw Exception('Failed to send message:${response.statusCode}');
-      }
-    }
-    catch(e){
-      print(e.toString());
-      throw Exception(e);
-    }
-  }
 
   Future<List<GroupMessage>> getAllGroupMessages({required String groupId})async{
     try{

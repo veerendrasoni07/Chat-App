@@ -6,10 +6,11 @@ const groupMessageSchema = new mongoose.Schema({
     },
     senderId:{
         type:mongoose.Types.ObjectId,
+        ref:'User'
     },
     message:{
         type:String,
-        required:true
+        default:''
     },
     seenBy:[
         {
@@ -17,7 +18,22 @@ const groupMessageSchema = new mongoose.Schema({
             default:[],
             ref:'User'
         }
-    ]
+    ],
+    type:{
+        type:String,
+        enum:["voice","image","text"],
+        default:"text"
+    },
+    status:{
+        type:String,
+        default:"sent"
+    },
+    uploadUrl:{
+        type:String,
+    },
+    uploadDuration:{
+        type:Number,
+    }
 
 },{timestamps:true});
 

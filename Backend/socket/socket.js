@@ -21,22 +21,23 @@ const io = new Server(server, {
 
 const onlineUsers = new Map(); // userId -> Set of socketIds
 const activeChats = new Map() ; // userId --> chatWith
-
+const socketToUser = new Map();
+const socketCallRooms = new Map(); // track which call rooms a socket is currently in.
 
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
   socket.on('join', async (userId) => {
   console.log(userId);
-
-const user = await User.findById(userId).lean();
-console.log(user);
-if (user?.groups?.length) {
-  user.groups.forEach((groupId) => {
-    socket.join(groupId);
-    console.log(`User ${userId} joined group: ${groupId}`);
-  });
-}
+  socketToUser.set(socket.id,userId);
+  const user = await User.findById(userId).lean();
+  console.log(user);
+  if (user?.groups?.length) {
+    user.groups.forEach((groupId) => {
+      socket.join(groupId);
+      console.log(`User ${userId} joined group: ${groupId}`);
+    });
+  }
 
 
 
@@ -44,6 +45,7 @@ if (user?.groups?.length) {
     onlineUsers.set(userId, new Set());
   }
   onlineUsers.get(userId).add(socket.id);
+  
   socket.join(userId);
 
   await User.findByIdAndUpdate(userId, { isOnline: true });
@@ -102,7 +104,7 @@ if (user?.groups?.length) {
     console.log(`User ${userId} closed chat`);
   });
 
-  socket.on('send-direct-message',async({senderId,receiverId,message})=>{
+  socket.on('send-direct-message',async({senderId,receiverId,message,tempId})=>{
     try {
       const newMessage = new Message({
         message:message,
@@ -138,8 +140,8 @@ if (user?.groups?.length) {
         conversation.messages.push(newMessage._id);
       }
       await conversation.save();
-      io.to(receiverId.toString()).emit('newMessage', newMessage);
-      io.to(senderId.toString()).emit('newMessage', newMessage);
+      io.to(receiverId.toString()).emit('newMessage',{ 'newMessage':newMessage,'tempId':tempId});
+      io.to(senderId.toString()).emit('newMessage',{ 'newMessage':newMessage,'tempId':tempId} );
       io.to(senderId).emit('messageStatus',{messageId:newMessage._id,status:status});
       io.to(receiverId).emit('messageStatus',{messageId:newMessage._id,status:status});
       console.log("successfully sent the message");
@@ -324,6 +326,49 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
   });
 
 
+
+
+  //          --------------------WEB_RTC SIGNALING LOGIC----------------------
+
+
+  socket.on('join-call',({meetingId,userId})=>{
+    if(!socketCallRooms.has(socket.id)){
+      socketCallRooms.set(socket.id,new Set());
+    }
+    socketCallRooms.get(socket.id).add(meetingId);
+    socket.join(meetingId);
+    socket.to(meetingId).emit('user-joined-call',{userId,socketId:socket.id});
+    console.log(`Socket ${socket.id} (user ${userId}) joined call room ${meetingId}`);
+  });
+
+  socket.on('leave-call',({meetingId,userId})=>{
+    socketCallRooms.get(socket.id)?.delete(meetingId);
+    socket.leave(meetingId);
+    socket.to(meetingId).emit('user-left-call',{userId,socketId:socket.id});
+    console.log(`Socket ${socket.id} (user ${userId}) left call room ${meetingId}`);
+  });
+
+  // SDP offer 
+  socket.on('offer',({targetSocketId,sdp,from})=>{
+    if(!targetSocketId) return;
+    socket.to(targetSocketId).emit('offer',{sdp,from});
+  });
+
+
+  //SDP answer
+  socket.on('answer',({targetSocketId,sdp,from})=>{
+    if(!targetSocketId) return;
+    socket.to(targetSocketId).emit('answer',{sdp,from});
+  });
+
+  // ICE candidate relay 
+  socket.on('ice-candidate',({targetSocketId,candidate,from})=>{
+    if(!targetSocketId) return;
+    socket.to(targetSocketId).emit('ice-candidate',{candidate,from});
+  })
+
+
+
   
 
 
@@ -331,6 +376,8 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
 
   socket.on('disconnect', async () => {
     console.log('Socket disconnected:', socket.id);
+
+    const userId = socketToUser.get(socket.id);
     for (const [userId, sockets] of onlineUsers) {
       sockets.delete(socket.id); // remove socket in O(1)
       if (sockets.size === 0) {
@@ -345,8 +392,18 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
         console.log(`User ${userId} is now offline`);
       }
     }
+    // Clean up any call rooms this socket was in and notify others
+    const callRooms = socketCallRooms.get(socket.id);
+    if(callRooms){
+      for(var meetingId of callRooms){
+        socket.to(meetingId).emit('user-left-call',{socketId:socket.id,userId:userId || null});
+      }
+    }
   });
 });
+
+
+
 
 
 export { app, server, io,activeChats};

@@ -9,7 +9,7 @@ const messageSchema = new mongoose.Schema({
     },
     type:{
         type:String,
-        enum:['voice','text','video'],
+        enum:['voice','text','video','image'],
         required:true
     },
     receiverId:{
@@ -19,17 +19,19 @@ const messageSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        enum:['sent','delivered','seen','sending'],
+        enum:['sent','delivered','seen','uploading'],
         default:'sent'
     },
     message:{
-        type:String
+        type:String,
+        default:''
     },
-    voiceUrl:{
+    
+    uploadUrl:{
         type:String,
         default:null,
     },
-    voiceDuration:{
+    uploadDuration:{
         type:Number,
         default:null
     }

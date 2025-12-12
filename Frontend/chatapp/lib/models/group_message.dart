@@ -7,6 +7,10 @@ class GroupMessage {
   final String id;
   final String groupId;
   final String senderId;
+  final String type;
+  final String status;
+  final String? uploadUrl;
+  final double? uploadDuration;
   final String message;
   final List<User> seenBy;
   final DateTime createdAt;
@@ -16,6 +20,10 @@ class GroupMessage {
     required this.groupId,
     required this.senderId,
     required this.message,
+    required this.type,
+    required this.status,
+    required this.uploadUrl,
+    required this.uploadDuration,
     required this.seenBy,
     required this.createdAt,
   });
@@ -26,6 +34,10 @@ class GroupMessage {
       'groupId': groupId,
       'senderId': senderId,
       'message': message,
+      'type': type,
+      'status': status,
+      'uploadUrl': uploadUrl,
+      'uploadDuration': uploadDuration,
       'seenBy': seenBy,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -37,6 +49,10 @@ class GroupMessage {
       groupId: map['groupId']?.toString() ?? '',
       senderId: map['senderId']?.toString() ?? '',
       message: map['message']?.toString() ?? '',
+      type: map['type']?.toString() ?? '',
+      status: map['status']?.toString() ?? '',
+      uploadUrl: map['uploadUrl']?.toString() ?? '',
+      uploadDuration: map['uploadDuration']?.toDouble() ?? 0.0,
       seenBy: (map['seenBy'] as List?)
           ?.map((e) => User.fromMap(e))
           .toList()
@@ -50,12 +66,16 @@ class GroupMessage {
 
   factory GroupMessage.fromJson(String source) => GroupMessage.fromMap(json.decode(source) as Map<String, dynamic>);
 
-  GroupMessage copyWith({ String? id,String? groupId ,String? senderId, String? message, List<User>? seenBy ,DateTime? createdAt}){
+  GroupMessage copyWith({ String? id,String? groupId ,String? senderId, String? type, String? status, String? uploadUrl, double? uploadDuration ,String? message, List<User>? seenBy ,DateTime? createdAt}){
     return GroupMessage(
         id: id ?? this.id,
         senderId: senderId ?? this.senderId,
         message: message ?? this.message,
         seenBy: seenBy ?? this.seenBy,
+        type: type ?? this.type,
+        status: status ?? this.status,
+        uploadUrl: uploadUrl ?? this.uploadUrl,
+        uploadDuration: uploadDuration ?? this.uploadDuration,
         groupId: groupId ?? this.groupId,
         createdAt: createdAt ?? this.createdAt
     );
