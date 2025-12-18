@@ -1,13 +1,11 @@
 
 import 'dart:convert';
 
-import 'package:demo_isar_app/model/user.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:chatapp/models/user.dart';
 import 'package:http/http.dart' as http;
 
 import '../global_variable.dart';
+
 
 class FriendApiService {
   Future<List<User>> getAllFriends({required String token})async{

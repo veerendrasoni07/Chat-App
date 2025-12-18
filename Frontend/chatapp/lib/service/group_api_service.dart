@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:demo_isar_app/global_variable.dart';
-import 'package:demo_isar_app/model/group.dart';
+import 'package:chatapp/global_variable.dart';
+import 'package:chatapp/models/group.dart';
 import 'package:http/http.dart' as http;
 
 class GroupApiService {

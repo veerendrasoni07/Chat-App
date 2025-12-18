@@ -1,6 +1,7 @@
-import 'package:demo_isar_app/isar/mapper.dart';
-import 'package:demo_isar_app/isar/service/isar_service.dart';
-import 'package:demo_isar_app/service/friend_api_service.dart';
+
+import 'package:chatapp/localDB/Mapper/mapper.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
+import 'package:chatapp/service/friend_api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FriendRepo {

@@ -45,33 +45,6 @@ class GroupController{
       throw Exception("Error creating group: $e");
     }
   }
-  Future<List<Group>> fetchGroups()async{
-    try{
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      final token = preferences.getString('token');
-      http.Response response = await http.get(
-          Uri.parse('$uri/api/get-all-groups'),
-        headers: <String,String>{
-            'Content-Type':'application/json; charset=UTF-8',
-          'x-auth-token':token!
-        }
-      );
-
-      if(response.statusCode == 200){
-        final List<dynamic> data = jsonDecode(response.body);
-        print(data);
-        final List<Group> groups = data.map((group)=>Group.fromMap(group)).toList();
-        print(groups);
-        return groups;
-      }
-      else{
-        throw Exception("We got the error:${response.body}");
-      }
-
-    }catch(e){
-      throw Exception("We got the error:${e.toString()}");
-    }
-  }
 
 
 

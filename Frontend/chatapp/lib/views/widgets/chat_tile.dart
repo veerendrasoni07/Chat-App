@@ -1,6 +1,7 @@
 
 import 'dart:ui';
 
+import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/combined_chat_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
@@ -20,19 +21,19 @@ class ChatTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // friend/group info (cheap)
     final name = isGroup
-        ? ref.watch(groupInfoProvider(chatId))?.groupName ?? 'Group'
-        : ref.watch(friendInfoProvider(chatId))?.fullname ?? 'User';
-    final picture = isGroup ? ref.watch(groupInfoProvider(chatId))?.groupPic ?? 'Group'
-        : ref.watch(friendInfoProvider(chatId))?.fullname ?? 'User';
-    final List<User> groupMembers = isGroup ? ref.watch(groupInfoProvider(chatId))!.groupMembers : [];
-    final List<User> groupAdmins = isGroup ? ref.watch(groupInfoProvider(chatId))!.groupAdmin : [];
+        ? ref.watch(groupInfoProvider(chatId)).value?.groupName ?? 'Group'
+        : ref.watch(friendInfoProvider(chatId)).value?.fullname ?? 'User';
+    final picture = isGroup ? ref.watch(groupInfoProvider(chatId)).value?.groupPic ?? 'Group'
+        : ref.watch(friendInfoProvider(chatId)).value?.profilePic ?? 'User';
+    // final List<UserIsar> groupMembers = isGroup ? ref.watch(groupInfoProvider(chatId)).value.groupMembers : [];
+    // final List<UserIsar> groupAdmins = isGroup ? ref.watch(groupInfoProvider(chatId)).value.groupAdmin : [];
     // tiny derived data — will rebuild only if these particular values change
-        final lastMessageTime = isGroup
-        ? ref.watch(lastGroupMessageProvider(chatId))
-        : ref.watch(lastMessageProvider(chatId));
-    final unreadCount = isGroup
-    ? ref.watch(unreadGroupMessageCountProvider(chatId))
-        : ref.watch(unreadChatCountProvider(chatId));
+    //     final lastMessageTime = isGroup
+    //     ? ref.watch(lastGroupMessageProvider(chatId))
+    //     : ref.watch(lastMessageProvider(chatId));
+    // final unreadCount = isGroup
+    // ? ref.watch(unreadGroupMessageCountProvider(chatId))
+    //     : ref.watch(unreadChatCountProvider(chatId));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -73,19 +74,19 @@ class ChatTile extends ConsumerWidget {
                     child: Text(name[0]),
                   ),
                   title: Text(name, style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).colorScheme.primary)),
-                  subtitle: unreadCount > 0 ? Text("$unreadCount new messages", style: TextStyle(color: Colors.blueAccent)) : null,
+                 // subtitle: unreadCount > 0 ? Text("$unreadCount new messages", style: TextStyle(color: Colors.blueAccent)) : null,
                   onTap: () {
                     if (isGroup) {
-                      Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => GroupChatScreen(fullname: name, groupId: chatId, user: ref.read(userProvider)!,groupMembers: groupMembers,groupAdmin: groupAdmins,groupPic: picture,)
-                      ));
+                      // Navigator.push(context, MaterialPageRoute(
+                      //     builder: (_) => GroupChatScreen(fullname: name, groupId: chatId, user: ref.read(userProvider)!,groupMembers: groupMembers,groupAdmin: groupAdmins,groupPic: picture,)
+                      // ));
                     } else {
                       Navigator.push(context, MaterialPageRoute(
                           builder: (_) => ChatScreen(receiverId: chatId, fullname: name)
                       ));
                     }
                   },
-                  trailing: lastMessageTime != null ? Text(_formatTime(lastMessageTime),style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.primary),) : null,
+                //  trailing: lastMessageTime != null ? Text(_formatTime(lastMessageTime),style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.primary),) : null,
                 ),
               ),
             ],

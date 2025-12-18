@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.6.2
+  sdk: ^3.5.3
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -65,8 +65,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
-  analyzer: ^5.13.0
+  flutter_lints: ^4.0.0
   build_runner: any
   isar_generator: ^3.1.0+1
 
@@ -82,8 +81,18 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - assets/icons/add-post.png
+    - assets/icons/camera.png
+    - assets/icons/chat.png
+    - assets/icons/home.png
+    - assets/icons/like.png
+    - assets/animation/cat_typing.json
+    - assets/animation/globe.json
+    - assets/animation/man_work_from_home_with_laptops.json
+    - assets/animation/saying_hi_animation.json
+    - assets/sounds/mixkit-interface-hint-notification-911.wav
+    - assets/sounds/mixkit-sci-fi-interface-zoom-890.wav
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

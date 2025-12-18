@@ -1,7 +1,9 @@
 
 
-import 'package:demo_isar_app/isar/service/isar_service.dart';
-import 'package:demo_isar_app/service/group_api_service.dart';
+
+
+import 'package:chatapp/localDB/service/isar_service.dart';
+import 'package:chatapp/service/group_api_service.dart';
 
 class GroupRepo {
   GroupApiService _groupApiService;

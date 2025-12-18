@@ -2,7 +2,8 @@ import 'package:chatapp/controller/image_service.dart';
 import 'package:chatapp/controller/message_controller.dart';
 import 'package:chatapp/controller/voice_service.dart';
 import 'package:chatapp/localDB/provider/isar_provider.dart';
-import 'package:chatapp/localDB/service/isar_services.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
+
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/service/socket_service.dart';
@@ -23,8 +24,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
   }
 
   Future<void> getMessages() async {
-    DateTime lastMessageDate = await _isarService.lastMessageDate();
-    final messages = await controller.getMessages(receiverId: receiverId,lastMessageDate: lastMessageDate);
+    final messages = await controller.getMessages(receiverId: receiverId,lastMessageDate: DateTime.now());
     state = messages;
   }
 

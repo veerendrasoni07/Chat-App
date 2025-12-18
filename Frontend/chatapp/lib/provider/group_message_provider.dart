@@ -1,6 +1,6 @@
 import 'package:chatapp/controller/group_controller.dart';
 import 'package:chatapp/localDB/provider/isar_provider.dart';
-import 'package:chatapp/localDB/service/isar_services.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
 import 'package:chatapp/models/group_message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/service/socket_service.dart';
@@ -37,7 +37,7 @@ class GroupMessageProvider extends StateNotifier<List<GroupMessage>> {
       final msg = GroupMessage.fromMap(data);
       if(msg.groupId == groupId){
         state = [...state, msg];
-        _isarService.saveGroupMessage(msg);
+       //_isarService.saveGroupMessage(msg);
       }
     });
   }

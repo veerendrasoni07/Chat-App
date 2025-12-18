@@ -1,6 +1,6 @@
 
 
-import 'package:demo_isar_app/service/backend_sync_service.dart';
+import 'package:chatapp/service/backend_sync_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'friend_controller_provider.dart';

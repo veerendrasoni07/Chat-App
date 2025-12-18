@@ -1,7 +1,7 @@
-import 'package:demo_isar_app/isar/model/group_isar.dart';
-import 'package:demo_isar_app/isar/model/user_isar.dart';
-import 'package:demo_isar_app/model/group.dart';
-import 'package:demo_isar_app/model/user.dart';
+import 'package:chatapp/localDB/model/group_isar.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
+import 'package:chatapp/models/group.dart';
+import 'package:chatapp/models/user.dart';
 
 
 

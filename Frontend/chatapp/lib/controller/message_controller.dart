@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:chatapp/localDB/service/isar_services.dart';
+
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
@@ -102,6 +102,37 @@ class MessageController{
       throw Exception(e);
     }
   }
+
+
+
+
+  //
+  // Future<void> syncMessages({required String receiverId})async{
+  //   try{
+  //     final lastMessageDate = await _isarService.lastMessageDate();
+  //     SharedPreferences preferences = await SharedPreferences.getInstance();
+  //     final token = preferences.getString('token');
+  //     if(token == null){
+  //       throw Exception('No token found');
+  //     }
+  //     await _messageSyncRepo.syncMessages(token: token, lastMessageDate: lastMessageDate, receiverId: receiverId);
+  //   }catch(e){
+  //     throw Exception('Failed to sync messages');
+  //   }
+  // }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }

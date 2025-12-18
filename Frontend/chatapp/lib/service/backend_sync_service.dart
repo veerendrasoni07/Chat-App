@@ -1,7 +1,7 @@
-import 'package:demo_isar_app/repository/friend_repo.dart';
-import 'package:demo_isar_app/repository/group_repo.dart';
-import 'package:demo_isar_app/service/friend_api_service.dart';
-import 'package:demo_isar_app/service/group_api_service.dart';
+
+
+import 'package:chatapp/repository/friend_repo.dart';
+import 'package:chatapp/repository/group_repo.dart';
 
 class BackendSyncService {
 

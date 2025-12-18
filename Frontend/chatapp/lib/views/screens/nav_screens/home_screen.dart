@@ -35,77 +35,83 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final FriendController _friendController = FriendController();
 
-  void fetchAllFriends() {
-    _friendController.getAllFriends(ref: ref);
-  }
+  // void fetchAllFriends() {
+  //   _friendController.getAllFriends(ref: ref);
+  // }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    fetchAllFriends();
   }
 
 
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
-    final chats = ref.watch(chatListProvider);
+    final friendStream = ref.watch(combinedChatStream);
     final status = ref.watch(statusListener);
 
     return Scaffold(
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .primary,
-        body: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFF450072),
-                    const Color(0xFF270249),
-                    const Color(0xFF1F0033)
-                  ],
-                ),
+      backgroundColor: Theme
+          .of(context)
+          .colorScheme
+          .primary,
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF450072),
+                  const Color(0xFF270249),
+                  const Color(0xFF1F0033)
+                ],
               ),
             ),
+          ),
 
-            SafeArea(
-              child: Padding(
-                padding:const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Column(
-                  children: [
-                    _buildGlassCapsuleHeader(context, user!),
-                    _buildFriendOrbit(context, ref, status),
-                    Divider(color: Colors.white12, thickness: 0.4),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: EdgeInsets.symmetric(vertical: 6),
-                        physics: BouncingScrollPhysics(),
-                        itemCount: chats.length,
-                        itemBuilder: (context, index) {
-                          final item = chats[index];
-                          return ChatTile(chatId: item.id, isGroup: item.isGroup);
-                        },
-                      ),
-                    )
-                  ],
-                ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                children: [
+                  _buildGlassCapsuleHeader(context, user!,ref),
+                   _buildFriendOrbit(context, ref, status),
+                  Divider(color: Colors.white12, thickness: 0.4),
+                  friendStream.when(
+                      data: (friends) {
+                        return Expanded(
+                          child: ListView.builder(
+                            padding: EdgeInsets.symmetric(vertical: 6),
+                            physics: BouncingScrollPhysics(),
+                            itemCount: friends.length,
+                            itemBuilder: (context, index) {
+                              final friend = friends[index];
+                              return ChatTile(chatId: friend.id, isGroup: friend.isGroup);
+                            },
+                          ),
+                        );
+                      },
+                      error: (error, stackTrace) => Text(error.toString()),
+                      loading: () => Center(child: CircularProgressIndicator(),)
+                  )
+                ],
               ),
             ),
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: _buildRadialMenu(context, ref)
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: _buildRadialMenu(context, ref)
     );
   }
+}
 
   // ---------------------------- GLASS CAPSULE HEADER ----------------------------
-  Widget _buildGlassCapsuleHeader(BuildContext context,User user) {
+  Widget _buildGlassCapsuleHeader(BuildContext context,User user,WidgetRef ref) {
     final activities = ref.watch(activityProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
@@ -136,7 +142,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               Row(
                 children: [
-                  /// ------------------------ PROFILE BUTTON (iOS GLASS) ------------------------
+                   /// ------------------------ PROFILE BUTTON (iOS GLASS) ------------------------
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
@@ -178,7 +184,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   SizedBox(width: 8),
 
-                  /// ------------------------ SEARCH BUTTON (iOS GLASS) ------------------------
+                   /// ------------------------ SEARCH BUTTON (iOS GLASS) ------------------------
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
@@ -320,7 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // ---------------------------- FRIEND ORBIT ----------------------------
+   // ---------------------------- FRIEND ORBIT ----------------------------
   Widget _buildFriendOrbit(BuildContext context, WidgetRef ref,
       Map<String, UserStatus> status) {
     final friends = ref.watch(friendsProvider);
@@ -444,7 +450,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         },
       ),
     );
-  }
 }
 Widget _buildRadialMenu(BuildContext context, WidgetRef ref) {
   return Padding(

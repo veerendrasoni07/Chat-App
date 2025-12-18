@@ -1,6 +1,7 @@
 
 
-import 'package:demo_isar_app/isar/model/user_isar.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
+
 import 'package:isar/isar.dart';
 part 'group_isar.g.dart';
 

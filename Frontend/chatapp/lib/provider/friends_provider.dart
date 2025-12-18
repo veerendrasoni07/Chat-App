@@ -1,5 +1,6 @@
+import 'package:chatapp/localDB/Mapper/mapper.dart';
 import 'package:chatapp/localDB/provider/isar_provider.dart';
-import 'package:chatapp/localDB/service/isar_services.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,7 +10,7 @@ class FriendProvider extends StateNotifier<List<User>>{
 
   void setAllFriends(List<User> friends){
     state = friends;
-    _isarService.saveFriends(friends);
+    _isarService.saveAllFriends(mapUsersToIsar(friends));
   }
 
 }
