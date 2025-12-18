@@ -1,74 +1,53 @@
+import 'package:demo_isar_app/isar/model/group_isar.dart';
+import 'package:demo_isar_app/isar/model/user_isar.dart';
+import 'package:demo_isar_app/model/group.dart';
+import 'package:demo_isar_app/model/user.dart';
 
-import 'package:chatapp/localDB/models/group_isar.dart';
-import 'package:chatapp/localDB/models/group_message_isar.dart';
-import 'package:chatapp/localDB/models/message_isar.dart';
-import 'package:chatapp/localDB/models/user_isar.dart';
-import 'package:chatapp/models/group.dart';
-import 'package:chatapp/models/group_message.dart';
-import 'package:chatapp/models/message.dart';
-import 'package:chatapp/models/user.dart';
-import 'package:isar/isar.dart';
 
-MessagesIsar mapMessage(Message message){
-  return MessagesIsar()
-      ..messageId = message.id
-      ..senderId = message.senderId
-      ..receiverId = message.receiverId
-      ..message = message.message
-      ..status = message.status
-      ..type = message.type
-      ..uploadUrl = message.uploadUrl
-      ..uploadDuration = message.uploadDuration
-      ..createdAt = message.createdAt!;
 
-}
 
-GroupMessageIsar mapGroupMessage(GroupMessage grpMessage){
-  return GroupMessageIsar()
-      ..groupId = grpMessage.groupId
-      ..senderId = grpMessage.senderId
-      ..groupId = grpMessage.groupId
-      ..message = grpMessage.message
-      ..type = grpMessage.type
-      ..status = grpMessage.status
-      ..uploadUrl = grpMessage.uploadUrl
-      ..uploadDuration = grpMessage.uploadDuration;
-}
 
-UserIsar mapUser(User user){
-  return UserIsar()
-      ..userId = user.id
-      ..userName = user.username
-      ..fullname = user.fullname
-      ..email = user.email
-      ..phone = user.phone
-      ..profilePic = user.profilePic
-      ..gender = user.gender
-      ..isFriend = true
-      ..bio = user.bio;
-}
+  UserIsar mapUserToIsar(User user) {
+    return UserIsar()
+        ..userId = user.id
+        ..fullname = user.fullname
+        ..email = user.email
+        ..profilePic = user.profilePic
+        ..gender = user.gender
+        ..bio = user.bio
+        ..phone = user.phone
+        ..location = user.location
+        ..isOnline = user.isOnline;
+  }
 
-GroupIsar mapGroup(Group group,Isar isar) {
-  final grp = GroupIsar()
+  List<UserIsar> mapUsersToIsar(List<User> users){
+    List<UserIsar> isarUsers = [];
+    isarUsers = users.map((u)=> mapUserToIsar(u)).toList();
+    return isarUsers;
+  }
+
+
+  GroupIsar mapGroupToIsar(Group group){
+    GroupIsar groupIsar = GroupIsar()
     ..groupName = group.groupName
-    ..description = group.groupDescription
+    ..groupId = group.id
     ..groupPic = group.groupPic
-    ..groupId = group.id;
-  for (final u in group.groupMembers) {
-    final userIsar = mapUser(u);
-    isar.userIsars.putSync(userIsar);
-    grp.groupMembers.add(userIsar);
+    ..groupDescription = group.groupDescription;
+
+     groupIsar.groupMembers.addAll(mapUsersToIsar(group.groupMembers));
+     groupIsar.groupMembers.addAll(mapUsersToIsar(group.groupAdmin));
+     return groupIsar;
   }
-  for (final u in group.groupAdmin) {
-    final userIsar = mapUser(u);
-    isar.userIsars.putSync(userIsar);
-    grp.groupAdmins.add(userIsar);
-  }
-  return grp;
-}
 
 
-// now convert isar model to class model
+
+  List<GroupIsar> mapGroupsToIsar(List<Group> groups){
+    List<GroupIsar> isarGroups = [];
+    for(final group in groups){
+      isarGroups.add(mapGroupToIsar(group));
+    }
+    return isarGroups;
+  }
 
 
 

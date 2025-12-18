@@ -17,35 +17,25 @@ const GroupIsarSchema = CollectionSchema(
   name: r'GroupIsar',
   id: -3445220930281838384,
   properties: {
-    r'createdAt': PropertySchema(
+    r'groupDescription': PropertySchema(
       id: 0,
-      name: r'createdAt',
-      type: IsarType.dateTime,
-    ),
-    r'description': PropertySchema(
-      id: 1,
-      name: r'description',
+      name: r'groupDescription',
       type: IsarType.string,
     ),
     r'groupId': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'groupId',
       type: IsarType.string,
     ),
     r'groupName': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'groupName',
       type: IsarType.string,
     ),
     r'groupPic': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'groupPic',
       type: IsarType.string,
-    ),
-    r'updatedAt': PropertySchema(
-      id: 5,
-      name: r'updatedAt',
-      type: IsarType.dateTime,
     )
   },
   estimateSize: _groupIsarEstimateSize,
@@ -53,17 +43,31 @@ const GroupIsarSchema = CollectionSchema(
   deserialize: _groupIsarDeserialize,
   deserializeProp: _groupIsarDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'groupId': IndexSchema(
+      id: -8523216633229774932,
+      name: r'groupId',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'groupId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {
-    r'groupAdmins': LinkSchema(
-      id: 2492565726131315381,
-      name: r'groupAdmins',
-      target: r'UserIsar',
-      single: false,
-    ),
     r'groupMembers': LinkSchema(
       id: -1599496501132259063,
       name: r'groupMembers',
+      target: r'UserIsar',
+      single: false,
+    ),
+    r'groupAdmins': LinkSchema(
+      id: 2492565726131315381,
+      name: r'groupAdmins',
       target: r'UserIsar',
       single: false,
     )
@@ -81,7 +85,7 @@ int _groupIsarEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.description.length * 3;
+  bytesCount += 3 + object.groupDescription.length * 3;
   bytesCount += 3 + object.groupId.length * 3;
   bytesCount += 3 + object.groupName.length * 3;
   bytesCount += 3 + object.groupPic.length * 3;
@@ -94,12 +98,10 @@ void _groupIsarSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.description);
-  writer.writeString(offsets[2], object.groupId);
-  writer.writeString(offsets[3], object.groupName);
-  writer.writeString(offsets[4], object.groupPic);
-  writer.writeDateTime(offsets[5], object.updatedAt);
+  writer.writeString(offsets[0], object.groupDescription);
+  writer.writeString(offsets[1], object.groupId);
+  writer.writeString(offsets[2], object.groupName);
+  writer.writeString(offsets[3], object.groupPic);
 }
 
 GroupIsar _groupIsarDeserialize(
@@ -109,13 +111,11 @@ GroupIsar _groupIsarDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = GroupIsar();
-  object.createdAt = reader.readDateTime(offsets[0]);
-  object.description = reader.readString(offsets[1]);
-  object.groupId = reader.readString(offsets[2]);
-  object.groupName = reader.readString(offsets[3]);
-  object.groupPic = reader.readString(offsets[4]);
+  object.groupDescription = reader.readString(offsets[0]);
+  object.groupId = reader.readString(offsets[1]);
+  object.groupName = reader.readString(offsets[2]);
+  object.groupPic = reader.readString(offsets[3]);
   object.id = id;
-  object.updatedAt = reader.readDateTime(offsets[5]);
   return object;
 }
 
@@ -127,17 +127,13 @@ P _groupIsarDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
       return (reader.readString(offset)) as P;
-    case 4:
-      return (reader.readString(offset)) as P;
-    case 5:
-      return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -148,15 +144,70 @@ Id _groupIsarGetId(GroupIsar object) {
 }
 
 List<IsarLinkBase<dynamic>> _groupIsarGetLinks(GroupIsar object) {
-  return [object.groupAdmins, object.groupMembers];
+  return [object.groupMembers, object.groupAdmins];
 }
 
 void _groupIsarAttach(IsarCollection<dynamic> col, Id id, GroupIsar object) {
   object.id = id;
-  object.groupAdmins
-      .attach(col, col.isar.collection<UserIsar>(), r'groupAdmins', id);
   object.groupMembers
       .attach(col, col.isar.collection<UserIsar>(), r'groupMembers', id);
+  object.groupAdmins
+      .attach(col, col.isar.collection<UserIsar>(), r'groupAdmins', id);
+}
+
+extension GroupIsarByIndex on IsarCollection<GroupIsar> {
+  Future<GroupIsar?> getByGroupId(String groupId) {
+    return getByIndex(r'groupId', [groupId]);
+  }
+
+  GroupIsar? getByGroupIdSync(String groupId) {
+    return getByIndexSync(r'groupId', [groupId]);
+  }
+
+  Future<bool> deleteByGroupId(String groupId) {
+    return deleteByIndex(r'groupId', [groupId]);
+  }
+
+  bool deleteByGroupIdSync(String groupId) {
+    return deleteByIndexSync(r'groupId', [groupId]);
+  }
+
+  Future<List<GroupIsar?>> getAllByGroupId(List<String> groupIdValues) {
+    final values = groupIdValues.map((e) => [e]).toList();
+    return getAllByIndex(r'groupId', values);
+  }
+
+  List<GroupIsar?> getAllByGroupIdSync(List<String> groupIdValues) {
+    final values = groupIdValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'groupId', values);
+  }
+
+  Future<int> deleteAllByGroupId(List<String> groupIdValues) {
+    final values = groupIdValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'groupId', values);
+  }
+
+  int deleteAllByGroupIdSync(List<String> groupIdValues) {
+    final values = groupIdValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'groupId', values);
+  }
+
+  Future<Id> putByGroupId(GroupIsar object) {
+    return putByIndex(r'groupId', object);
+  }
+
+  Id putByGroupIdSync(GroupIsar object, {bool saveLinks = true}) {
+    return putByIndexSync(r'groupId', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByGroupId(List<GroupIsar> objects) {
+    return putAllByIndex(r'groupId', objects);
+  }
+
+  List<Id> putAllByGroupIdSync(List<GroupIsar> objects,
+      {bool saveLinks = true}) {
+    return putAllByIndexSync(r'groupId', objects, saveLinks: saveLinks);
+  }
 }
 
 extension GroupIsarQueryWhereSort
@@ -234,71 +285,63 @@ extension GroupIsarQueryWhere
       ));
     });
   }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterWhereClause> groupIdEqualTo(
+      String groupId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'groupId',
+        value: [groupId],
+      ));
+    });
+  }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterWhereClause> groupIdNotEqualTo(
+      String groupId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'groupId',
+              lower: [],
+              upper: [groupId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'groupId',
+              lower: [groupId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'groupId',
+              lower: [groupId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'groupId',
+              lower: [],
+              upper: [groupId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension GroupIsarQueryFilter
     on QueryBuilder<GroupIsar, GroupIsar, QFilterCondition> {
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> createdAtEqualTo(
-      DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'createdAt',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      createdAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'createdAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> createdAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'createdAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> createdAtBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'createdAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> descriptionEqualTo(
+      groupDescriptionEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'description',
+        property: r'groupDescription',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -306,7 +349,7 @@ extension GroupIsarQueryFilter
   }
 
   QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      descriptionGreaterThan(
+      groupDescriptionGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -314,14 +357,15 @@ extension GroupIsarQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'description',
+        property: r'groupDescription',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> descriptionLessThan(
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupDescriptionLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -329,14 +373,15 @@ extension GroupIsarQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'description',
+        property: r'groupDescription',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> descriptionBetween(
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupDescriptionBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -345,7 +390,7 @@ extension GroupIsarQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'description',
+        property: r'groupDescription',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -356,50 +401,49 @@ extension GroupIsarQueryFilter
   }
 
   QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      descriptionStartsWith(
+      groupDescriptionStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'description',
+        property: r'groupDescription',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> descriptionEndsWith(
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupDescriptionEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'description',
+        property: r'groupDescription',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> descriptionContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupDescriptionContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'description',
+        property: r'groupDescription',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> descriptionMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupDescriptionMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'description',
+        property: r'groupDescription',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
@@ -407,20 +451,20 @@ extension GroupIsarQueryFilter
   }
 
   QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      descriptionIsEmpty() {
+      groupDescriptionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'description',
+        property: r'groupDescription',
         value: '',
       ));
     });
   }
 
   QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      descriptionIsNotEmpty() {
+      groupDescriptionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'description',
+        property: r'groupDescription',
         value: '',
       ));
     });
@@ -872,60 +916,6 @@ extension GroupIsarQueryFilter
       ));
     });
   }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> updatedAtEqualTo(
-      DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'updatedAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      updatedAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'updatedAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> updatedAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'updatedAt',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> updatedAtBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'updatedAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
 }
 
 extension GroupIsarQueryObject
@@ -933,67 +923,6 @@ extension GroupIsarQueryObject
 
 extension GroupIsarQueryLinks
     on QueryBuilder<GroupIsar, GroupIsar, QFilterCondition> {
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> groupAdmins(
-      FilterQuery<UserIsar> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'groupAdmins');
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      groupAdminsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groupAdmins', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      groupAdminsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groupAdmins', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      groupAdminsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groupAdmins', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      groupAdminsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groupAdmins', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      groupAdminsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'groupAdmins', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
-      groupAdminsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'groupAdmins', lower, includeLower, upper, includeUpper);
-    });
-  }
-
   QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> groupMembers(
       FilterQuery<UserIsar> q) {
     return QueryBuilder.apply(this, (query) {
@@ -1054,30 +983,80 @@ extension GroupIsarQueryLinks
           r'groupMembers', lower, includeLower, upper, includeUpper);
     });
   }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition> groupAdmins(
+      FilterQuery<UserIsar> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'groupAdmins');
+    });
+  }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupAdminsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'groupAdmins', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupAdminsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'groupAdmins', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupAdminsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'groupAdmins', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupAdminsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'groupAdmins', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupAdminsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'groupAdmins', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<GroupIsar, GroupIsar, QAfterFilterCondition>
+      groupAdminsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'groupAdmins', lower, includeLower, upper, includeUpper);
+    });
+  }
 }
 
 extension GroupIsarQuerySortBy on QueryBuilder<GroupIsar, GroupIsar, QSortBy> {
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> sortByCreatedAt() {
+  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> sortByGroupDescription() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
+      return query.addSortBy(r'groupDescription', Sort.asc);
     });
   }
 
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> sortByCreatedAtDesc() {
+  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy>
+      sortByGroupDescriptionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> sortByDescription() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.asc);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> sortByDescriptionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.desc);
+      return query.addSortBy(r'groupDescription', Sort.desc);
     });
   }
 
@@ -1116,43 +1095,20 @@ extension GroupIsarQuerySortBy on QueryBuilder<GroupIsar, GroupIsar, QSortBy> {
       return query.addSortBy(r'groupPic', Sort.desc);
     });
   }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> sortByUpdatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> sortByUpdatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.desc);
-    });
-  }
 }
 
 extension GroupIsarQuerySortThenBy
     on QueryBuilder<GroupIsar, GroupIsar, QSortThenBy> {
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> thenByCreatedAt() {
+  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> thenByGroupDescription() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
+      return query.addSortBy(r'groupDescription', Sort.asc);
     });
   }
 
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> thenByCreatedAtDesc() {
+  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy>
+      thenByGroupDescriptionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> thenByDescription() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.asc);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> thenByDescriptionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.desc);
+      return query.addSortBy(r'groupDescription', Sort.desc);
     });
   }
 
@@ -1203,32 +1159,15 @@ extension GroupIsarQuerySortThenBy
       return query.addSortBy(r'id', Sort.desc);
     });
   }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> thenByUpdatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QAfterSortBy> thenByUpdatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.desc);
-    });
-  }
 }
 
 extension GroupIsarQueryWhereDistinct
     on QueryBuilder<GroupIsar, GroupIsar, QDistinct> {
-  QueryBuilder<GroupIsar, GroupIsar, QDistinct> distinctByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'createdAt');
-    });
-  }
-
-  QueryBuilder<GroupIsar, GroupIsar, QDistinct> distinctByDescription(
+  QueryBuilder<GroupIsar, GroupIsar, QDistinct> distinctByGroupDescription(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'groupDescription',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -1252,12 +1191,6 @@ extension GroupIsarQueryWhereDistinct
       return query.addDistinctBy(r'groupPic', caseSensitive: caseSensitive);
     });
   }
-
-  QueryBuilder<GroupIsar, GroupIsar, QDistinct> distinctByUpdatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'updatedAt');
-    });
-  }
 }
 
 extension GroupIsarQueryProperty
@@ -1268,15 +1201,9 @@ extension GroupIsarQueryProperty
     });
   }
 
-  QueryBuilder<GroupIsar, DateTime, QQueryOperations> createdAtProperty() {
+  QueryBuilder<GroupIsar, String, QQueryOperations> groupDescriptionProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'createdAt');
-    });
-  }
-
-  QueryBuilder<GroupIsar, String, QQueryOperations> descriptionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'description');
+      return query.addPropertyName(r'groupDescription');
     });
   }
 
@@ -1295,12 +1222,6 @@ extension GroupIsarQueryProperty
   QueryBuilder<GroupIsar, String, QQueryOperations> groupPicProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'groupPic');
-    });
-  }
-
-  QueryBuilder<GroupIsar, DateTime, QQueryOperations> updatedAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'updatedAt');
     });
   }
 }
