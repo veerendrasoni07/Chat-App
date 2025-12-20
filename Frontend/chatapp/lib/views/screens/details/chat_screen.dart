@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/get_navigation.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:chatapp/localDB/model/message_isar.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/message_service_class.dart';
 import 'package:chatapp/provider/message_stream_provider.dart';
@@ -109,7 +112,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final messages = ref.watch(messageProvider(widget.receiverId));
     final status = ref.watch(statusListener);
     final receiverStatus = status[widget.receiverId];
     final isOnline = receiverStatus?.isOnline ?? false;
@@ -117,7 +119,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isFriendTyping = ref.watch(typingProvider(widget.receiverId));
     final lastSeen = receiverStatus?.lastSeen;
     final user = ref.watch(userProvider);
-
+    final messageSteam = ref.watch(messageStreamProvider(widget.receiverId));
 
     return PopScope(
       canPop: true,
@@ -128,7 +130,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               .read(messageProvider(widget.receiverId).notifier)
               .chatClosed(userId);
           print('🔙 System back pressed → chatClosed emitted');
-          Navigator.pop(context);
+          Get.to(
+              ()=>Navigator.pop(context),
+            transition: Transition.fade,
+            duration: const Duration(milliseconds: 350),
+          );
         } else {
           final userId = ref.read(userProvider)!.id;
           ref
@@ -179,7 +185,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     ),
                                     builder: (context, snap) {
                                       if (!snap.hasData) {
-                                        return Scaffold(
+                                        return const Scaffold(
                                           body: Center(
                                             child: CircularProgressIndicator(),
                                           ),
@@ -193,11 +199,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           return;
                         }
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProfileScreen(user: friend),
-                          ),
+                        Get.to(()=>ProfileScreen(user: friend),
+                          transition: Transition.fade,
+                          duration: const Duration(milliseconds: 350),
                         );
                       },
                       child: AutoSizeText(
@@ -221,7 +225,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   : Colors.red,
                           size: 10.r,
                         ),
-                        SizedBox(width: 5),
+                        const SizedBox(width: 5),
                         AutoSizeText(
                           isOnline
                               ? "Online"
@@ -233,6 +237,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.primary,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -266,229 +271,232 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
         extendBodyBehindAppBar: true,
           body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF450072),
-                const Color(0xFF270249),
-                const Color(0xFF1F0033),
-                const Color(0xFF140021),
+                Color(0xFF450072),
+                Color(0xFF270249),
+                Color(0xFF00033B),
+                Color(0xFF160018),
               ],
             ),
           ),
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMe = message.senderId == user!.id;
-                    print("Message Object");
-                    print(message.toJson());
-                    return AnimatedSwitcher(
-                      duration: Duration(milliseconds: 350),
-                      child: Align(
-                        alignment:
-                            isMe ? Alignment.centerRight : Alignment.centerLeft,
-                        child:
-                            message.type == 'text'
-                                ? Container(
-                                  padding: EdgeInsets.all(10),
-                                  margin: EdgeInsets.symmetric(
-                                    vertical: 5.h,
-                                    horizontal: 10.w,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isMe
-                                            ? Colors.deepPurpleAccent
-                                            : Colors.blue,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        message.message,
-                                        style: GoogleFonts.poppins(
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.primary,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ).animate().fade().scale(),
-                                      if (isMe) ...[
-                                        SizedBox(height: 3),
-                                        _buildStatusIcon(message.status),
-                                      ],
+          child: messageSteam.when(
+              data: (messages){
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        reverse: true,
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[messages.length - index - 1];
+                          final isMe = message.senderId == user!.id;
+                          return AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 350),
+                            child: Align(
+                              alignment:
+                              isMe ? Alignment.centerRight : Alignment.centerLeft,
+                              child:
+                              message.messageType == 'text'
+                                  ? Container(
+                                padding: const EdgeInsets.all(10),
+                                margin: EdgeInsets.symmetric(
+                                  vertical: 5.h,
+                                  horizontal: 10.w,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                  isMe
+                                      ? Colors.white.withOpacity(0.2)
+                                      :  Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      message.content,
+                                      style: GoogleFonts.poppins(
+                                        color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ).animate().scale(),
+                                    if (isMe) ...[
+                                      const SizedBox(height: 3),
+                                      _buildStatusIcon(message.status),
                                     ],
-                                  ),
-                                )
-                                : message.type == 'image' ? _buildImage(message) : VoiceBubble(
-                                  url: message.uploadUrl ?? '',
-                                  isMe: isMe,
+                                  ],
                                 ),
+                              )
+                                  : message.messageType == 'image' ? _buildImage(message) : VoiceBubble(
+                                url: message.mediaUrl ?? '',
+                                isMe: isMe,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
 
-              if (isFriendTyping)
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 15.h,
-                    horizontal: 10.0.w,
-                  ),
-                  child: Row(
-                    children: [
-                      Lottie.asset(
-                        'assets/animation/Typing.json',
-                        height: 50.h,
-                        width: 50.w,
+                    if (isFriendTyping)
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 15.h,
+                          horizontal: 10.0.w,
+                        ),
+                        child: Row(
+                          children: [
+                            Lottie.asset(
+                              'assets/animation/Typing.json',
+                              height: 50.h,
+                              width: 50.w,
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 15.h,
-                  horizontal: 10.0.w,
-                ),
-                child:
-                     Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         if(pickedImage!=null)
-                           Chip(
-                             onDeleted: (){
-                               setState(() {
-                                 pickedImage = null;
-                               });
-                             },
-                               label: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,)
-                           ),
-                         TextField(
-                              controller: messageController,
-                              onChanged:
-                                  (value) => userTyping(
-                                    socket,
-                                    user!.id,
-                                    widget.receiverId,
-                                  ),
-                              decoration: InputDecoration(
-                                hintText: 'Type a message',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.2),
-                                contentPadding: EdgeInsets.all(10.sp),
-                                hintStyle: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.door_back_door_outlined,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                suffixIcon: SizedBox(
-                                  width: 120.w,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
-                                      // Microphone button with gesture detection
-                                      GestureDetector(
-                                        onLongPressStart: (details) async {
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 15.h,
+                        horizontal: 15.0.w,
+                      ),
+                      child:
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if(pickedImage!=null)
+                            Chip(
+                                onDeleted: (){
+                                  setState(() {
+                                    pickedImage = null;
+                                  });
+                                },
+                                label: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,)
+                            ),
+                          TextField(
+                            controller: messageController,
+                            onChanged:
+                                (value) => userTyping(
+                              socket,
+                              user!.id,
+                              widget.receiverId,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Type a message',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withOpacity(0.1),
+                              contentPadding: EdgeInsets.all(10.sp),
+                              hintStyle: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.door_back_door_outlined,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              suffixIcon: SizedBox(
+                                width: 150.w,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
+                                    // Microphone button with gesture detection
+                                    GestureDetector(
+                                      onLongPressStart: (details) async {
 
-                                          await _voiceService.startRecording();
+                                        await _voiceService.startRecording();
 
-                                          setState(() => isRecording = true);
-                                        },
+                                        setState(() => isRecording = true);
+                                      },
 
 
-                                        onLongPressEnd: (_) async {
+                                      onLongPressEnd: (_) async {
 
-                                          final filePath = await _voiceService
-                                              .stopRecording();
+                                        final filePath = await _voiceService
+                                            .stopRecording();
 
-                                          if (filePath != null) {
-                                            final duration = await _voiceService
-                                                .getDurationFromFile(filePath);
+                                        if (filePath != null) {
+                                          final duration = await _voiceService
+                                              .getDurationFromFile(filePath);
 
-                                            await ref
-                                                .read(
-                                                  messageProvider(
-                                                    widget.receiverId,
-                                                  ).notifier,
-                                                )
-                                                .sendVoice(
-                                                  senderId: user!.id,
-                                                  receiverId: widget.receiverId,
-                                                  filePath: filePath,
-                                                  duration: duration,
-                                                );
-                                          }
+                                          await ref
+                                              .read(
+                                            messageProvider(
+                                              widget.receiverId,
+                                            ).notifier,
+                                          )
+                                              .sendVoice(
+                                            senderId: user!.id,
+                                            receiverId: widget.receiverId,
+                                            filePath: filePath,
+                                            duration: duration,
+                                          );
+                                        }
 
-                                          setState(() {
-                                            isRecording = false;
-                                          });
-                                        },
+                                        setState(() {
+                                          isRecording = false;
+                                        });
+                                      },
 
-                                        child: CircleAvatar(
-                                          radius: 14.r,
-                                          backgroundColor:
-                                              isRecording
-                                                  ? Colors.red
-                                                  : Colors.blue,
-                                          child: Icon(
-                                            Icons.mic,
-                                            color: Colors.white,
-                                          ),
+                                      child: CircleAvatar(
+                                        radius: 14.r,
+                                        backgroundColor:
+                                        isRecording
+                                            ? Colors.red
+                                            : Colors.blue,
+                                        child: const Icon(
+                                          Icons.mic,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                      IconButton(
-                                          onPressed: (){
-                                            if(isImage) {
-                                              ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!.path, message: messageController.text);
-                                              setState(() {
-                                                pickedImage = null;
-                                                isImage = false;
-                                                messageController.clear();
-                                              });
+                                    ),
+                                    IconButton(
+                                        onPressed: (){
+                                          if(isImage) {
+                                            ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!.path, message: messageController.text);
+                                            setState(() {
+                                              pickedImage = null;
+                                              isImage = false;
+                                              messageController.clear();
+                                            });
 
-                                            }
-                                            else{
-                                              ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
-                                            }
-                                          },
-                                          icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
-                                    ],
-                                  ),
+                                          }
+                                          else{
+                                            ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
+                                          }
+                                        },
+                                        icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
+                                  ],
                                 ),
                               ),
                             ),
-                       ],
-                     ),
-              ),
-            ],
-          ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+              error: (error,stackError)=> Text(error.toString()),
+              loading: ()=> const Center(child: CircularProgressIndicator(),)
+          )
         ),
       )
     );
   }
 
-  Widget _buildImage(Message message) {
-    final isNetwork = message.uploadUrl.startsWith('http');
-    if (isNetwork) {
+  Widget _buildImage(MessageIsar message) {
+    final isNetwork = message.mediaUrl?.startsWith('http');
+    if (isNetwork!) {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -501,7 +509,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           children: [
             Image.network(
-              message.uploadUrl!,
+              message.mediaUrl!,
               height: 150.h,
               width: 150.w,
               fit: BoxFit.cover,
@@ -516,7 +524,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 );
               },
             ),
-            Text(message.message)
+            Text(message.content)
           ],
         ),
       );
@@ -533,12 +541,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           children: [
             Image.file(
-              File(message.uploadUrl!),
+              File(message.mediaUrl!),
               height: 150.h,
               width: 150.w,
               fit: BoxFit.cover,
             ),
-            Text(message.message)
+            Text(message.content)
           ],
         ),
       );
@@ -549,13 +557,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildStatusIcon(String status) {
     switch (status) {
       case 'seen':
-        return Icon(Icons.done_all, color: Colors.blueAccent);
+        return const Icon(Icons.done_all, color: Colors.blueAccent);
       case 'delivered':
-        return Icon(Icons.done_all, color: Colors.grey);
+        return const Icon(Icons.done_all, color: Colors.grey);
       case 'sent':
-        return Icon(Icons.done, color: Colors.grey);
+        return const Icon(Icons.done, color: Colors.grey);
       case 'saving':
-        return Icon(Icons.save, color: Colors.grey);
+        return const Icon(Icons.save, color: Colors.grey);
       default:
         return const SizedBox.shrink();
     }

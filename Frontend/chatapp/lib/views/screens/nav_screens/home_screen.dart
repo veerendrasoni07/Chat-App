@@ -15,6 +15,7 @@ import 'package:chatapp/views/widgets/chat_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
@@ -33,12 +34,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final FriendController _friendController = FriendController();
-
-  // void fetchAllFriends() {
-  //   _friendController.getAllFriends(ref: ref);
-  // }
-
   @override
   void initState() {
     // TODO: implement initState
@@ -59,15 +54,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .primary,
       body: Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
+           Container(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF450072),
-                  const Color(0xFF270249),
-                  const Color(0xFF1F0033)
+                   Color(0xFF450072),
+                   Color(0xFF270249),
+                   Color(0xFF1F0033)
                 ],
               ),
             ),
@@ -80,13 +75,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   _buildGlassCapsuleHeader(context, user!,ref),
                    _buildFriendOrbit(context, ref, status),
-                  Divider(color: Colors.white12, thickness: 0.4),
+                  const Divider(color: Colors.white12, thickness: 0.4),
                   friendStream.when(
                       data: (friends) {
                         return Expanded(
                           child: ListView.builder(
-                            padding: EdgeInsets.symmetric(vertical: 6),
-                            physics: BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            physics: const BouncingScrollPhysics(),
                             itemCount: friends.length,
                             itemBuilder: (context, index) {
                               final friend = friends[index];
@@ -96,7 +91,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         );
                       },
                       error: (error, stackTrace) => Text(error.toString()),
-                      loading: () => Center(child: CircularProgressIndicator(),)
+                      loading: () => const Center(child: CircularProgressIndicator(),)
                   )
                 ],
               ),
@@ -117,7 +112,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.95,
-        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white.withOpacity(0.35), width: 1),
@@ -144,10 +139,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                    /// ------------------------ PROFILE BUTTON (iOS GLASS) ------------------------
                   GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => AccountScreen(backgroundType: "artist", user: user)),
-                    ),
+                    // onTap: () => Get.to(()=> AccountScreen(backgroundType: "artist", user: user),
+                    //   transition: Transition.leftToRightWithFade,
+                    //   duration:const Duration(milliseconds: 300),
+                    //   curve: Curves.fastOutSlowIn,
+                    // ),
                     child: Container(
                       width: 45,
                       height: 45,
@@ -182,14 +178,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
 
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
 
                    /// ------------------------ SEARCH BUTTON (iOS GLASS) ------------------------
                   GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => AddFriendScreen()),
+                    onTap: () => Get.to(
+                        ()=>const AddFriendScreen(),
+                      transition: Transition.leftToRightWithFade,
+                      duration:const Duration(milliseconds: 300),
+                      curve: Curves.fastOutSlowIn,
                     ),
+
                     child: Container(
                       width: 45,
                       height: 45,
@@ -260,11 +259,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   size: 22, color: Colors.white.withOpacity(0.95)),
                               splashColor: Colors.transparent,
                               highlightColor: Colors.transparent,
-                              onPressed: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => NotificationScreen()),
+                              onPressed: () => Get.to(
+                                  ()=> const NotificationScreen(),
+                                transition: Transition.native,
+                                duration:const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
                               ),
-                            ),
+                              )
                           ),
                         ),
                       ),
@@ -290,7 +291,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                   /// ------------------------ MENU BUTTON (GLASS) ------------------------
                   GestureDetector(
-                    onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (_)=>SettingsScreen(user: user))),
+                    onTap: ()=>Get.to(
+                          ()=>  SettingsScreen(user: user),
+                      transition: Transition.native,
+                      duration:const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                    ),
                     child: Container(
                       width: 45,
                       height: 45,
@@ -363,7 +369,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         userId: f.id),
                                     builder: (context, snap) {
                                       if (!snap.hasData) {
-                                        return Scaffold(
+                                        return const Scaffold(
                                           body: Center(
                                               child: CircularProgressIndicator()),
                                         );
@@ -429,7 +435,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                   ],
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 AutoSizeText(
                   f.fullname
                       .split(" ")
@@ -488,14 +494,14 @@ Widget _buildRadialOptions(BuildContext context, WidgetRef ref) {
     child: Wrap(
       children: [
         _radialItem(context, Icons.chat_bubble, "New Chat", () {}),
-        SizedBox(width: 10,),
+        const SizedBox(width: 10,),
         _radialItem(context, Icons.group, "New Group", () => newGroupModalSheet(context, controller, users, ref)
         ),
-        SizedBox(width: 10,),
+        const SizedBox(width: 10,),
         _radialItem(context, Icons.person_add, "Add Friend", () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => AddFriendScreen()),
+            MaterialPageRoute(builder: (_) => const AddFriendScreen()),
           );
         }),
       ],
@@ -514,7 +520,7 @@ Widget _radialItem(
           backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
           child: Icon(icon, color: Theme.of(context).colorScheme.primary),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(label, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
       ],
     ),

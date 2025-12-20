@@ -33,3 +33,4 @@ final friendInfoProvider = FutureProvider.family<UserIsar?,String>((ref,chatId){
   final isar = ref.read(isarProvider);
   return isar.userIsars.filter().userIdEqualTo(chatId).findFirst();
 });
+

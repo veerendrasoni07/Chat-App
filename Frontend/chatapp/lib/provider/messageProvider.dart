@@ -6,34 +6,37 @@ import 'package:chatapp/localDB/service/isar_service.dart';
 
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
+import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/service/socket_service.dart';
 import 'package:chatapp/service/sound_manager.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 class MessageProvider extends StateNotifier<List<Message>> {
   final MessageController controller;
   final VoiceService _voiceService;
   final ImageService _imageService;
   final IsarService _isarService;
+  final String senderId;
   final String receiverId;
   final SocketService socket;
   bool _isChatOpen = false;
-  MessageProvider(this.controller, this.receiverId, this.socket, this._voiceService,this._isarService ,this._imageService) : super([]) {
+  MessageProvider(this.controller, this.receiverId,this.senderId, this.socket, this._voiceService,this._isarService ,this._imageService) : super([]) {
     getMessages();
     listenMessage();
   }
 
   Future<void> getMessages() async {
     final messages = await controller.getMessages(receiverId: receiverId,lastMessageDate: DateTime.now());
-    state = messages;
   }
 
   Future<void> sendMessage({required String senderId,required String receiverId,required String userMessage,required double duration,required String type,required String uploadUrl})async{
     try{
-      final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-      final newMessage = Message(id: tempId, senderId: senderId, receiverId: receiverId, message: userMessage,type: type , uploadDuration: duration, uploadUrl: uploadUrl,status: 'sending', createdAt: DateTime.now());
-      state = [...state, newMessage];
-      socket.sendMessage(receiverId, senderId, userMessage,tempId);
+      final localId = const Uuid().v4();
+      final newMessage = Message(id: localId, senderId: senderId, receiverId: receiverId, message: userMessage,type: type , uploadDuration: duration, uploadUrl: uploadUrl,status: 'sending', createdAt: DateTime.now());
+      await _isarService.saveLocalMessage(newMessage);
+      socket.sendMessage(receiverId, senderId, userMessage,localId);
     }catch(e){
       throw Exception(e.toString());
     }
@@ -41,51 +44,40 @@ class MessageProvider extends StateNotifier<List<Message>> {
 
   void listenMessage() {
 
-      socket.listenMessage('newMessage', (data) async{
-        var message = Message.fromMap(data);
+    socket.listenMessage('newMessage', (data) async {
+      final message = Message.fromMap(data['newMessage']);
+      final tempId = data['tempId'];
 
-        // only messages for this chat
-        if (message.senderId != receiverId &&
-            message.receiverId != receiverId) return;
+      final currentUserId = senderId; // logged-in user
 
-        // FIXED: detect placeholder (sending OR uploading)
-        final existingIndex = state.indexWhere((m) =>
-            m.senderId == message.senderId &&
-            m.receiverId == message.receiverId &&
-                m.type == message.type &&
-            (m.status == 'sending' || m.status == 'uploading')
-        );
+      // Sender side: replace placeholder
+      if (tempId != null && message.senderId == currentUserId) {
+        await _isarService.replacePlaceHolder(message, tempId);
+        return;
+      }
 
-        if (existingIndex != -1) {
-          // replace placeholder with backend message (this has Cloudinary URL)
-          final updated = [...state];
-          updated[existingIndex] = message.copyWith(status: 'sent');
-          state = updated;
-          // _isarService.saveMessage(message);
-          return;
+      // Receiver side: save message
+      if (message.receiverId == currentUserId) {
+        await _isarService.saveServerMessage(message);
+
+        if (_isChatOpen) {
+          socket.markAsSeen(message.id);
+          await _isarService.updateMessageStatus(message.id, "seen");
+        } else {
+          await _isarService.updateMessageStatus(message.id, "delivered");
         }
 
-        // receiver sends new message
-        if (message.senderId == receiverId) {
-          if (_isChatOpen) {
-            socket.markAsSeen(message.id);
-            message = message.copyWith(status: 'seen');
-          } else {
-            message = message.copyWith(status: 'delivered');
-          }
-          SoundManager.playReceiveSound();
-        }
+        SoundManager.playReceiveSound();
+      }
+    });
 
-        state = [...state, message];
-        //_isarService.saveMessage(message);
-      });
 
 
     // Listen for message status updates
-    socket.listenMessageStatus((data) {
+    socket.listenMessageStatus((data) async{
       final messageId = data['messageId'];
       final status = data['status'];
-      updateMessageStatus(messageId, status);
+      await _isarService.updateMessageStatus(messageId, status);
     });
   }
 
@@ -182,31 +174,21 @@ class MessageProvider extends StateNotifier<List<Message>> {
 
 
 
-  void updateMessageStatus(String messageId, String status) {
-    state = state.map((msg) {
-      if (msg.id == messageId) {
-        return msg.copyWith(status: status);
-      }
-      return msg;
-    }).toList();
-  }
 
-  void chatOpened(String userId) {
+  void chatOpened(String userId) async{
     _isChatOpen = true;
     socket.chatOpen(userId, receiverId);
-    for (final msg in state) {
-      if (msg.senderId == receiverId && msg.status != 'seen') {
-        socket.markAsSeen(msg.id);
-        updateMessageStatus(msg.id, 'seen');
-      }
+    List<String> ids = await _isarService.updateListOfMessageStatus("seen", receiverId,socket);
+    for(final id in ids){
+      socket.markAsSeen(id);
     }
-    print("✅ Chat opened with $receiverId — all delivered messages marked as seen");
+    debugPrint("✅ Chat opened with $receiverId — all delivered messages marked as seen");
   }
 
   void chatClosed(String userId){
     _isChatOpen = false;
     socket.chatClosed(userId);
-    print("🚪 Chat closed with $receiverId");
+    debugPrint("🚪 Chat closed with $receiverId");
   }
 
 }
@@ -215,6 +197,7 @@ final messageProvider =
 StateNotifierProvider.autoDispose.family<MessageProvider, List<Message>, String>(
       (ref, receiverId) {
     final socket = ref.read(socketProvider);
-    return MessageProvider(MessageController(), receiverId, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService());
+    final user = ref.read(userProvider);
+    return MessageProvider(MessageController(), receiverId,user!.id, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService());
   },
 );

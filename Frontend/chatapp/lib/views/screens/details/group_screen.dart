@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:chatapp/controller/group_controller.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/chat_screen.dart';
@@ -7,12 +8,13 @@ import 'package:chatapp/views/screens/details/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../provider/userProvider.dart';
 
 class GroupScreen extends ConsumerStatefulWidget {
-  final List<User> groupMembers;
-  final List<User> groupAdmin;
+  final List<UserIsar> groupMembers;
+  final List<UserIsar> groupAdmin;
   final String groupName;
   final String proPic;
   const GroupScreen({super.key, required this.groupMembers,required this.groupAdmin,required this.proPic,required this.groupName});
@@ -23,6 +25,11 @@ class GroupScreen extends ConsumerStatefulWidget {
 
 class _GroupScreenState extends ConsumerState<GroupScreen> {
   final GroupController _groupController = GroupController();
+
+
+
+
+
 
  
 
@@ -40,9 +47,9 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF450072),
-                    const Color(0xFF270249),
-                    const Color(0xFF1F0033)
+                     Color(0xFF450072),
+                     Color(0xFF270249),
+                     Color(0xFF1F0033)
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -67,8 +74,8 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
                       itemCount: widget.groupAdmin.length,
                       shrinkWrap: true,
                       itemBuilder: (context,index){
-                        final admin = widget.groupAdmin[index];
-                        return personTile(context, admin,user!);
+                      final a = widget.groupAdmin[index];
+                        return personTile(context, a, user!);
                       }
                   ),
                   Padding(
@@ -77,11 +84,11 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
                   ),
                   ListView.builder(
                       padding: const EdgeInsets.all(16),
-                      itemCount: widget.groupMembers.length,
+                      itemCount: widget.groupAdmin.length,
                       shrinkWrap: true,
                       itemBuilder: (context,index){
-                        final members =widget.groupMembers[index];
-                        return personTile(context, members,user!);
+                        return personTile(context, widget.groupMembers[index], user!);
+
                       }
                   )
                 ],
@@ -92,15 +99,15 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
     );
   }
 
-  Widget personTile(BuildContext context, User a,User user) {
+  Widget personTile(BuildContext context, UserIsar a,User user) {
     return GestureDetector(
       onTap: () {
         if(user.id != a.id){
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AccountScreen(user: a, backgroundType: '',),
-            ),
+          Get.to(
+                ()=> AccountScreen(user: a, backgroundType: '',),
+            transition: Transition.fadeIn,
+            duration:const Duration(milliseconds: 300),
+            curve: Curves.fastOutSlowIn,
           );
         }
       },
@@ -110,11 +117,11 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
           children: [
             GestureDetector(onTap: (){
               if(user.id != a.id){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AccountScreen(user: a, backgroundType: '',),
-                  ),
+                Get.to(
+                      ()=> AccountScreen(user: a, backgroundType: '',),
+                  transition: Transition.fadeIn,
+                  duration:const Duration(milliseconds: 300),
+                  curve: Curves.fastOutSlowIn,
                 );
               }
             },child: _avatar(context, a.profilePic, a.fullname,26.r)),
@@ -125,12 +132,12 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.id == a.id ? "You" :  a.fullname,
+                    user.id == a.userId ? "You" :  a.fullname,
                     style: _titleStyle(context,18.sp),
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    "@${a.username}",
+                    "@${a.email}",
                     style: _subtitleStyle(context),
                   ),
                 ],
@@ -144,12 +151,12 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
                     MaterialPageRoute(
                       builder: (_) =>  ChatScreen(
                         fullname: a.fullname,
-                        receiverId: a.id,
+                        receiverId: a.userId,
                       ),
                     ),
                   );
                 },
-                icon: Icon(Icons.dehaze_rounded),
+                icon: const Icon(Icons.more_vert),
                 color: Theme.of(context).colorScheme.primary,
               ),
 
@@ -160,17 +167,20 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
   }
 
   Widget _avatar(BuildContext context, String pic, String name,double size) {
-    return CircleAvatar(
-      radius: size,
-      backgroundColor:
-      Theme.of(context).colorScheme.primary.withOpacity(0.15),
-      backgroundImage: pic.isNotEmpty ? NetworkImage(pic) : null,
-      child: pic.isEmpty
-          ? Text(
-        name[0].toUpperCase(),
-        style: _titleStyle(context,18.sp),
-      )
-          : null,
+    return Hero(
+      tag: name,
+      child: CircleAvatar(
+        radius: size,
+        backgroundColor:
+        Theme.of(context).colorScheme.primary.withOpacity(0.15),
+        backgroundImage: pic.isNotEmpty ? NetworkImage(pic) : null,
+        child: pic.isEmpty
+            ? Text(
+          name[0].toUpperCase(),
+          style: _titleStyle(context,18.sp),
+        )
+            : null,
+      ),
     );
   }
 
@@ -265,14 +275,14 @@ Widget _header(BuildContext context, Color primary) {
           icon: Icon(Icons.arrow_back_ios_new, size: 28, color: primary),
         ),
         Text(
-          "Notification",
+          "Group",
           style: GoogleFonts.poppins(
-            fontSize: 22,
+            fontSize: 30,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        SizedBox()
+        SizedBox(width: MediaQuery.of(context).size.width * 0.1),
       ],
     ),
   );

@@ -27,45 +27,45 @@ const MessageIsarSchema = CollectionSchema(
       name: r'content',
       type: IsarType.string,
     ),
-    r'isOutgoing': PropertySchema(
-      id: 2,
-      name: r'isOutgoing',
-      type: IsarType.bool,
-    ),
     r'localCreatedAt': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'localCreatedAt',
       type: IsarType.dateTime,
+    ),
+    r'localMessageId': PropertySchema(
+      id: 3,
+      name: r'localMessageId',
+      type: IsarType.string,
     ),
     r'mediaDuration': PropertySchema(
       id: 4,
       name: r'mediaDuration',
-      type: IsarType.long,
+      type: IsarType.double,
     ),
     r'mediaUrl': PropertySchema(
       id: 5,
       name: r'mediaUrl',
       type: IsarType.string,
     ),
-    r'messageId': PropertySchema(
-      id: 6,
-      name: r'messageId',
-      type: IsarType.string,
-    ),
     r'messageType': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'messageType',
       type: IsarType.string,
     ),
     r'senderId': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'senderId',
       type: IsarType.string,
     ),
     r'serverCreatedAt': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'serverCreatedAt',
       type: IsarType.dateTime,
+    ),
+    r'serverMessageId': PropertySchema(
+      id: 9,
+      name: r'serverMessageId',
+      type: IsarType.string,
     ),
     r'status': PropertySchema(
       id: 10,
@@ -79,14 +79,27 @@ const MessageIsarSchema = CollectionSchema(
   deserializeProp: _messageIsarDeserializeProp,
   idName: r'id',
   indexes: {
-    r'messageId': IndexSchema(
-      id: -635287409172016016,
-      name: r'messageId',
-      unique: true,
+    r'localMessageId': IndexSchema(
+      id: 952918565102295947,
+      name: r'localMessageId',
+      unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'messageId',
+          name: r'localMessageId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'serverMessageId': IndexSchema(
+      id: 3340808824564104802,
+      name: r'serverMessageId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'serverMessageId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -148,15 +161,21 @@ int _messageIsarEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.chatId.length * 3;
   bytesCount += 3 + object.content.length * 3;
+  bytesCount += 3 + object.localMessageId.length * 3;
   {
     final value = object.mediaUrl;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.messageId.length * 3;
   bytesCount += 3 + object.messageType.length * 3;
   bytesCount += 3 + object.senderId.length * 3;
+  {
+    final value = object.serverMessageId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.status.length * 3;
   return bytesCount;
 }
@@ -169,14 +188,14 @@ void _messageIsarSerialize(
 ) {
   writer.writeString(offsets[0], object.chatId);
   writer.writeString(offsets[1], object.content);
-  writer.writeBool(offsets[2], object.isOutgoing);
-  writer.writeDateTime(offsets[3], object.localCreatedAt);
-  writer.writeLong(offsets[4], object.mediaDuration);
+  writer.writeDateTime(offsets[2], object.localCreatedAt);
+  writer.writeString(offsets[3], object.localMessageId);
+  writer.writeDouble(offsets[4], object.mediaDuration);
   writer.writeString(offsets[5], object.mediaUrl);
-  writer.writeString(offsets[6], object.messageId);
-  writer.writeString(offsets[7], object.messageType);
-  writer.writeString(offsets[8], object.senderId);
-  writer.writeDateTime(offsets[9], object.serverCreatedAt);
+  writer.writeString(offsets[6], object.messageType);
+  writer.writeString(offsets[7], object.senderId);
+  writer.writeDateTime(offsets[8], object.serverCreatedAt);
+  writer.writeString(offsets[9], object.serverMessageId);
   writer.writeString(offsets[10], object.status);
 }
 
@@ -190,14 +209,14 @@ MessageIsar _messageIsarDeserialize(
   object.chatId = reader.readString(offsets[0]);
   object.content = reader.readString(offsets[1]);
   object.id = id;
-  object.isOutgoing = reader.readBool(offsets[2]);
-  object.localCreatedAt = reader.readDateTime(offsets[3]);
-  object.mediaDuration = reader.readLongOrNull(offsets[4]);
+  object.localCreatedAt = reader.readDateTimeOrNull(offsets[2]);
+  object.localMessageId = reader.readString(offsets[3]);
+  object.mediaDuration = reader.readDoubleOrNull(offsets[4]);
   object.mediaUrl = reader.readStringOrNull(offsets[5]);
-  object.messageId = reader.readString(offsets[6]);
-  object.messageType = reader.readString(offsets[7]);
-  object.senderId = reader.readString(offsets[8]);
-  object.serverCreatedAt = reader.readDateTimeOrNull(offsets[9]);
+  object.messageType = reader.readString(offsets[6]);
+  object.senderId = reader.readString(offsets[7]);
+  object.serverCreatedAt = reader.readDateTimeOrNull(offsets[8]);
+  object.serverMessageId = reader.readStringOrNull(offsets[9]);
   object.status = reader.readString(offsets[10]);
   return object;
 }
@@ -214,11 +233,11 @@ P _messageIsarDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
@@ -226,9 +245,9 @@ P _messageIsarDeserializeProp<P>(
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
-    case 9:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readString(offset)) as P;
     default:
@@ -247,61 +266,6 @@ List<IsarLinkBase<dynamic>> _messageIsarGetLinks(MessageIsar object) {
 void _messageIsarAttach(
     IsarCollection<dynamic> col, Id id, MessageIsar object) {
   object.id = id;
-}
-
-extension MessageIsarByIndex on IsarCollection<MessageIsar> {
-  Future<MessageIsar?> getByMessageId(String messageId) {
-    return getByIndex(r'messageId', [messageId]);
-  }
-
-  MessageIsar? getByMessageIdSync(String messageId) {
-    return getByIndexSync(r'messageId', [messageId]);
-  }
-
-  Future<bool> deleteByMessageId(String messageId) {
-    return deleteByIndex(r'messageId', [messageId]);
-  }
-
-  bool deleteByMessageIdSync(String messageId) {
-    return deleteByIndexSync(r'messageId', [messageId]);
-  }
-
-  Future<List<MessageIsar?>> getAllByMessageId(List<String> messageIdValues) {
-    final values = messageIdValues.map((e) => [e]).toList();
-    return getAllByIndex(r'messageId', values);
-  }
-
-  List<MessageIsar?> getAllByMessageIdSync(List<String> messageIdValues) {
-    final values = messageIdValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'messageId', values);
-  }
-
-  Future<int> deleteAllByMessageId(List<String> messageIdValues) {
-    final values = messageIdValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'messageId', values);
-  }
-
-  int deleteAllByMessageIdSync(List<String> messageIdValues) {
-    final values = messageIdValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'messageId', values);
-  }
-
-  Future<Id> putByMessageId(MessageIsar object) {
-    return putByIndex(r'messageId', object);
-  }
-
-  Id putByMessageIdSync(MessageIsar object, {bool saveLinks = true}) {
-    return putByIndexSync(r'messageId', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByMessageId(List<MessageIsar> objects) {
-    return putAllByIndex(r'messageId', objects);
-  }
-
-  List<Id> putAllByMessageIdSync(List<MessageIsar> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'messageId', objects, saveLinks: saveLinks);
-  }
 }
 
 extension MessageIsarQueryWhereSort
@@ -389,45 +353,112 @@ extension MessageIsarQueryWhere
     });
   }
 
-  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause> messageIdEqualTo(
-      String messageId) {
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      localMessageIdEqualTo(String localMessageId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'messageId',
-        value: [messageId],
+        indexName: r'localMessageId',
+        value: [localMessageId],
       ));
     });
   }
 
-  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause> messageIdNotEqualTo(
-      String messageId) {
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      localMessageIdNotEqualTo(String localMessageId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'messageId',
+              indexName: r'localMessageId',
               lower: [],
-              upper: [messageId],
+              upper: [localMessageId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'messageId',
-              lower: [messageId],
+              indexName: r'localMessageId',
+              lower: [localMessageId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'messageId',
-              lower: [messageId],
+              indexName: r'localMessageId',
+              lower: [localMessageId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'messageId',
+              indexName: r'localMessageId',
               lower: [],
-              upper: [messageId],
+              upper: [localMessageId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      serverMessageIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serverMessageId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      serverMessageIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'serverMessageId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      serverMessageIdEqualTo(String? serverMessageId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'serverMessageId',
+        value: [serverMessageId],
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      serverMessageIdNotEqualTo(String? serverMessageId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverMessageId',
+              lower: [],
+              upper: [serverMessageId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverMessageId',
+              lower: [serverMessageId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverMessageId',
+              lower: [serverMessageId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'serverMessageId',
+              lower: [],
+              upper: [serverMessageId],
               includeUpper: false,
             ));
       }
@@ -525,7 +556,29 @@ extension MessageIsarQueryWhere
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
-      localCreatedAtEqualTo(DateTime localCreatedAt) {
+      localCreatedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'localCreatedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      localCreatedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'localCreatedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
+      localCreatedAtEqualTo(DateTime? localCreatedAt) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'localCreatedAt',
@@ -535,7 +588,7 @@ extension MessageIsarQueryWhere
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
-      localCreatedAtNotEqualTo(DateTime localCreatedAt) {
+      localCreatedAtNotEqualTo(DateTime? localCreatedAt) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -571,7 +624,7 @@ extension MessageIsarQueryWhere
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
       localCreatedAtGreaterThan(
-    DateTime localCreatedAt, {
+    DateTime? localCreatedAt, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -586,7 +639,7 @@ extension MessageIsarQueryWhere
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
       localCreatedAtLessThan(
-    DateTime localCreatedAt, {
+    DateTime? localCreatedAt, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -601,8 +654,8 @@ extension MessageIsarQueryWhere
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause>
       localCreatedAtBetween(
-    DateTime lowerLocalCreatedAt,
-    DateTime upperLocalCreatedAt, {
+    DateTime? lowerLocalCreatedAt,
+    DateTime? upperLocalCreatedAt, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -942,17 +995,25 @@ extension MessageIsarQueryFilter
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      isOutgoingEqualTo(bool value) {
+      localCreatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isOutgoing',
-        value: value,
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localCreatedAt',
       ));
     });
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      localCreatedAtEqualTo(DateTime value) {
+      localCreatedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localCreatedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localCreatedAtEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'localCreatedAt',
@@ -963,7 +1024,7 @@ extension MessageIsarQueryFilter
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
       localCreatedAtGreaterThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -977,7 +1038,7 @@ extension MessageIsarQueryFilter
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
       localCreatedAtLessThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -991,8 +1052,8 @@ extension MessageIsarQueryFilter
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
       localCreatedAtBetween(
-    DateTime lower,
-    DateTime upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1003,6 +1064,142 @@ extension MessageIsarQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localMessageId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localMessageId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localMessageId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      localMessageIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localMessageId',
+        value: '',
       ));
     });
   }
@@ -1026,49 +1223,58 @@ extension MessageIsarQueryFilter
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      mediaDurationEqualTo(int? value) {
+      mediaDurationEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'mediaDuration',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
       mediaDurationGreaterThan(
-    int? value, {
+    double? value, {
     bool include = false,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'mediaDuration',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
       mediaDurationLessThan(
-    int? value, {
+    double? value, {
     bool include = false,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'mediaDuration',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
       mediaDurationBetween(
-    int? lower,
-    int? upper, {
+    double? lower,
+    double? upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1077,6 +1283,7 @@ extension MessageIsarQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1229,142 +1436,6 @@ extension MessageIsarQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'mediaUrl',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'messageId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'messageId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'messageId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'messageId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'messageId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'messageId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'messageId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'messageId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'messageId',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
-      messageIdIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'messageId',
         value: '',
       ));
     });
@@ -1715,6 +1786,160 @@ extension MessageIsarQueryFilter
     });
   }
 
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'serverMessageId',
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'serverMessageId',
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serverMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'serverMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'serverMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'serverMessageId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'serverMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'serverMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'serverMessageId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'serverMessageId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'serverMessageId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition>
+      serverMessageIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'serverMessageId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<MessageIsar, MessageIsar, QAfterFilterCondition> statusEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1882,18 +2107,6 @@ extension MessageIsarQuerySortBy
     });
   }
 
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByIsOutgoing() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOutgoing', Sort.asc);
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByIsOutgoingDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOutgoing', Sort.desc);
-    });
-  }
-
   QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByLocalCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localCreatedAt', Sort.asc);
@@ -1904,6 +2117,19 @@ extension MessageIsarQuerySortBy
       sortByLocalCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localCreatedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByLocalMessageId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localMessageId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy>
+      sortByLocalMessageIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localMessageId', Sort.desc);
     });
   }
 
@@ -1929,18 +2155,6 @@ extension MessageIsarQuerySortBy
   QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByMediaUrlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mediaUrl', Sort.desc);
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByMessageId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByMessageIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageId', Sort.desc);
     });
   }
 
@@ -1978,6 +2192,19 @@ extension MessageIsarQuerySortBy
       sortByServerCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'serverCreatedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> sortByServerMessageId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverMessageId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy>
+      sortByServerMessageIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverMessageId', Sort.desc);
     });
   }
 
@@ -2032,18 +2259,6 @@ extension MessageIsarQuerySortThenBy
     });
   }
 
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByIsOutgoing() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOutgoing', Sort.asc);
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByIsOutgoingDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOutgoing', Sort.desc);
-    });
-  }
-
   QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByLocalCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localCreatedAt', Sort.asc);
@@ -2054,6 +2269,19 @@ extension MessageIsarQuerySortThenBy
       thenByLocalCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localCreatedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByLocalMessageId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localMessageId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy>
+      thenByLocalMessageIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localMessageId', Sort.desc);
     });
   }
 
@@ -2079,18 +2307,6 @@ extension MessageIsarQuerySortThenBy
   QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByMediaUrlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mediaUrl', Sort.desc);
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByMessageId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByMessageIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageId', Sort.desc);
     });
   }
 
@@ -2131,6 +2347,19 @@ extension MessageIsarQuerySortThenBy
     });
   }
 
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByServerMessageId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverMessageId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy>
+      thenByServerMessageIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'serverMessageId', Sort.desc);
+    });
+  }
+
   QueryBuilder<MessageIsar, MessageIsar, QAfterSortBy> thenByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.asc);
@@ -2160,15 +2389,17 @@ extension MessageIsarQueryWhereDistinct
     });
   }
 
-  QueryBuilder<MessageIsar, MessageIsar, QDistinct> distinctByIsOutgoing() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isOutgoing');
-    });
-  }
-
   QueryBuilder<MessageIsar, MessageIsar, QDistinct> distinctByLocalCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'localCreatedAt');
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QDistinct> distinctByLocalMessageId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localMessageId',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -2182,13 +2413,6 @@ extension MessageIsarQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'mediaUrl', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<MessageIsar, MessageIsar, QDistinct> distinctByMessageId(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'messageId', caseSensitive: caseSensitive);
     });
   }
 
@@ -2210,6 +2434,14 @@ extension MessageIsarQueryWhereDistinct
       distinctByServerCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'serverCreatedAt');
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QDistinct> distinctByServerMessageId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'serverMessageId',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -2241,20 +2473,20 @@ extension MessageIsarQueryProperty
     });
   }
 
-  QueryBuilder<MessageIsar, bool, QQueryOperations> isOutgoingProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isOutgoing');
-    });
-  }
-
-  QueryBuilder<MessageIsar, DateTime, QQueryOperations>
+  QueryBuilder<MessageIsar, DateTime?, QQueryOperations>
       localCreatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'localCreatedAt');
     });
   }
 
-  QueryBuilder<MessageIsar, int?, QQueryOperations> mediaDurationProperty() {
+  QueryBuilder<MessageIsar, String, QQueryOperations> localMessageIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localMessageId');
+    });
+  }
+
+  QueryBuilder<MessageIsar, double?, QQueryOperations> mediaDurationProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mediaDuration');
     });
@@ -2263,12 +2495,6 @@ extension MessageIsarQueryProperty
   QueryBuilder<MessageIsar, String?, QQueryOperations> mediaUrlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mediaUrl');
-    });
-  }
-
-  QueryBuilder<MessageIsar, String, QQueryOperations> messageIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'messageId');
     });
   }
 
@@ -2288,6 +2514,13 @@ extension MessageIsarQueryProperty
       serverCreatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'serverCreatedAt');
+    });
+  }
+
+  QueryBuilder<MessageIsar, String?, QQueryOperations>
+      serverMessageIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'serverMessageId');
     });
   }
 

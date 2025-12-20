@@ -59,6 +59,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       body: PageView(
         controller: _pageController,
         onPageChanged: _onPageChanged,
+        clipBehavior: Clip.none,
+        scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         children: _pages,
       ),

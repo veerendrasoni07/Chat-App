@@ -53,8 +53,9 @@ dependencies:
   audioplayers: ^6.5.1
   image_picker: ^1.2.0
   flutter_webrtc: any
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+  isar: ^3.1.0
+  isar_flutter_libs: ^3.1.0
+  get: ^4.7.3
 
 dev_dependencies:
   flutter_test:
@@ -88,6 +89,7 @@ flutter:
     - assets/icons/home.png
     - assets/icons/like.png
     - assets/animation/cat_typing.json
+    - assets/animation/Typing.json
     - assets/animation/globe.json
     - assets/animation/man_work_from_home_with_laptops.json
     - assets/animation/saying_hi_animation.json

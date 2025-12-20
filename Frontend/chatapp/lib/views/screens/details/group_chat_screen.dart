@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/group_message_provider.dart';
 import 'package:chatapp/provider/messageProvider.dart';
@@ -21,9 +22,9 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class GroupChatScreen extends ConsumerStatefulWidget {
   final User user;
-  final List<User> groupMembers;
+  final List<UserIsar> groupMembers;
   final String groupPic;
-  final List<User> groupAdmin;
+  final List<UserIsar> groupAdmin;
   final String fullname;
   final String groupId;
   const GroupChatScreen({
@@ -72,7 +73,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
 
 
   void scrollToBottom(){
-    scrollController.animateTo(scrollController.position.maxScrollExtent, duration: Duration(seconds: 1), curve: Curves.fastOutSlowIn);
+    scrollController.animateTo(scrollController.position.maxScrollExtent, duration: const Duration(seconds: 1), curve: Curves.fastOutSlowIn);
   }
 
   @override
@@ -80,7 +81,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
     // TODO: implement dispose
     super.dispose();
     messageController.dispose();
-    print('Disposed');
   }
 
   @override
@@ -106,7 +106,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (_)=>GroupScreen(groupMembers: widget.groupMembers,groupName: widget.fullname,proPic: widget.groupPic,groupAdmin: widget.groupAdmin,))),
+                    onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (_)=>GroupScreen(groupMembers: widget.groupMembers.toList(),groupName: widget.fullname,proPic: widget.groupPic,groupAdmin: widget.groupAdmin.toList(),))),
                     child: AutoSizeText(
                       widget.fullname,
                       style: GoogleFonts.montserrat(
@@ -148,11 +148,11 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
       extendBodyBehindAppBar: true,
 
       body: Container(
-        decoration: BoxDecoration(
+        decoration : const BoxDecoration(
             gradient: LinearGradient(colors: [
-              const Color(0xFF450072),
-              const Color(0xFF270249),
-              const Color(0xFF1F0033)
+               Color(0xFF450072),
+               Color(0xFF270249),
+               Color(0xFF1F0033)
             ])
         ),
         child:  Column(
@@ -169,7 +169,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                     alignment:
                     isMe ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
-                      padding: EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(10),
                       margin: EdgeInsets.symmetric(
                         vertical: 5.h,
                         horizontal: 10.w,
@@ -201,7 +201,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
               Positioned(
                   child: IconButton(onPressed:(){
                     scrollToBottom();
-                  }, icon: Icon(Icons.arrow_circle_down_sharp))
+                  }, icon: const Icon(Icons.arrow_circle_down_sharp))
               ),
             Padding(
               padding:  EdgeInsets.symmetric(
@@ -223,7 +223,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                   prefixIcon: Icon(Icons.door_back_door_outlined,color: Theme.of(context).colorScheme.primary,),
                   suffixIcon: IconButton(
                     onPressed: () async {
-                      print(widget.groupId);
                       await ref
                           .read(groupMessageProvider(widget.groupId).notifier)
                           .sendGroupMessage(senderId: user!.id,message: messageController.text);

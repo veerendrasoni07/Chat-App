@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:chatapp/componentss/responsive.dart';
 import 'package:chatapp/controller/auth_controller.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   final String backgroundType;
-  final User user;
+  final UserIsar user;
   const AccountScreen({super.key, required this.backgroundType,required this.user});
 
   @override
@@ -49,7 +50,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final TabController _tabController = TabController(length: 3, vsync: this);
     final primary = Theme.of(context).colorScheme.primary;
     return Scaffold(
       body: Stack(
@@ -77,25 +77,24 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
                         children: [
                           IconButton(
                             onPressed: () =>Navigator.pop(context),
-                            icon: Icon(Icons.arrow_back_ios_new, size: size.wp(2.5),color:primary),
+                            icon: Icon(Icons.arrow_back_ios_new, size: size.wp(6),color:primary),
                           ),
                           Row(
                             children: [
                               IconButton(
                                   onPressed: () {},
-                                  icon:  Icon(Icons.qr_code_2, size: size.wp(2.5),color:primary)),
+                                  icon:  Icon(Icons.qr_code_2, size: size.wp(6),color:primary)),
                               IconButton(
                                   onPressed: () =>AuthController().logout(context, ref),
-                                  icon: Icon(Icons.more_vert, size: size.wp(2.5),color:primary)),
+                                  icon: Icon(Icons.more_vert, size: size.wp(6),color:primary)),
                             ],
                           ),
                         ],
                       ),
                       _buildHeader(widget.user,size),
-                      SizedBox(height: size.hp(5)),
+                      SizedBox(height: size.hp(8)),
                       _interactiveTiltCard(),
-                      SizedBox(height: size.hp(5)),
-                      SizedBox(height: size.hp(5)),
+                      SizedBox(height: size.hp(10)),
                       _buildSettingsList(context,ref,size),
                     ],
                   );
@@ -109,52 +108,55 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
   }
 
 
-  Widget _buildHeader(User user,ResponsiveClass size) {
-    return Row(
-      children: [
-        _glassAvatar(user.profilePic,user.fullname,size),
-        SizedBox(width: size.wp(3)),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(user.fullname,
-                  style: GoogleFonts.poppins(
-                      fontSize: size.font(28),
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white)),
-              SizedBox(height: size.hp(2)),
-              Text(user.email,
-                  style: GoogleFonts.poppins(
-                      fontSize: 14, color: Colors.white70)),
-              SizedBox(height: size.hp(2.5)),
-              Row(
-                children: [
-                  _iosButton("Following",size),
-                  SizedBox(width: size.wp(2)),
-                  _iosButton("Message",size),
-                ],
-              )
-            ],
-          ),
-        )
-      ],
+  Widget _buildHeader(UserIsar user,ResponsiveClass size) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: size.wp(3)),
+      child: Row(
+        children: [
+          _glassAvatar(user.profilePic,user.fullname,size),
+          SizedBox(width: size.wp(3)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user.fullname,
+                    style: GoogleFonts.poppins(
+                        fontSize: size.font(28),
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)),
+                SizedBox(height: size.hp(1)),
+                Text(user.email,
+                    style: GoogleFonts.poppins(
+                        fontSize:size.font(16), color: Colors.white70)),
+                SizedBox(height: size.hp(5)),
+                Row(
+                  children: [
+                    _iosButton("Following",size),
+                    SizedBox(width: size.wp(5)),
+                    _iosButton("Message",size),
+                  ],
+                )
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 
 
   Widget _iosButton(String text,ResponsiveClass size) {
     return Container(
-      padding:  EdgeInsets.symmetric(horizontal: size.wp(4), vertical: size.hp(1)),
+      padding:  EdgeInsets.symmetric(horizontal: size.wp(5), vertical: size.hp(2)),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(size.wp(2)),
+          borderRadius: BorderRadius.circular(size.wp(4)),
           color: Colors.white.withOpacity(0.12),
           border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
       child: Text(
         text,
         style: GoogleFonts.poppins(
-            fontSize: size.font(13), color: Colors.white, fontWeight: FontWeight.w500),
+            fontSize: size.font(18), color: Colors.white, fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -186,12 +188,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
           child: profilePic.isNotEmpty ? Image.network(profilePic,fit: BoxFit.cover,) : Center(
-            child: Text(
-              text[0] ,
-              style: GoogleFonts.poppins(
-                  fontSize: 34,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+            child: Hero(
+              tag: text,
+              child: Text(
+                text[0] ,
+                style: GoogleFonts.poppins(
+                    fontSize: 34,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
             ),
           ),
         ),
@@ -343,38 +348,41 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
   }
 }
 Widget _buildSettingsList(context,WidgetRef ref,ResponsiveClass size) {
-  return Column(
-    children: [
-      _settingsTile(Icons.person, "Edit Profile", () {},size),
-      _settingsTile(Icons.lock, "Privacy", () {},size),
-      _settingsTile(Icons.image, "Media & Storage", () {},size),
-      _settingsTile(Icons.block, "Blocked Users", () {},size),
-      _settingsTile(Icons.logout, "Logout", () {
-        AuthController().logout(context, ref);
-      },size),
-    ],
+  return Padding(
+    padding:  EdgeInsets.symmetric(horizontal: size.wp(2.5)),
+    child: Column(
+      children: [
+        _settingsTile(Icons.person, "Edit Profile", () {},size),
+        _settingsTile(Icons.lock, "Privacy", () {},size),
+        _settingsTile(Icons.image, "Media & Storage", () {},size),
+        _settingsTile(Icons.block, "Blocked Users", () {},size),
+        _settingsTile(Icons.logout, "Logout", () {
+          AuthController().logout(context, ref);
+        },size),
+      ],
+    ),
   );
 }
 
 Widget _settingsTile(IconData icon, String title, VoidCallback onTap,ResponsiveClass size) {
   return Container(
-    margin:  EdgeInsets.only(bottom: size.wp(2)),
-    padding:  EdgeInsets.symmetric(horizontal: size.wp(4), vertical: size.hp(1)),
+    margin:  EdgeInsets.only(bottom: size.wp(3)),
+    padding:  EdgeInsets.symmetric(horizontal: size.wp(6), vertical: size.hp(4)),
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(size.wp(4)),
       color: Colors.white.withOpacity(0.08),
       border: Border.all(color: Colors.white.withOpacity(0.15)),
     ),
     child: Row(
       children: [
-        Icon(icon, color: Colors.white, size: size.wp(5)),
+        Icon(icon, color: Colors.white, size: size.wp(6)),
         SizedBox(width: size.wp(3)),
         Expanded(
           child: Text(
             title,
             style: GoogleFonts.poppins(
               color: Colors.white,
-              fontSize: size.font(14),
+              fontSize: size.font(18),
               fontWeight: FontWeight.w500,
             ),
           ),

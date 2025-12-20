@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatapp/views/screens/details/chat_screen.dart';
 import 'package:chatapp/views/screens/details/group_chat_screen.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_navigation/src/routes/transitions_type.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ChatTile extends ConsumerWidget {
@@ -25,8 +28,8 @@ class ChatTile extends ConsumerWidget {
         : ref.watch(friendInfoProvider(chatId)).value?.fullname ?? 'User';
     final picture = isGroup ? ref.watch(groupInfoProvider(chatId)).value?.groupPic ?? 'Group'
         : ref.watch(friendInfoProvider(chatId)).value?.profilePic ?? 'User';
-    // final List<UserIsar> groupMembers = isGroup ? ref.watch(groupInfoProvider(chatId)).value.groupMembers : [];
-    // final List<UserIsar> groupAdmins = isGroup ? ref.watch(groupInfoProvider(chatId)).value.groupAdmin : [];
+    final Iterable<UserIsar>? groupMembers = isGroup ? ref.watch(groupInfoProvider(chatId)).value?.groupMembers : [] ;
+    final Iterable<UserIsar>? groupAdmins = isGroup ? ref.watch(groupInfoProvider(chatId)).value?.groupAdmins : [];
     // tiny derived data — will rebuild only if these particular values change
     //     final lastMessageTime = isGroup
     //     ? ref.watch(lastGroupMessageProvider(chatId))
@@ -77,13 +80,20 @@ class ChatTile extends ConsumerWidget {
                  // subtitle: unreadCount > 0 ? Text("$unreadCount new messages", style: TextStyle(color: Colors.blueAccent)) : null,
                   onTap: () {
                     if (isGroup) {
-                      // Navigator.push(context, MaterialPageRoute(
-                      //     builder: (_) => GroupChatScreen(fullname: name, groupId: chatId, user: ref.read(userProvider)!,groupMembers: groupMembers,groupAdmin: groupAdmins,groupPic: picture,)
-                      // ));
+                      Get.to(
+                              ()=>GroupChatScreen(fullname: name, groupId: chatId, user: ref.read(userProvider)!,groupMembers: groupMembers!.toList(),groupAdmin: groupAdmins!.toList(),groupPic: picture,),
+                        transition: Transition.cupertino,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                      );
                     } else {
-                      Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => ChatScreen(receiverId: chatId, fullname: name)
-                      ));
+                      Get.to(
+                          ()=>  ChatScreen(
+                              receiverId: chatId, fullname: name),
+                        transition: Transition.rightToLeft,
+                        duration:const Duration(milliseconds: 300),
+                        curve: Curves.easeOutCubic,
+                      );
                     }
                   },
                 //  trailing: lastMessageTime != null ? Text(_formatTime(lastMessageTime),style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.primary),) : null,

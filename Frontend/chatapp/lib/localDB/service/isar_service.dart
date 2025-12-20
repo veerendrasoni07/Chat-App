@@ -1,14 +1,18 @@
-
+import 'package:chatapp/localDB/Mapper/mapper.dart';
 import 'package:chatapp/localDB/model/group_isar.dart';
+import 'package:chatapp/localDB/model/message_isar.dart';
 import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/group.dart';
+import 'package:chatapp/models/message.dart';
 import 'package:chatapp/models/user.dart';
+import 'package:chatapp/service/socket_service.dart';
 import 'package:isar/isar.dart';
+import 'package:uuid/uuid.dart';
 
 class IsarService {
 
 
-  Isar _isar;
+  final Isar _isar;
   IsarService(this._isar);
 
   Future<void> saveAllFriends(List<UserIsar> friends) async {
@@ -126,11 +130,139 @@ class IsarService {
   }
 
 
+  // ------Messages--------
+
+  Future<void> saveLocalMessage(Message message) async {
+    await _isar.writeTxn(() async {
+      final exists = await _isar.messageIsars
+          .filter()
+          .localMessageIdEqualTo(message.id)
+          .findFirst();
+
+      if (exists != null) return;
+
+      final isarMessage = MessageIsar()
+        ..localMessageId = message.id
+        ..senderId = message.senderId
+        ..chatId = message.receiverId
+        ..content = message.message
+        ..mediaUrl = message.uploadUrl
+        ..mediaDuration = message.uploadDuration
+        ..messageType = message.type
+        ..status = 'sending'
+        ..localCreatedAt = message.createdAt ?? DateTime.now();
+
+      await _isar.messageIsars.put(isarMessage);
+    });
+  }
+
+
+  Future<void> saveServerMessage(Message message) async {
+    await _isar.writeTxn(() async {
+      // 1️⃣ Already exists by server ID → ignore
+      final byServerId = await _isar.messageIsars
+          .filter()
+          .serverMessageIdEqualTo(message.id)
+          .findFirst();
+
+      if (byServerId != null) return;
+
+      // 2️⃣ Check placeholder by temp/local ID
+      final placeholder = await _isar.messageIsars
+          .filter()
+          .localMessageIdEqualTo(message.id)
+          .findFirst();
+
+      if (placeholder != null) {
+        placeholder
+          ..serverMessageId = message.id
+          ..status = message.status
+          ..content = message.message
+          ..mediaUrl = message.uploadUrl
+          ..mediaDuration = message.uploadDuration
+          ..serverCreatedAt = message.createdAt;
+
+        await _isar.messageIsars.put(placeholder);
+        return;
+      }
+
+      // 3️⃣ New incoming message
+      final isarMessage = MessageIsar()
+        ..localMessageId = const Uuid().v4()
+        ..serverMessageId = message.id
+        ..senderId = message.senderId
+        ..chatId = message.receiverId
+        ..content = message.message
+        ..mediaUrl = message.uploadUrl
+        ..mediaDuration = message.uploadDuration
+        ..messageType = message.type
+        ..status = message.status
+        ..serverCreatedAt = message.createdAt
+        ..localCreatedAt = DateTime.now();
+
+      await _isar.messageIsars.put(isarMessage);
+    });
+  }
 
 
 
+  // exist or not
+  Future<MessageIsar?> isExist(String localId) async {
+    return await _isar.messageIsars
+        .where()
+        .localMessageIdEqualTo(localId)
+        .findFirst();
+  }
 
 
+  Future<void> replacePlaceHolder(Message message, String localId) async {
+    await _isar.writeTxn(() async {
+      final existing = await isExist(localId);
+      if (existing == null) return;
+
+      // 🚨 prevent duplicate serverMessageId
+      final alreadyExists = await _isar.messageIsars
+          .filter()
+          .serverMessageIdEqualTo(message.id)
+          .findFirst();
+
+      if (alreadyExists != null) return;
+
+      existing
+        ..serverMessageId = message.id
+        ..status = message.status
+        ..content = message.message
+        ..mediaUrl = message.uploadUrl
+        ..mediaDuration = message.uploadDuration
+        ..serverCreatedAt = message.createdAt;
+
+      await _isar.messageIsars.put(existing);
+    });
+  }
 
 
+  Future<void> updateMessageStatus(String serverId, String status) async {
+    await _isar.writeTxn(() async {
+      final message = await _isar.messageIsars
+          .where()
+          .serverMessageIdEqualTo(serverId)
+          .findFirst();
+      if (message != null) {
+        message.status = status;
+        await _isar.messageIsars.put(message);
+      }
+    });
+  }
+  Future<List<String>> updateListOfMessageStatus(String status,String receiverId,SocketService socket)async{
+    final unreadMessages = await _isar.messageIsars.filter().senderIdEqualTo(receiverId).statusEqualTo('delivered').findAll();
+    List<String> messageIds = [];
+    await _isar.writeTxn(()async {
+      for(final message in unreadMessages){
+        message.status = status;
+        messageIds.add(message.serverMessageId!);
+        await _isar.messageIsars.put(message);
+      }
+    });
+    return messageIds;
+  }
 }

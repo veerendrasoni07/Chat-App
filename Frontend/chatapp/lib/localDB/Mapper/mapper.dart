@@ -1,8 +1,10 @@
 import 'package:chatapp/localDB/model/group_isar.dart';
+import 'package:chatapp/localDB/model/message_isar.dart';
 import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/group.dart';
+import 'package:chatapp/models/message.dart';
 import 'package:chatapp/models/user.dart';
-
+import 'package:uuid/uuid.dart';
 
 
 
@@ -49,7 +51,25 @@ import 'package:chatapp/models/user.dart';
     return isarGroups;
   }
 
+  MessageIsar mapMessageToIsar(Message message){
+    return MessageIsar()
+        ..localMessageId = const Uuid().v4()
+      ..serverMessageId = message.id
+        ..senderId = message.senderId
+        ..chatId = message.receiverId
+        ..content = message.message
+        ..mediaUrl = message.uploadUrl
+        ..mediaDuration = message.uploadDuration
+        ..messageType = message.type
+        ..status = message.status
+        ..localCreatedAt = message.createdAt ?? DateTime.now();
+  }
 
-
-
+  List<MessageIsar> mapMessagesToIsar(List<Message> messages){
+    List<MessageIsar>  isarMessages = [];
+    for(final message in messages){
+      isarMessages.add(mapMessageToIsar(message));
+    }
+    return isarMessages;
+  }
 
