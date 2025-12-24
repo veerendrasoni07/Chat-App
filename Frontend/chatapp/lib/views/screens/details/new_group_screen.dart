@@ -16,7 +16,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
     isScrollControlled: true,
     backgroundColor: Colors.transparent, // we'll handle the design manually
     enableDrag: true,
-    sheetAnimationStyle: AnimationStyle(
+    sheetAnimationStyle: const AnimationStyle(
       curve: Curves.fastOutSlowIn,
       duration: Duration(seconds: 1,)
     ),
@@ -104,7 +104,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                           return Chip(
                             color: WidgetStateProperty.all( Theme.of(context).colorScheme.inversePrimary.withOpacity(0.2)),
                             label: Text(selectedUsers[index].fullname,style: GoogleFonts.montserrat(fontSize: 14.sp,color: Theme.of(context).colorScheme.primary,fontWeight: FontWeight.w700)),
-                            deleteIcon: Icon(Icons.cancel),
+                            deleteIcon: const Icon(Icons.cancel),
                             onDeleted: ()=> setState(() {
                               selectedUsers.remove(selectedUsers[index]);
                             }), // use onDeleted instead of deleteIcon button
@@ -180,10 +180,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () async{
-                            var uuid = Uuid();
-                            final groupId = uuid.v4();
                             GroupController().createNewGroup(groupName: controller.text, members: selectedUsers,context: context);
-                            // Handle creation
                           },
                           child: Text(
                             "Create Group",

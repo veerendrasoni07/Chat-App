@@ -66,6 +66,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
       final String? user = prefs.getString('user');
+      print("User json lets print it!");
+      print(user);
       if (token != null && user != null) {
         ref.read(userProvider.notifier).addUser(user);
       } else {

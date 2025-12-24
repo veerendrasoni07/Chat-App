@@ -13,6 +13,7 @@ import 'package:chatapp/views/widgets/voice_bubble.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:chatapp/controller/friend_controller.dart';
 import 'package:chatapp/controller/voice_service.dart';
@@ -50,13 +51,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
   final VoiceService _voiceService = VoiceService();
+  late RecorderController _controller;
 
   String? recordingPath;
   bool isAtBottom = true;
   Timer? debounce;
   bool isTyping = false;
   bool isRecording = false;
-  XFile? pickedImage;
+  File? pickedImage;
 
   bool isImage = false;
   bool isVideo = false;
@@ -70,6 +72,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ref.read(messageProvider(widget.receiverId).notifier).chatOpened(userId);
     });
     SoundManager.preload();
+    _controller = RecorderController();
 
   }
 
@@ -82,7 +85,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final image = await picker.pickImage(source: ImageSource.gallery);
     if(image!=null){
       setState(() {
-        pickedImage = image;
+        pickedImage = File(image.path);
         isImage = true;
       });
     }
@@ -230,7 +233,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           isOnline
                               ? "Online"
                               : lastSeen != null
-                              ? "Last Seen:${lastSeen.toLocal()}"
+                              ? "Last Seen:${lastSeen.toLocal().toString().substring(11, 16)}"
                               : "Offline",
                           style: GoogleFonts.montserrat(
                             fontSize: 15,
@@ -335,8 +338,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   ],
                                 ),
                               )
-                                  : message.messageType == 'image' ? _buildImage(message) : VoiceBubble(
-                                url: message.mediaUrl ?? '',
+                                  : message.messageType == 'image' ? _buildImage(message,isMe) : VoiceBubble(
+                                url: message.media?.url ?? ''  ,
                                 isMe: isMe,
                               ),
                             ),
@@ -359,6 +362,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               width: 50.w,
                             ),
                           ],
+                        ),
+                      ),
+                    if (isRecording)
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 15.h,
+                          horizontal: 10.0.w,
+                        ),
+                        child: AudioWaveforms(
+                            size: Size(MediaQuery.of(context).size.width * 0.65, MediaQuery.of(context).size.height * 0.1),
+                            recorderController: _controller,
+                          waveStyle: const WaveStyle(
+                            waveColor: Colors.white,
+                            extendWaveform: true,
+                            showMiddleLine: false,
+                          ),
                         ),
                       ),
                     Padding(
@@ -387,8 +406,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               user!.id,
                               widget.receiverId,
                             ),
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+
                             decoration: InputDecoration(
-                              hintText: 'Type a message',
+                              hintText: 'Type a message...',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
                                 borderSide: BorderSide.none,
@@ -413,7 +437,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     GestureDetector(
                                       onLongPressStart: (details) async {
 
-                                        await _voiceService.startRecording();
+                                        await recordVoice(_controller);
 
                                         setState(() => isRecording = true);
                                       },
@@ -421,25 +445,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                                       onLongPressEnd: (_) async {
 
-                                        final filePath = await _voiceService
-                                            .stopRecording();
-
+                                        // final filePath = await _voiceService
+                                        //     .stopRecording();
+                                        final filePath = await stopRecording(_controller);
                                         if (filePath != null) {
                                           final duration = await _voiceService
                                               .getDurationFromFile(filePath);
 
-                                          await ref
-                                              .read(
-                                            messageProvider(
-                                              widget.receiverId,
-                                            ).notifier,
-                                          )
-                                              .sendVoice(
-                                            senderId: user!.id,
-                                            receiverId: widget.receiverId,
-                                            filePath: filePath,
-                                            duration: duration,
-                                          );
+
+
+                                          print("------------------------AUDIOOOOOOOOOOOOOOOOOOOOOOOOOOOO---------------------");
+                                          print(filePath);
+                                          print(duration);
+
+                                        //   await ref
+                                        //       .read(
+                                        //     messageProvider(
+                                        //       widget.receiverId,
+                                        //     ).notifier,
+                                        //   )
+                                        //       .sendVoice(
+                                        //     senderId: user!.id,
+                                        //     receiverId: widget.receiverId,
+                                        //     filePath: filePath,
+                                        //     duration: duration,
+                                        //   );
                                         }
 
                                         setState(() {
@@ -462,7 +492,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     IconButton(
                                         onPressed: (){
                                           if(isImage) {
-                                            ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!.path, message: messageController.text);
+                                            ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!, message: messageController.text);
                                             setState(() {
                                               pickedImage = null;
                                               isImage = false;
@@ -471,7 +501,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                                           }
                                           else{
-                                            ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
+                                           if(messageController.text.isNotEmpty){
+                                             ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
+                                             messageController.clear();
+                                           }
                                           }
                                         },
                                         icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
@@ -494,62 +527,134 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildImage(MessageIsar message) {
-    final isNetwork = message.mediaUrl?.startsWith('http');
-    if (isNetwork!) {
+  Widget _buildImage(MessageIsar message,bool isMe) {
+    final media = message.media;
+
+    // 1️⃣ Uploading / placeholder state
+    if (media == null || media.thumbnail == null) {
       return Container(
+        height: 150.h,
+        width: 150.w,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2
+          color: Colors.black26,
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(strokeWidth: 2),
+            const SizedBox(height: 8),
+            Text(
+              message.status == 'failed' ? 'Upload failed' : 'Uploading...',
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final thumbnail = media.thumbnail!;
+    final isNetwork = thumbnail.startsWith('http');
+
+    return Column(
+      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 250.h,
+          width: 250.w,
+          margin: EdgeInsets.symmetric(vertical: 5.h),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary,
+              width: 2,
+            ),
+          ),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: isNetwork
+                ? ClipRRect(
+              borderRadius: BorderRadiusGeometry.circular(10),
+                  child: Image.network(
+                                thumbnail,
+                                height: 200.h,
+                                width: 200.w,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.broken_image, color: Colors.red, size: 50),
+                              ),
+                )
+                : AspectRatio(
+              aspectRatio: 1,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.file(
+                  File(thumbnail),
+                  height: 200.h,
+                  width: 200.w,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
           ),
         ),
-        child: Column(
-          children: [
-            Image.network(
-              message.mediaUrl!,
-              height: 150.h,
-              width: 150.w,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stack) =>
-              const Icon(Icons.broken_image, size: 60, color: Colors.red),
-              loadingBuilder: (context, child, progress) {
-                if (progress == null) return child;
-                return const SizedBox(
-                  height: 150,
-                  width: 150,
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              },
-            ),
-            Text(message.content)
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2
+        if (message.content.isNotEmpty)
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+      ),
+      child: Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+      message.content,
+      style: const TextStyle(color: Colors.white),
+      ),
+      ),
+    ),
+      ],
+    );
+  }
+
+
+  Future<void> recordVoice(RecorderController controller)async{
+    try{
+      final status = await Permission.microphone.request();
+      if(status != PermissionStatus.granted){
+        if(status == PermissionStatus.permanentlyDenied){
+          await openAppSettings();
+        }
+        throw Exception("No microphone permission");
+      }
+
+      await controller.record(
+        recorderSettings:const RecorderSettings(
+          sampleRate: 44100,
+          bitRate: 128000,
+          androidEncoderSettings: AndroidEncoderSettings(
+            androidEncoder: AndroidEncoder.aacLc
+          ),
+          iosEncoderSettings: IosEncoderSetting(
+            iosEncoder: IosEncoder.kAudioFormatAMR
           )
-        ),
-        child: Column(
-          children: [
-            Image.file(
-              File(message.mediaUrl!),
-              height: 150.h,
-              width: 150.w,
-              fit: BoxFit.cover,
-            ),
-            Text(message.content)
-          ],
-        ),
+        )
       );
+    }
+    catch(e){
+      throw Exception(e.toString());
+    }
+  }
+  Future<String?> stopRecording(RecorderController controller)async{
+    try{
+      String? audioPath = await controller.stop();
+      return audioPath;
+    }
+    catch(e){
+      throw Exception(e.toString());
     }
   }
 

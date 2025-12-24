@@ -1,5 +1,6 @@
 import 'package:chatapp/localDB/Mapper/mapper.dart';
 import 'package:chatapp/localDB/model/group_isar.dart';
+import 'package:chatapp/localDB/model/media_isar.dart';
 import 'package:chatapp/localDB/model/message_isar.dart';
 import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/group.dart';
@@ -28,6 +29,16 @@ class IsarService {
         }
 
         await _isar.userIsars.put(user);
+      }
+    });
+  }
+
+  // remove friend
+  Future<void> removeFriendFromIsar({required String friendId})async{
+    await _isar.writeTxn(()async{
+      UserIsar? user = await _isar.userIsars.filter().userIdEqualTo(friendId).findFirst();;
+      if(user != null){
+        await _isar.userIsars.delete(user.id);
       }
     });
   }
@@ -129,6 +140,32 @@ class IsarService {
     await groupIsar.groupAdmins.save();
   }
 
+  Future<void> removeMembersFromGroup(String groupId,List<String> members)async{
+    await _isar.writeTxn(()async {
+      final group = await _isar.groupIsars.filter().groupIdEqualTo(groupId).findFirst();
+      if(group == null) return;
+      for(final member in members) {
+        final user = await _isar.userIsars.filter().userIdEqualTo(member).findFirst();
+        if(user == null) return;
+        group.groupMembers.remove(user);
+      }
+      await group.groupMembers.save();
+    });
+  }
+
+  Future<void> addMembersToTheGroup(String groupId,List<String> members){
+    return _isar.writeTxn(()async{
+      final group = await _isar.groupIsars.filter().groupIdEqualTo(groupId).findFirst();
+      if(group == null) return;
+      for(final member in members){
+        final user = await _isar.userIsars.filter().userIdEqualTo(member).findFirst();
+        if(user == null) return;
+        group.groupMembers.add(user);
+      }
+      await group.groupMembers.save();
+    });
+  }
+
 
   // ------Messages--------
 
@@ -146,8 +183,15 @@ class IsarService {
         ..senderId = message.senderId
         ..chatId = message.receiverId
         ..content = message.message
-        ..mediaUrl = message.uploadUrl
-        ..mediaDuration = message.uploadDuration
+        ..media = message.media != null ?
+              (
+                  MediaIsar()
+                  ..url = message.media?['url']
+                  ..thumbnail = message.media?['thumbnail']
+                  ..size = message.media?['size']
+                  ..width = message.media?['width']
+                  ..height = message.media?['height']
+              ) : null
         ..messageType = message.type
         ..status = 'sending'
         ..localCreatedAt = message.createdAt ?? DateTime.now();
@@ -178,8 +222,7 @@ class IsarService {
           ..serverMessageId = message.id
           ..status = message.status
           ..content = message.message
-          ..mediaUrl = message.uploadUrl
-          ..mediaDuration = message.uploadDuration
+          //..media = message.media
           ..serverCreatedAt = message.createdAt;
 
         await _isar.messageIsars.put(placeholder);
@@ -193,9 +236,16 @@ class IsarService {
         ..senderId = message.senderId
         ..chatId = message.receiverId
         ..content = message.message
-        ..mediaUrl = message.uploadUrl
-        ..mediaDuration = message.uploadDuration
         ..messageType = message.type
+        ..media = message.media != null ?
+            (
+                MediaIsar()
+                ..url = message.media?['url']
+                ..thumbnail = message.media?['thumbnail']
+                ..size = message.media?['size']
+                ..width = message.media?['width']
+                ..height = message.media?['height']
+            ) : null
         ..status = message.status
         ..serverCreatedAt = message.createdAt
         ..localCreatedAt = DateTime.now();
@@ -232,8 +282,7 @@ class IsarService {
         ..serverMessageId = message.id
         ..status = message.status
         ..content = message.message
-        ..mediaUrl = message.uploadUrl
-        ..mediaDuration = message.uploadDuration
+        //..media = message.media
         ..serverCreatedAt = message.createdAt;
 
       await _isar.messageIsars.put(existing);
@@ -265,4 +314,15 @@ class IsarService {
     });
     return messageIds;
   }
+
+  Future<void> deleteAllData()async{
+    await _isar.writeTxn(()async{
+      await _isar.userIsars.clear();
+      await _isar.groupIsars.clear();
+      await _isar.messageIsars.clear();
+      await _isar.clear();
+    });
+  }
+
+
 }

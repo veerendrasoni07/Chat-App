@@ -12,12 +12,12 @@ class User {
   final String bio;
   final String phone;
   final String location;
-
+  final String createdAt;
   final List<String> connections;
   final String username;
   final bool isOnline;
 
-  User({required this.id,required this.fullname,required this.bio ,required this.email, required this.phone ,required this.profilePic, required this.gender,required this.username,required this.token,required this.isOnline,required this.location,required this.connections});
+  User({required this.id,required this.fullname,required this.bio ,required this.email, required  ,required this.phone ,required this.profilePic, required this.gender,required this.username,required this.token,required this.isOnline,required this.location,required this.connections,required this.createdAt});
 
 
   Map<String, dynamic> toMap() {
@@ -31,6 +31,7 @@ class User {
       'token':token,
       'phone':phone,
       'isOnline':isOnline,
+      'createdAt':createdAt,
       'location':location,
       'username':username,
       'connections':connections
@@ -48,6 +49,7 @@ class User {
       token: map['token'] ?? '',
       bio: map['bio'] ?? '',
       isOnline: map['isOnline'] ?? false,
+      createdAt: map['createdAt'] ?? '',
       location: map['location'] ?? '',
       username: map['username'] ?? '',
       connections: List<String>.from(map['connections'] ?? []),

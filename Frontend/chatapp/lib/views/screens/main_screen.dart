@@ -61,7 +61,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         onPageChanged: _onPageChanged,
         clipBehavior: Clip.none,
         scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         children: _pages,
       ),
       bottomNavigationBar: _buildGlassNavBar(),
@@ -102,7 +102,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               children: [
                 _navItem("inactive", 'assets/icons/home.png', 0),
                 _navItem("inactive", 'assets/icons/add-post.png', 1),
-                _navItem("inactive", 'assets/icons/chat.png', 2)
               ],
             )
 

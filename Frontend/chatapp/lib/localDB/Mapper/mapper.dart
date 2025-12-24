@@ -1,4 +1,5 @@
 import 'package:chatapp/localDB/model/group_isar.dart';
+import 'package:chatapp/localDB/model/media_isar.dart';
 import 'package:chatapp/localDB/model/message_isar.dart';
 import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/group.dart';
@@ -58,8 +59,15 @@ import 'package:uuid/uuid.dart';
         ..senderId = message.senderId
         ..chatId = message.receiverId
         ..content = message.message
-        ..mediaUrl = message.uploadUrl
-        ..mediaDuration = message.uploadDuration
+        ..media = message.media != null ?
+           ( MediaIsar()
+            ..url = message.media?['url']
+            ..thumbnail = message.media?['thumbnail']
+            ..size = message.media?['size']
+            ..width = message.media?['width']
+            ..height = message.media?['height']
+           ): null
+
         ..messageType = message.type
         ..status = message.status
         ..localCreatedAt = message.createdAt ?? DateTime.now();

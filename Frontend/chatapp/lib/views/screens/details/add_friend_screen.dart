@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:chatapp/componentss/responsive.dart';
 import 'package:chatapp/controller/auth_controller.dart';
+import 'package:chatapp/localDB/Mapper/mapper.dart';
 import 'package:chatapp/models/interaction.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/friends_provider.dart';
@@ -9,10 +10,14 @@ import 'package:chatapp/provider/request_provider.dart';
 import 'package:chatapp/provider/sent_request_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/views/screens/details/account_screen.dart';
+import 'package:chatapp/views/screens/details/chat_screen.dart';
 import 'package:chatapp/views/screens/details/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../controller/friend_controller.dart';
 
@@ -85,14 +90,14 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF450072),
-              const Color(0xFF270249),
-              const Color(0xFF1F0033)
+               Color(0xFF450072),
+               Color(0xFF270249),
+               Color(0xFF1F0033)
             ]
           )
         ),
@@ -226,14 +231,14 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
         final alreadySent =
         sentRequest.any((x) => x.toUser.id == u.id);
         bool alreadyFriend = friends.any((x)=>x.id == u.id);
-
+        final userIsar = mapUserToIsar(u);
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ProfileScreen(user: u),
+                builder: (_) => AccountScreen(user: userIsar, backgroundType: '',),
               ),
             );
           },
@@ -278,19 +283,27 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   ),
                 ),
                 alreadyFriend ? GestureDetector(
-                  onTap:(){},
+                  onTap:()=> Get.to(
+                      ()=> ChatScreen(fullname: u.fullname, receiverId: u.id),
+                    transition: Transition.leftToRightWithFade,
+                    duration:const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                  ),
                   child: AnimatedContainer(
-                      duration: Duration(milliseconds: 350),
+                      duration: const Duration(milliseconds: 350),
                     padding:  EdgeInsets.symmetric(horizontal: size.wp(2), vertical: size.hp(2)),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(size.wp(3)),
                       color: Colors.green,
                     ),
                     curve: Curves.easeInOut,
-                    child: Row(
+                    child:  Row(
                       children: [
-                        Icon(Icons.done),
-                        AutoSizeText("Friend")
+                        const Icon(Icons.done),
+                        AutoSizeText("Message",style: GoogleFonts.poppins(
+                            fontSize: 14.sp,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),)
                       ],
                     )
                   ),
@@ -298,14 +311,18 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                 GestureDetector(
                   onTap:alreadySent ? (){} : () => sendFriendRequest(fromUserId, u.id),
                   child: AnimatedContainer(
-                      duration: Duration(milliseconds: 250),
+                      duration: const Duration(milliseconds: 250),
                     padding: EdgeInsets.symmetric(horizontal: size.wp(2), vertical: size.hp(2.5)),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.r),
-                      color: alreadySent ? Colors.grey.shade400 : Colors.blueAccent,
+                      color: alreadySent ? Colors.white.withOpacity(0.2): Colors.blueAccent,
                     ),
                     curve: Curves.easeInOut,
-                    child: alreadySent ? AutoSizeText("Pending") :Row(
+                    child: alreadySent ?  AutoSizeText("Pending",style: GoogleFonts.poppins(
+        fontSize: 14.sp,
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.w600
+        ),) :Row(
                       children: [
                         Icon(Icons.done,color: Theme.of(context).colorScheme.primary,),
                         AutoSizeText("Add",style: GoogleFonts.poppins(
@@ -328,7 +345,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
   // ---------------- FRIENDS SECTION ----------------
   Widget _buildFriendsSection(List<User> friends, Color primary) {
-    if (friends.isEmpty) return SizedBox();
+    if (friends.isEmpty) return const SizedBox();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,7 +367,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
           ),
           child: ListView.builder(
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: friends.length,
             itemBuilder: (context, index) {
               final fr = friends[index];

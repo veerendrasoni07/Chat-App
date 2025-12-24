@@ -16,10 +16,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-
-
-
-
 class GroupChatScreen extends ConsumerStatefulWidget {
   final User user;
   final List<UserIsar> groupMembers;
@@ -106,7 +102,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (_)=>GroupScreen(groupMembers: widget.groupMembers.toList(),groupName: widget.fullname,proPic: widget.groupPic,groupAdmin: widget.groupAdmin.toList(),))),
+                    onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (_)=>GroupScreen(groupMembers: widget.groupMembers.toList(),groupId: widget.groupId,groupName: widget.fullname,proPic: widget.groupPic,groupAdmin: widget.groupAdmin.toList(),))),
                     child: AutoSizeText(
                       widget.fullname,
                       style: GoogleFonts.montserrat(

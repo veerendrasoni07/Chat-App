@@ -6,6 +6,8 @@ class UserProvider extends StateNotifier<User?>{
 
   void addUser(String userJson){
     state = User.fromJson(userJson);
+    print("User provider State");
+    print(state);
   }
 
   void signOut(){

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/controller/friend_controller.dart';
+import 'package:chatapp/localDB/Mapper/mapper.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/models/user_status.dart';
 import 'package:chatapp/provider/activity_provider.dart';
@@ -19,8 +20,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
-import 'package:chatapp/views/screens/details/chat_screen.dart';
-import 'package:chatapp/views/screens/details/group_chat_screen.dart';
 import 'package:chatapp/views/screens/details/add_friend_screen.dart';
 import 'package:chatapp/views/screens/details/profile_screen.dart';
 
@@ -62,7 +61,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 colors: [
                    Color(0xFF450072),
                    Color(0xFF270249),
-                   Color(0xFF1F0033)
+                   Color(0xFF1F0033),
                 ],
               ),
             ),
@@ -76,9 +75,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   _buildGlassCapsuleHeader(context, user!,ref),
                    _buildFriendOrbit(context, ref, status),
                   const Divider(color: Colors.white12, thickness: 0.4),
-                  friendStream.when(
+                   friendStream.when(
                       data: (friends) {
-                        return Expanded(
+                        return friends.isEmpty ? const Center(child: Text("NO friends"),) : Expanded(
                           child: ListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             physics: const BouncingScrollPhysics(),
@@ -139,11 +138,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                    /// ------------------------ PROFILE BUTTON (iOS GLASS) ------------------------
                   GestureDetector(
-                    // onTap: () => Get.to(()=> AccountScreen(backgroundType: "artist", user: user),
-                    //   transition: Transition.leftToRightWithFade,
-                    //   duration:const Duration(milliseconds: 300),
-                    //   curve: Curves.fastOutSlowIn,
-                    // ),
+                    onTap: () => Get.to(()=> AccountScreen(backgroundType: "artist", user: mapUserToIsar(user)),
+                      transition: Transition.leftToRightWithFade,
+                      duration:const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                    ),
                     child: Container(
                       width: 45,
                       height: 45,
@@ -165,7 +164,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                           child: Center(
                             child: AutoSizeText(
-                              user.fullname[0],
+                              user.fullname[0] ,
                               style: GoogleFonts.poppins(
                                 fontSize: 14.sp,
                                 height: 1,
@@ -186,7 +185,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ()=>const AddFriendScreen(),
                       transition: Transition.leftToRightWithFade,
                       duration:const Duration(milliseconds: 300),
-                      curve: Curves.fastOutSlowIn,
+                      curve: Curves.easeOutCubic,
                     ),
 
                     child: Container(

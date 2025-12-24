@@ -423,7 +423,7 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                             setState(() {
                               isPassShown = !isPassShown;
                             });
-                          }, icon: isPassShown ? Icon(CupertinoIcons.eye_solid) :Icon( CupertinoIcons.eye_slash_fill)),
+                          }, icon: isPassShown ? const Icon(CupertinoIcons.eye_solid) : const Icon( CupertinoIcons.eye_slash_fill)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide.none
@@ -435,12 +435,6 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                         buttonText: "Accept and Continue",
                         onPressed: () {
                           if (_formKeys[4].currentState!.validate()) {
-                            // ✅ All data collected, proceed to sign-up
-                            print("Name: ${_nameController.text}");
-                            print("Username: ${_userNameController.text}");
-                            print("Email: ${_emailController.text}");
-                            print("Gender: $gender");
-                            print("Password: ${_passwordController.text}");
                             AuthController().signUp(fullname: _nameController.text,username: _userNameController.text, email: _emailController.text, password: _passwordController.text, gender: gender!, context: context, ref: ref);
                           }
                         },

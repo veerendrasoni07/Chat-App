@@ -1,4 +1,5 @@
 
+import 'package:chatapp/localDB/model/media_isar.dart';
 import 'package:isar/isar.dart';
 part 'message_isar.g.dart';
 
@@ -13,8 +14,8 @@ class MessageIsar {
   late String content;
   @Index()
   late String chatId;
-  String? mediaUrl;
-  double? mediaDuration;
+  List<String>? seenBy;
+  MediaIsar? media;
   late String messageType;
   @Index()
   late String senderId;

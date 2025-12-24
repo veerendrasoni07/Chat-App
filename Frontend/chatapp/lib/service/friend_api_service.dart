@@ -13,7 +13,7 @@ class FriendApiService {
       http.Response response = await http.get(Uri.parse('$uri/api/user-connections'),
           headers: <String,String>{
             'Content-Type':'application/json; charset=UTF-8',
-            'x-auth-token':"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ZDNlYzEwYjQ4Mjc4MTNiY2UzNzc4MyIsImlhdCI6MTc2NTYzNzIwMH0.T9Ud2fzEKzhYB6jHDjjLaC2G6FAbZ_LIIukl-JLr-Zc"
+            'x-auth-token':token
           }
       );
       if(response.statusCode == 200){
@@ -22,6 +22,28 @@ class FriendApiService {
         print("fasdfasdfjasdjfhaskjdf");
         print(response.body);
         return users;
+      }
+      else{
+        throw Exception('Failed to fetch friends');
+      }
+    }catch(e){
+      throw Exception(e.toString());
+    }
+  }
+  Future<void> removeFriend({required String token,required String friendId})async{
+    try{
+      http.Response response = await http.delete(
+          Uri.parse('$uri/api/remove-friend/$friendId'),
+          headers: <String,String>{
+            'Content-Type':'application/json; charset=UTF-8',
+            'x-auth-token':token
+          }
+      );
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        final User users = User.fromMap(data);
+        print("fasdfasdfjasdjfhaskjdf");
+        print(response.body);
       }
       else{
         throw Exception('Failed to fetch friends');

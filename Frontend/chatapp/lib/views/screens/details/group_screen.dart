@@ -2,22 +2,25 @@ import 'dart:ui';
 import 'package:chatapp/controller/group_controller.dart';
 import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/user.dart';
+import 'package:chatapp/provider/group_controller_provider.dart';
 import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/chat_screen.dart';
 import 'package:chatapp/views/screens/details/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../provider/userProvider.dart';
 
 class GroupScreen extends ConsumerStatefulWidget {
+  final String groupId;
   final List<UserIsar> groupMembers;
   final List<UserIsar> groupAdmin;
   final String groupName;
   final String proPic;
-  const GroupScreen({super.key, required this.groupMembers,required this.groupAdmin,required this.proPic,required this.groupName});
+  const GroupScreen({super.key,required this.groupId, required this.groupMembers,required this.groupAdmin,required this.proPic,required this.groupName});
 
   @override
   ConsumerState<GroupScreen> createState() => _GroupScreenState();
@@ -37,6 +40,7 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final primary = Theme.of(context).colorScheme.primary;
+    final groupRepo = ref.read(groupRepoProvider);
 
     return Scaffold(
 
@@ -84,10 +88,58 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
                   ),
                   ListView.builder(
                       padding: const EdgeInsets.all(16),
-                      itemCount: widget.groupAdmin.length,
+                      itemCount: widget.groupMembers.length,
                       shrinkWrap: true,
                       itemBuilder: (context,index){
-                        return personTile(context, widget.groupMembers[index], user!);
+                        final member = widget.groupMembers[index];
+                        return Slidable(
+                          key: const ValueKey(0),
+                          endActionPane: ActionPane(
+                              motion: const ScrollMotion(),
+                              children: [
+                                SlidableAction(
+                                    onPressed: (context){
+                                      showDialog(
+                                          context: context,
+                                          builder: (_){
+                                            return AlertDialog(
+                                              title: const Text("Are you sure?"),
+                                              content: const Text("Do you want to remove this member?"),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: (){
+                                                  Navigator.pop(_);
+                                                  },
+                                                  style: const ButtonStyle(
+                                                    backgroundColor: WidgetStatePropertyAll(Colors.black)
+                                                  ),
+                                                  child: const Text("Cancel"),
+                                                ),
+                                                TextButton(
+                                                  onPressed: ()async{
+                                                    await groupRepo.removeMembersFromTheGroup([member.userId], widget.groupId, _);
+                                                    Navigator.pop(_);
+                                                  },
+                                                  style: const ButtonStyle(
+                                                    backgroundColor: WidgetStatePropertyAll(Colors.red)
+                                                  ),
+                                                  child: const Text("Remove"),
+                                                )
+                                              ],
+
+                                            );
+                                          }
+                                      );
+                                    },
+                                  flex: 1,
+                                    icon: Icons.delete,
+                                    backgroundColor: Colors.red,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ]
+                          ),
+                            child: personTile(context, widget.groupMembers[index], user!)
+                        );
 
                       }
                   )
@@ -156,7 +208,7 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.more_vert),
+                icon: const Icon(Icons.chat_bubble_outline_rounded),
                 color: Theme.of(context).colorScheme.primary,
               ),
 

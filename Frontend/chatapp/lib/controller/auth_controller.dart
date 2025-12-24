@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:chatapp/global_variable.dart';
+import 'package:chatapp/localDB/provider/isar_provider.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/tokenProvider.dart';
 import 'package:chatapp/provider/userProvider.dart';
@@ -104,7 +106,8 @@ class AuthController{
     await preferences.remove('user');
     await preferences.remove('token');
     ref.read(userProvider.notifier).signOut();
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=>OnboardingPage()) , (route) => false);
+    await IsarService(ref.read(isarProvider)).deleteAllData();
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=> const OnboardingPage()) , (route) => false);
     showSnackBar(context, 'Logged out successfully');
   }
 
@@ -127,32 +130,43 @@ class AuthController{
       throw Exception(e);
     }
   }
-
-
-
-  // Future<List<User>> getAllUsers({required String userId})async{
-  //   try{
-  //     http.Response response = await http.get(
-  //         Uri.parse('$uri/api/get-all-friends/$userId'),
-  //       headers: <String,String>{
-  //           'Content-Type':'application/json; charset=UTF-8'
-  //       }
-  //     );
-  //
-  //     if(response.statusCode == 200){
-  //       final List<dynamic> data = jsonDecode(response.body);
-  //       final List<User> users = data.map((user)=>User.fromMap(user)).toList();
-  //       return users;
-  //     }
-  //     else{
-  //       throw Exception("New Error Occurred");
-  //     }
-  //
-  //   }catch(w){
-  //     print(w);
-  //     throw Exception(w.toString());
-  //   }
-  // }
+  
+  Future<void> updateUserProfile({required String fullname,required String bio,required String phone,required String location,required String gender ,required WidgetRef ref,required BuildContext context})async{
+    try{
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      final token = preferences.getString('token');
+      http.Response response = await http.put(
+          Uri.parse('$uri/api/update-profile'),
+        body: jsonEncode({
+          "details": {
+            'fullname':fullname,
+            'bio':bio,
+            'phone':phone,
+            'location':location,
+            'gender':gender
+          }
+        }),
+        headers: <String,String>{
+            'Content-Type':'application/json; charset=UTF-8',
+            'x-auth-token':token!
+        }
+      );
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        final user = data['user'];
+        await preferences.remove('user');
+        final userJson = jsonEncode(user);
+        await preferences.setString('user', userJson);
+        ref.read(userProvider.notifier).addUser(userJson);
+        showSnackBar(context, 'Profile updated successfully');
+      }else{
+        throw Exception('Failed to update profile');
+      }
+    }catch(e){
+      print(e.toString());
+      throw Exception(e.toString());
+    }
+  }
 
 
 

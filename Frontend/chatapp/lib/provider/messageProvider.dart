@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:chatapp/controller/image_service.dart';
 import 'package:chatapp/controller/message_controller.dart';
 import 'package:chatapp/controller/voice_service.dart';
@@ -34,7 +36,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
   Future<void> sendMessage({required String senderId,required String receiverId,required String userMessage,required double duration,required String type,required String uploadUrl})async{
     try{
       final localId = const Uuid().v4();
-      final newMessage = Message(id: localId, senderId: senderId, receiverId: receiverId, message: userMessage,type: type , uploadDuration: duration, uploadUrl: uploadUrl,status: 'sending', createdAt: DateTime.now());
+      final newMessage = Message(id: localId, senderId: senderId, receiverId: receiverId, message: userMessage,type: type,status: 'sending', createdAt: DateTime.now());
       await _isarService.saveLocalMessage(newMessage);
       socket.sendMessage(receiverId, senderId, userMessage,localId);
     }catch(e){
@@ -99,8 +101,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
       receiverId: receiverId,
       message: '', // no text
       type: 'voice',
-      uploadUrl: filePath, // local path used for optimistic playback if desired
-      uploadDuration: duration,
+
       status: 'uploading',
       createdAt: DateTime.now(),
     );
@@ -132,41 +133,36 @@ class MessageProvider extends StateNotifier<List<Message>> {
   Future<void> sendImage({
     required String senderId,
     required String receiverId,
-    required String filePath, // local path
+    required File filePath, // local path
     required String message,
   }) async {
-    final tempId = 'image_${DateTime.now().millisecondsSinceEpoch}';
+    final localId = const Uuid().v4();
     final placeholder = Message(
-      id: tempId,
+      id: localId,
       senderId: senderId,
       receiverId: receiverId,
       message: message,
       type: 'image',
-      uploadUrl: filePath, // local path used for optimistic playback if desired
+      media: {
+        'url': filePath.path,
+        'thumbnail': filePath.path,
+        'size':0,
+        'width':0,
+        'height':0,
+      },
       status: 'uploading',
-      uploadDuration: 0.0,
       createdAt: DateTime.now(),
     );
-
-    state = [...state, placeholder];
-
+    await _isarService.saveLocalMessage(placeholder);
     try {
-      // upload & notify server (this will trigger server -> socket -> newMessage)
       await _imageService.sendImageMessage(
         senderId: senderId,
         receiverId: receiverId,
         filePath: filePath,
         message: message,
+        localId: localId,
       );
-      // Do not update state here — wait for socket event to replace placeholder.
     } catch (e) {
-      // mark placeholder failed
-      state = state.map((m) {
-        if (m.id == tempId) {
-          return m.copyWith(status: 'failed');
-        }
-        return m;
-      }).toList();
       rethrow;
     }
   }
