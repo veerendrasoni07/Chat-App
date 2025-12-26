@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:chatapp/views/widgets/video_preview_screen.dart';
+import 'package:chatapp/views/widgets/video_view_Screen.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
@@ -32,6 +34,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String fullname;
@@ -51,14 +55,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
   final VoiceService _voiceService = VoiceService();
+  late VideoPlayerController videoPlayerController;
   late RecorderController _controller;
-
+  File? video;
   String? recordingPath;
   bool isAtBottom = true;
   Timer? debounce;
   bool isTyping = false;
   bool isRecording = false;
   File? pickedImage;
+
+  bool isVideoPlaying = false;
 
   bool isImage = false;
   bool isVideo = false;
@@ -88,6 +95,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         pickedImage = File(image.path);
         isImage = true;
       });
+    }
+  }
+  void pickVideoFromGallery()async{
+    final picker = ImagePicker();
+    final image = await picker.pickVideo(source: ImageSource.gallery);
+    if(image!=null){
+      setState(() {
+        video = File(image.path);
+        isImage = true;
+      });
+      videoPlayerController = VideoPlayerController.file(video!)..initialize();
+      var thumbPath = await VideoThumbnail.thumbnailFile(
+        video: video!.path,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 512,
+        quality: 75,
+      );print("-----------------------Thumbnail path -------------------");
+      print(thumbPath);
+      if(await Navigator.push(context, MaterialPageRoute(builder: (_)=>VideoPreviewScreen(video: video!, receiverId: widget.receiverId)))){
+        final senderId = ref.read(userProvider)!.id;
+        ref.read(messageProvider(widget.receiverId).notifier).sendVideo(senderId: senderId, receiverId: widget.receiverId, filePath: video!, message: messageController.text,thumbnail: thumbPath!);
+      }
     }
   }
 
@@ -338,7 +367,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   ],
                                 ),
                               )
-                                  : message.messageType == 'image' ? _buildImage(message,isMe) : VoiceBubble(
+                                  : message.messageType == 'image' ? _buildImage(message,isMe) : message.messageType == 'video' ? _videoThumbnail(message): VoiceBubble(
                                 url: message.media?.url ?? ''  ,
                                 isMe: isMe,
                               ),
@@ -428,11 +457,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                               suffixIcon: SizedBox(
-                                width: 150.w,
+                                width: 200.w,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
+                                    IconButton(onPressed: ()=>pickVideoFromGallery(),icon:Icon(Icons.video_collection,color: Theme.of(context).colorScheme.primary,)),
                                     // Microphone button with gesture detection
                                     GestureDetector(
                                       onLongPressStart: (details) async {
@@ -536,6 +566,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         height: 150.h,
         width: 150.w,
         alignment: Alignment.center,
+          margin: EdgeInsets.symmetric(vertical: 5.h,horizontal: 5.h),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: Colors.black26,
@@ -564,7 +595,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         Container(
           height: 250.h,
           width: 250.w,
-          margin: EdgeInsets.symmetric(vertical: 5.h),
+          margin: EdgeInsets.symmetric(vertical: 5.h,horizontal: 5.h),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
@@ -658,6 +689,48 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
+
+  Widget _videoThumbnail(MessageIsar message){
+    final media = message.media;
+    final thumbnail = media?.thumbnail;
+    final isNetwork = thumbnail!.startsWith('http');
+    return Container(
+      height: 250.h,
+      width: 250.w,
+      alignment: Alignment.center,
+      margin: EdgeInsets.symmetric(vertical: 5.h,horizontal: 5.h),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.black26,
+        border: Border.all(color: Theme.of(context).colorScheme.primary,
+          width: 2,),
+      ),
+      child:Stack(
+        children: [
+          AspectRatio(
+              aspectRatio: 1,
+              child: isNetwork ? ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(thumbnail,height: 200.h,width: 200.w,fit: BoxFit.cover,))
+                  : ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.file(File(thumbnail),height: 200.h,width: 200.w,fit: BoxFit.cover,))
+          ),
+          Positioned(
+            bottom: 50,
+            top: 50,
+            left: 50,
+            right: 50,
+            child: IconButton(
+                onPressed: ()=>Navigator.push(context, MaterialPageRoute(builder: (_)=>VideoViewScreen(videoUrl: media!.url!,isNetwork: isNetwork))),
+                icon: const Icon(Icons.play_circle,size: 40,)
+            )
+          )
+
+        ],
+      )
+    );
+  }
 
   Widget _buildStatusIcon(String status) {
     switch (status) {

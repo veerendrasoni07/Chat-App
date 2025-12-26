@@ -191,6 +191,7 @@ class IsarService {
                   ..size = message.media?['size']
                   ..width = message.media?['width']
                   ..height = message.media?['height']
+                  ..duration = message.media?['duration']
               ) : null
         ..messageType = message.type
         ..status = 'sending'
@@ -245,6 +246,7 @@ class IsarService {
                 ..size = message.media?['size']
                 ..width = message.media?['width']
                 ..height = message.media?['height']
+                ..duration = message.media?['duration']
             ) : null
         ..status = message.status
         ..serverCreatedAt = message.createdAt

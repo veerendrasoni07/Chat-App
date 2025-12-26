@@ -10,4 +10,5 @@ class MediaIsar {
   int? width;
   int? height;
   String? localPath; // for upload retry
+  double? duration;
 }

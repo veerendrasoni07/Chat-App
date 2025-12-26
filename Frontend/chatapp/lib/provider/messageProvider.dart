@@ -1,11 +1,10 @@
 import 'dart:io';
-
 import 'package:chatapp/controller/image_service.dart';
 import 'package:chatapp/controller/message_controller.dart';
+import 'package:chatapp/controller/video_service.dart';
 import 'package:chatapp/controller/voice_service.dart';
 import 'package:chatapp/localDB/provider/isar_provider.dart';
 import 'package:chatapp/localDB/service/isar_service.dart';
-
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
@@ -18,13 +17,14 @@ import 'package:uuid/uuid.dart';
 class MessageProvider extends StateNotifier<List<Message>> {
   final MessageController controller;
   final VoiceService _voiceService;
+  final VideoService _videoService;
   final ImageService _imageService;
   final IsarService _isarService;
   final String senderId;
   final String receiverId;
   final SocketService socket;
   bool _isChatOpen = false;
-  MessageProvider(this.controller, this.receiverId,this.senderId, this.socket, this._voiceService,this._isarService ,this._imageService) : super([]) {
+  MessageProvider(this.controller, this.receiverId,this.senderId, this.socket, this._voiceService,this._isarService ,this._imageService,this._videoService) : super([]) {
     getMessages();
     listenMessage();
   }
@@ -166,6 +166,45 @@ class MessageProvider extends StateNotifier<List<Message>> {
       rethrow;
     }
   }
+  Future<void> sendVideo({
+    required String senderId,
+    required String receiverId,
+    required File filePath, // local path
+    required String message,
+    required String thumbnail
+  }) async {
+    final localId = const Uuid().v4();
+    final placeholder = Message(
+      id: localId,
+      senderId: senderId,
+      receiverId: receiverId,
+      message: message,
+      type: 'video',
+      media: {
+        'url': filePath.path,
+        'thumbnail':thumbnail,
+        'size':0,
+        'width':0,
+        'height':0,
+        'duration':0.0
+      },
+      status: 'uploading',
+      createdAt: DateTime.now(),
+    );
+    await _isarService.saveLocalMessage(placeholder);
+    try {
+      await _videoService.sendVideo(
+        senderId: senderId,
+        receiverId: receiverId,
+        videoFile: filePath,
+        message: message,
+        localId: localId,
+        thumbnailFile: thumbnail
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 
 
 
@@ -194,6 +233,6 @@ StateNotifierProvider.autoDispose.family<MessageProvider, List<Message>, String>
       (ref, receiverId) {
     final socket = ref.read(socketProvider);
     final user = ref.read(userProvider);
-    return MessageProvider(MessageController(), receiverId,user!.id, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService());
+    return MessageProvider(MessageController(), receiverId,user!.id, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService(),VideoService());
   },
 );

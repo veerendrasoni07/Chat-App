@@ -13,33 +13,38 @@ const MediaIsarSchema = Schema(
   name: r'MediaIsar',
   id: 8577575726066654014,
   properties: {
-    r'height': PropertySchema(
+    r'duration': PropertySchema(
       id: 0,
+      name: r'duration',
+      type: IsarType.double,
+    ),
+    r'height': PropertySchema(
+      id: 1,
       name: r'height',
       type: IsarType.long,
     ),
     r'localPath': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'localPath',
       type: IsarType.string,
     ),
     r'size': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'size',
       type: IsarType.long,
     ),
     r'thumbnail': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'thumbnail',
       type: IsarType.string,
     ),
     r'url': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'url',
       type: IsarType.string,
     ),
     r'width': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'width',
       type: IsarType.long,
     )
@@ -83,12 +88,13 @@ void _mediaIsarSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.height);
-  writer.writeString(offsets[1], object.localPath);
-  writer.writeLong(offsets[2], object.size);
-  writer.writeString(offsets[3], object.thumbnail);
-  writer.writeString(offsets[4], object.url);
-  writer.writeLong(offsets[5], object.width);
+  writer.writeDouble(offsets[0], object.duration);
+  writer.writeLong(offsets[1], object.height);
+  writer.writeString(offsets[2], object.localPath);
+  writer.writeLong(offsets[3], object.size);
+  writer.writeString(offsets[4], object.thumbnail);
+  writer.writeString(offsets[5], object.url);
+  writer.writeLong(offsets[6], object.width);
 }
 
 MediaIsar _mediaIsarDeserialize(
@@ -98,12 +104,13 @@ MediaIsar _mediaIsarDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = MediaIsar();
-  object.height = reader.readLongOrNull(offsets[0]);
-  object.localPath = reader.readStringOrNull(offsets[1]);
-  object.size = reader.readLongOrNull(offsets[2]);
-  object.thumbnail = reader.readStringOrNull(offsets[3]);
-  object.url = reader.readStringOrNull(offsets[4]);
-  object.width = reader.readLongOrNull(offsets[5]);
+  object.duration = reader.readDoubleOrNull(offsets[0]);
+  object.height = reader.readLongOrNull(offsets[1]);
+  object.localPath = reader.readStringOrNull(offsets[2]);
+  object.size = reader.readLongOrNull(offsets[3]);
+  object.thumbnail = reader.readStringOrNull(offsets[4]);
+  object.url = reader.readStringOrNull(offsets[5]);
+  object.width = reader.readLongOrNull(offsets[6]);
   return object;
 }
 
@@ -115,16 +122,18 @@ P _mediaIsarDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
-    case 2:
       return (reader.readLongOrNull(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readLongOrNull(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -133,6 +142,85 @@ P _mediaIsarDeserializeProp<P>(
 
 extension MediaIsarQueryFilter
     on QueryBuilder<MediaIsar, MediaIsar, QFilterCondition> {
+  QueryBuilder<MediaIsar, MediaIsar, QAfterFilterCondition> durationIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'duration',
+      ));
+    });
+  }
+
+  QueryBuilder<MediaIsar, MediaIsar, QAfterFilterCondition>
+      durationIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'duration',
+      ));
+    });
+  }
+
+  QueryBuilder<MediaIsar, MediaIsar, QAfterFilterCondition> durationEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'duration',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<MediaIsar, MediaIsar, QAfterFilterCondition> durationGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'duration',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<MediaIsar, MediaIsar, QAfterFilterCondition> durationLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'duration',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<MediaIsar, MediaIsar, QAfterFilterCondition> durationBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'duration',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<MediaIsar, MediaIsar, QAfterFilterCondition> heightIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(

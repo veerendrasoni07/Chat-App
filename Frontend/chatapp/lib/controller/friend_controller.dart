@@ -5,6 +5,7 @@ import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/request_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,14 +37,14 @@ class FriendController{
 
   Future<void> getAllFriends({required WidgetRef ref})async{
     try{
-      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-      String? token = sharedPreferences.getString('token');
-      http.Response response = await http.get(Uri.parse('$uri/api/user-connections'),
-        headers: <String,String>{
-          'Content-Type':'application/json; charset=UTF-8',
-          'x-auth-token':token!
-        }
-      );
+      http.Response response = await sendRequest(request:(token)async{
+        return await http.get(Uri.parse('$uri/api/user-connections'),
+            headers: <String,String>{
+              'Content-Type':'application/json; charset=UTF-8',
+              'x-auth-token':token
+            }
+        );
+      });
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
         final List<User> users = data.map((user)=> User.fromMap(user)).toList();
@@ -64,13 +65,15 @@ class FriendController{
     try{
       SharedPreferences preferences = await SharedPreferences.getInstance();
       String? token = preferences.getString('token');
-      http.Response response = await http.get(
+      http.Response response = await sendRequest(request:(token)async{
+        return  await http.get(
           Uri.parse('$uri/api/get-all-requests'),
-        headers: <String,String>{
+          headers: <String,String>{
             'Content-Type':'application/json; charset=UTF-8',
-          'x-auth-token':token!
-        },
-      );
+            'x-auth-token':token
+          },
+        );
+      });
 
       if(response.statusCode == 200){
         print(response.body);
@@ -90,15 +93,16 @@ class FriendController{
   // TODO: Update this api function.
   Future<List<Interaction>> getAllSentRequests()async{
     try{
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      String? token = preferences.getString('token');
-      http.Response response = await http.get(
+
+      http.Response response = await sendRequest(request:(token)async{
+        return await http.get(
           Uri.parse('$uri/api/get-all-sent-requests'),
-        headers: <String,String>{
+          headers: <String,String>{
             'Content-Type':'application/json; charset=UTF-8',
-          'x-auth-token':token!
-        },
-      );
+            'x-auth-token':token
+          },
+        );
+      });
 
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
@@ -117,15 +121,15 @@ class FriendController{
   }
   Future<List<Interaction>> getAllRecentActivities()async{
     try{
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      String? token = preferences.getString('token');
-      http.Response response = await http.get(
+      http.Response response = await sendRequest(request:(token)async{
+        return await http.get(
           Uri.parse('$uri/api/recent-notification-activities'),
-        headers: <String,String>{
+          headers: <String,String>{
             'Content-Type':'application/json; charset=UTF-8',
-          'x-auth-token':token!
-        },
-      );
+            'x-auth-token':token!
+          },
+        );
+      });
 
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
