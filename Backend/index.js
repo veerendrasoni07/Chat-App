@@ -12,7 +12,7 @@ import {signRouter} from './controller/cloudinary.js';
 import db from './db.js';
 import voiceRouter from './routes/voice_routes.js';
 import imageRouter from './routes/image_routes.js';
-
+import videoRouter from './routes/video_routes.js';
 dotenv.config();
 
 app.use(express.json());
@@ -26,6 +26,7 @@ app.use(postRouter);
 app.use(signRouter);
 app.use(voiceRouter);
 app.use(imageRouter);
+app.use(videoRouter);
 const PORT = process.env.PORT || 5000;
 
 app.get('/', (req, res) => res.send('Server is live!'));

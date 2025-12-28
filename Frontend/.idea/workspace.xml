@@ -5,56 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="25584202-8293-4669-84e9-c412daad19a3" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../Backend/controller/cloudinary.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/controller/cloudinary.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/models/groupMessage.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/models/groupMessage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/models/messages.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/models/messages.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/assets/icons/add-post.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/assets/icons/camera.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/assets/icons/chat.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/assets/icons/home.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/assets/icons/like.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/provider/backend_sync_provider.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/provider/friend_repo_provider.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/provider/friend_stream_provider.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/provider/group_repo_provider.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/provider/group_stream_provider.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/repository/friend_repo.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/repository/group_repo.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/service/API_Service/friend_api_service.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/service/API_Service/group_api_service.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/service/API_Service/message_api_service.dart" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chatapp/lib/service/backend_sync_service.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Backend/models/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/models/user.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/routes/messages_routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/routes/messages_routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/routes/posts_routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/routes/posts_routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/routes/voice_routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/routes/voice_routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Backend/socket/socket.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Backend/socket/socket.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/.metadata" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/.metadata" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/android/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/app/build.gradle.kts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/android/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/app/src/main/kotlin/com/example/chatapp/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/android/app/src/main/kotlin/com/example/chatapp/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/build.gradle.kts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/android/gradle.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/android/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/android/settings.gradle.kts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/animation/Typing.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/animation/cat_typing.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/animation/globe.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/animation/man_work_from_home_with_laptops.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/animation/saying_hi_animation.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/icons/add-post.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/icons/camera.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/icons/chat.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/icons/home.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/icons/like.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/images/blue_snow_night_background.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/images/snow_background.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/images/snow_tree_background.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/sounds/mixkit-interface-hint-notification-911.wav" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/sounds/mixkit-sci-fi-confirmation-914.wav" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/sounds/mixkit-sci-fi-error-alert-898.wav" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/assets/sounds/mixkit-sci-fi-interface-zoom-890.wav" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/devtools_options.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/lib/controller/group_controller.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/controller/group_controller.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/lib/controller/message_controller.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/controller/message_controller.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/lib/localDB/models/message_model.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/localDB/Mapper/mapper.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/localDB/Mapper/mapper.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/localDB/models/group_isar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/localDB/models/group_isar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/localDB/models/group_isar.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/localDB/models/group_isar.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/localDB/models/user_isar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/localDB/models/user_isar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/localDB/models/user_isar.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/localDB/models/user_isar.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/localDB/service/isar_services.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/localDB/service/isar_services.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/lib/models/group_message.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/models/group_message.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/lib/models/user.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/models/user.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/provider/combined_chat_provider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/provider/combined_chat_provider.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/lib/provider/friends_provider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/provider/friends_provider.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/lib/provider/group_message_provider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/provider/group_message_provider.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/lib/provider/messageProvider.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/provider/messageProvider.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/lib/service/socket_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/service/socket_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/provider/message_service_class.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/provider/message_service_class.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/lib/views/screens/details/chat_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/views/screens/details/chat_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chatapp/macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/views/screens/nav_screens/home_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/views/screens/nav_screens/home_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chatapp/lib/views/widgets/chat_tile.dart" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/lib/views/widgets/chat_tile.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chatapp/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/chatapp/pubspec.yaml" afterDir="false" />
     </list>
@@ -69,18 +52,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "veerendrasoni07"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;veerendrasoni07&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/veerendrasoni07/Chat-App.git",
-    "accountId": "52351427-2064-4250-846f-5330526ee319"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/veerendrasoni07/Chat-App.git&quot;,
+    &quot;accountId&quot;: &quot;52351427-2064-4250-846f-5330526ee319&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
 }</component>
@@ -89,22 +72,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/veere/Desktop/Flutter Project/chatApp/Frontend",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/veere/Desktop/Flutter Project/chatApp/Frontend&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">

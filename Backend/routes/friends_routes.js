@@ -2,7 +2,7 @@ import express from 'express';
 import auth from "../middleware/auth.js";
 import Interaction from "../models/interaction.js";
 import User from "../models/user.js";
-
+import mongoose  from 'mongoose';
 
 const partnerRouter = express.Router();
 
@@ -144,5 +144,33 @@ partnerRouter.get('/api/get-user-by-id/:userId',async(req,res)=>{
         res.status(500).json({eror:"Internal Server Error"});        
     }
 });
+
+// remove friend
+partnerRouter.post('/api/remove-friend',auth,async(req,res)=>{
+  try {
+    const userId = req.user.id;
+    const {friendId} = req.body;
+    console.log("userId:", userId);
+console.log("friendId:", friendId);
+    if(!userId) return res.status(401).json({msg:"User is not authenticated"});
+    const update = await User.findByIdAndUpdate(userId,
+      {
+        $pull:{connections: friendId}
+      },
+      {new:true}
+    );
+    console.log(update);
+    res.status(200).json(update);
+
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({error:"Internal Server Error"});
+  }
+});
+// block friend
+
+
+
 
 export default partnerRouter;

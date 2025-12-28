@@ -107,6 +107,65 @@ groupRouter.get('/api/get-all-group-messages/:groupId',async(req,res)=>{
 });
 
 
+// add members to the group
+
+groupRouter.post('/api/add-members',auth,async(req,res)=>{
+    try {
+        const {members,groupId} = req.body;
+        const userId = req.user.id;
+        const existing = await User.findById(userId);
+        if(!existing) return res.status(401).json({msg:"User is not authenticated"});
+        for(var member of members){
+            const exist = await User.findById(member);
+            if(!exist) return res.status(401).json({msg:`User with this id:${exist._id} doesn't exist!`});
+        }
+        await User.updateMany(
+            {id:{$in:members}},
+            {$push:{groups:groupId}}
+        );
+        const groupUpdated = await Group.findByIdAndUpdate(
+            groupId,{
+            $push:{groupMembers:members}},
+            {new:true}
+        );
+        
+        res.status(200).json(groupUpdated);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error:"Internal Server Error"});
+    }
+});
+
+ // remove members 
+groupRouter.delete('/api/remove-members-from-group',auth ,async(req,res)=>{
+    try {
+        const {members,groupId} = req.body;
+        const userId = req.user.id;
+        const isAdmin = await Group.findOne(
+            {
+                _id:groupId,
+                groupAdmin:{$in:[userId]}
+            },
+            
+        );
+        if(!isAdmin) return res.status(400).json({msg:"Sorry either you're not admin or group doesn't exist!"});
+        const updatedGroup = await Group.findByIdAndUpdate(
+            groupId,
+            {
+                $pullAll:{groupMembers:members}
+            },
+            {new:true}
+
+        );
+        res.status(200).json(updatedGroup);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error:"Internal Server Error"});
+    }
+});
+
+
 
 groupRouter.delete('/api/delete',async(req,res)=>{
     try {

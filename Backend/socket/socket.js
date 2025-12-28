@@ -191,15 +191,15 @@ io.on('connection', (socket) => {
     if (!group) return console.log(' Invalid group ID:', groupId);
 
     // Create and save message
-    const newMessage = await GroupMessage.create({
-      groupId,
-      senderId,
-      message
+    const newMessage = await Message.create({
+      receiverId:groupId,
+      senderId:senderId,
+      message:message
     });
 
     // Emit to all sockets in that group room
     io.to(groupId).emit('group-message', newMessage);
-    console.log(` Group message sent in ${groupId} from ${senderId}`);``
+    console.log(` Group message sent in ${groupId} from ${senderId}`);
   } catch (err) {
     console.log(' Error sending group message:', err.message);
   }
@@ -208,8 +208,8 @@ io.on('connection', (socket) => {
   socket.on("group-chat-opened",async({userId,groupId})=>{
     console.log(userId);
     const objectId = new mongoose.Types.ObjectId(userId);
-    const groupMessage = await GroupMessage.find({
-      groupId:groupId
+    const groupMessage = await Message.find({
+      receiverId:groupId
     });
     const user = await User.findById(objectId);
     if(!user) {

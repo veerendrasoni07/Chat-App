@@ -1,5 +1,13 @@
 import mongoose  from "mongoose";
 
+const mediaSchema = new mongoose.Schema({
+  url: String,
+  thumbnail: String,
+  size: Number,
+  width: Number,
+  duration:Number,
+  height: Number,
+}, { _id: false });
 
 const messageSchema = new mongoose.Schema({
     senderId:{
@@ -26,15 +34,16 @@ const messageSchema = new mongoose.Schema({
         type:String,
         default:''
     },
+    seenBy:[
+        {
+            type:mongoose.Types.ObjectId,
+            default:[],
+            ref:'User'
+        }
+    ],
     
-    uploadUrl:{
-        type:String,
-        default:null,
-    },
-    uploadDuration:{
-        type:Number,
-        default:null
-    }
+    media:mediaSchema
+    
     
 },{timestamps:true});
 

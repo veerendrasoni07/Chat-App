@@ -40,15 +40,7 @@ const userSchema = new mongoose.Schema({
   phone:{
     type:Number
   },
-  joined:{
-    type:Boolean
-  },
-  meetingId:{
-    type:mongoose.Types.ObjectId
-  },
-  isAlive:{
-    type:Boolean,
-  },
+
   isOnline:{type:Boolean},
   bio:{
     type:String,

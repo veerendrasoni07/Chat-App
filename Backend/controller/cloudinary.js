@@ -31,7 +31,13 @@ signRouter.post('/api/cloudinary/sign',auth,signLimiter,async(req,res)=>{
             folder,
             timestamp,
         };
-
+        let resourceType = "image";
+        if(type === "voice"){
+            resourceType = "video";
+        } 
+        if(type === "video"){
+            resourceType = "video";
+        }
         const signature = cloudinary.v2.utils.api_sign_request(paramsToSign,process.env.CLOUD_API_SECRET);
         res.status(200).json({
             cloudName:process.env.CLOUD_NAME,
@@ -40,7 +46,7 @@ signRouter.post('/api/cloudinary/sign',auth,signLimiter,async(req,res)=>{
             signature,
             folder,
             uploadPreset:null,
-            uploadUrl : `https://api.cloudinary.com/v1_1/${process.env.CLOUD_NAME}/auto/upload`,
+            uploadUrl : `https://api.cloudinary.com/v1_1/${process.env.CLOUD_NAME}/${resourceType}/upload`,
         });
 
     } catch (error) {

@@ -12,13 +12,7 @@ const groupMessageSchema = new mongoose.Schema({
         type:String,
         default:''
     },
-    seenBy:[
-        {
-            type:mongoose.Types.ObjectId,
-            default:[],
-            ref:'User'
-        }
-    ],
+    
     type:{
         type:String,
         enum:["voice","image","text"],

@@ -13,26 +13,26 @@ const imageRouter = express.Router();
 
 imageRouter.post('/api/send-image-message', auth, async (req, res) => {
     try {
-        const { senderId, receiverId, imageUrl, message } = req.body;
+        const { senderId, receiverId, media, message,localId } = req.body;
         if (req.user.id !== senderId) {
             return res.status(403).json({ error: 'Invalid sender' });
         }
+        
 
-        try {
-            const url = new URL(imageUrl);
-            if (!url.host.endsWith('res.cloudinary.com') && url.host.includes(process.env.CLOUD_NAME)) {
-                return res.status(400).json({ msg: "Invalid Cloudinary Url" });
-            }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({ error: "Cloudinary Error" });
+        // validate sender
+        const validate = (url)=>
+            url && url.includes("res.cloudinary.com");
+
+        if(!validate(media?.url) || !validate(media?.thumbnail)){
+            return res.status(401).json({msg:"Invalid URL"});
         }
+
 
        
         const newMessage = await Message.create({
             senderId: senderId,
             receiverId: receiverId,
-            uploadUrl: imageUrl,
+            media:media,
             type: 'image',
             message: message,
 
@@ -54,8 +54,8 @@ imageRouter.post('/api/send-image-message', auth, async (req, res) => {
         await conversation.save();
 
 
-        io.to(receiverId).emit('newMessage', newMessage);
-        io.to(senderId).emit('newMessage', newMessage);
+        io.to(receiverId).emit('newMessage', {'newMessage':newMessage,'tempId':localId});
+        io.to(senderId).emit('newMessage', {'newMessage':newMessage,'tempId':localId});
         res.json(newMessage);
 
     } catch (error) {
