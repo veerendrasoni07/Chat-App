@@ -13,8 +13,17 @@ const auth = async (req,res,next)=>{
         req.token = token;
         next();
     } catch (error) {
-        console.log(error);
-        res.status(500).json({msg:"Server Error"});
+        if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ msg: "Access token expired" });
+    }
+
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ msg: "Invalid token" });
+    }
+
+    console.error(error);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  
     }
 }
 

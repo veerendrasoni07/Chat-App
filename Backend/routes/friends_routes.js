@@ -94,6 +94,7 @@ partnerRouter.get('/api/get-all-sent-requests',auth, async(req, res) => {
     const userId = req.user.id;
 
     const requests = await Interaction.find({
+      toUser:{$ne:null},
       fromUser: userId,
       status: "pending"
     }).populate('toUser').populate('fromUser');
@@ -111,6 +112,7 @@ partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) =
     const userId = req.user.id;
 
     const requests = await Interaction.find({
+      fromUser:{$ne:null},
       toUser: userId,
     }).populate('toUser').populate('fromUser').sort({createdAt:-1});
 
@@ -126,7 +128,11 @@ partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) =
 partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
     try {
         const userId = req.user.id;
-        const requests = await Interaction.find({toUser: userId,status: "pending"}).populate('fromUser').populate('toUser'); 
+        const requests = await Interaction.find({
+          fromUser:{$ne:null},
+          toUser: userId,
+          status: "pending"
+        }).populate('fromUser').populate('toUser'); 
         res.json(requests);
     } catch (error) {
         console.log(error);
