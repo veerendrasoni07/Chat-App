@@ -5,17 +5,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ActivityProvider extends StateNotifier<List<Interaction>>{
-  Ref ref;
-  ActivityProvider(this.ref):super([]){
-    setActivity();
-  }
+  ActivityProvider():super([]);
 
 
-  void setActivity()async{
-    final activities = await ref.read(friendRepoProvider).getAllRecentActivities();
+  void setActivity({required WidgetRef ref,required BuildContext context})async{
+    final activities = await ref.read(friendRepoProvider).getAllRecentActivities(ref: ref,context: context);
     state = activities;
   }
 
 
 }
-final activityProvider = StateNotifierProvider<ActivityProvider,List<Interaction>>((ref)=>ActivityProvider(ref));
+final activityProvider = StateNotifierProvider<ActivityProvider,List<Interaction>>((ref)=>ActivityProvider());

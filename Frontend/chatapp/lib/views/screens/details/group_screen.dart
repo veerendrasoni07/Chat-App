@@ -117,7 +117,7 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
                                                 ),
                                                 TextButton(
                                                   onPressed: ()async{
-                                                    await groupRepo.removeMembersFromTheGroup([member.userId], widget.groupId, context);
+                                                    await groupRepo.removeMembersFromTheGroup([member.userId], widget.groupId, context,ref);
                                                     Navigator.pop(_);
                                                   },
                                                   style: const ButtonStyle(

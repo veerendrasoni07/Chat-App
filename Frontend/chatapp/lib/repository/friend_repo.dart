@@ -16,39 +16,39 @@ class FriendRepo {
 
   FriendRepo(this._isarService, this._friendApiService, this.ref);
 
-  Future<void> syncAllFriends() async {
+  Future<void> syncAllFriends({required WidgetRef ref,required BuildContext context}) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     final token = preferences.getString('token');
     final friends = await _friendApiService.getAllFriends(
-        token: token!, ref: ref);
+        token: token!, ref: ref,context: context);
     final isarUsers = mapUsersToIsar(friends);
     await _isarService.saveAllFriends(isarUsers);
   }
 
 
-  Future<void> removeFriend({required String friendId}) async {
+  Future<void> removeFriend({required String friendId,required WidgetRef ref,required BuildContext context}) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     final token = preferences.getString('token');
     await _friendApiService.removeFriend(
-        token: token!, friendId: friendId, ref: ref);
+        token: token!, friendId: friendId, ref: ref,context: context);
     await _isarService.removeFriendFromIsar(friendId: friendId);
   }
 
 
-  Future<void> getAllRequests() async {
-    await _friendApiService.getAllRequests(ref: ref);
+  Future<void> getAllRequests({required WidgetRef ref,required BuildContext context}) async {
+    await _friendApiService.getAllRequests(ref: ref,context: context);
   }
 
   Future<List<User>> searchUser({required String username}) async {
     return await _friendApiService.searchUser(username: username);
   }
 
-  Future<List<Interaction>> getAllSentRequests() async {
-    return await _friendApiService.getAllSentRequests(ref: ref);
+  Future<List<Interaction>> getAllSentRequests({required WidgetRef ref,required BuildContext context}) async {
+    return await _friendApiService.getAllSentRequests(ref: ref,context: context);
   }
 
-  Future<List<Interaction>> getAllRecentActivities() async {
-    return await _friendApiService.getAllRecentActivities(ref: ref);
+  Future<List<Interaction>> getAllRecentActivities({required WidgetRef ref,required BuildContext context}) async {
+    return await _friendApiService.getAllRecentActivities(ref: ref,context: context);
   }
 
 

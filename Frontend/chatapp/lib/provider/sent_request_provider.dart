@@ -1,6 +1,7 @@
 import 'package:chatapp/controller/friend_controller.dart';
 import 'package:chatapp/models/interaction.dart';
 import 'package:chatapp/service/friend_api_service.dart';
+import 'package:flutter/cupertino.dart' show BuildContext;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatapp/service/socket_service.dart';
 import 'package:chatapp/provider/socket_provider.dart';
@@ -40,8 +41,8 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
   }
 
 
-  void loadInitialData() async {
-    final data = await controller.getAllSentRequests(ref: ref);
+  void loadInitialData({required WidgetRef ref,required BuildContext context}) async {
+    final data = await controller.getAllSentRequests(ref: ref,context:context );
     state = data;
   }
 

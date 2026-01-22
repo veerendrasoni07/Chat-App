@@ -8,5 +8,5 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final messageRepoProvider = Provider((ref){
   final isar = ref.read(isarProvider);
-  return MessageRepo(ref, MessageService(), IsarService(isar));
+  return MessageRepo( MessageService(), IsarService(isar));
 });

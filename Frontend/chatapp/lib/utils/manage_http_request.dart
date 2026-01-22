@@ -42,32 +42,7 @@ void manageHttpResponse(
   }
 }
 
-Future<http.Response> sendRequest({
-  required Future<http.Response> Function ( String token) request,
-  required Ref ref
-})async{
-  try{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? accessToken = prefs.getString('token');
 
-    http.Response requestResponse = await request(accessToken!);
-    if(requestResponse.statusCode == 401){
-      bool refreshed = await AuthController().refreshToken(ref: ref);
-      if (!refreshed) {
-        throw Exception('Session expired');
-      }
-      accessToken = prefs.getString('token');
-      requestResponse = await request(accessToken!);
-    }
-    return requestResponse;
-  }catch(e){
-    print(e);
-    throw Exception(e);
-  }
-
-
-
-}
 
 
 

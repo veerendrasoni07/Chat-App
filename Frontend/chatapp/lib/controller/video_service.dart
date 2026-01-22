@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/global_variable.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:flutter/cupertino.dart' show BuildContext;
@@ -14,11 +15,11 @@ class VideoService {
 
 
 
-  Future<Map<String,dynamic>> getSign({required String type,required String token,required Ref ref})async{
+  Future<Map<String,dynamic>> getSign({required String type,required String token,required WidgetRef ref,required BuildContext context})async{
     try{
 
       http.Response response =
-      await sendRequest(request: (token)async{
+      await AuthController().sendRequest(request: (token)async{
         return await http.post(
           Uri.parse('$uri/api/cloudinary/sign'),
           body: jsonEncode({
@@ -29,7 +30,7 @@ class VideoService {
             'x-auth-token': token,
           },
         );
-      },ref: ref);
+      },ref: ref,context: context);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data;
@@ -94,21 +95,23 @@ class VideoService {
     required String thumbnailFile,
     required String message,
     required String localId,
+    required WidgetRef ref,
+    required BuildContext context
 })async{
     try{
 
       SharedPreferences preferences = await SharedPreferences.getInstance();
       final token = preferences.getString('token');
 
-      final videoSign = await getSign(type: 'video',token: token!,ref: ref);
-      final thumbnailSign = await getSign(type: 'image',token: token,ref: ref);
+      final videoSign = await getSign(type: 'video',token: token!,ref: ref,context: context);
+      final thumbnailSign = await getSign(type: 'image',token: token,ref: ref,context: context);
       final videoUpload = await uploadVideoToTheCloudinary(signedData: videoSign, filePath: videoFile.path);
       final thumbnailUpload = await uploadImageToCloudinary(thumbnailSign,thumbnailFile);
 
       final url = videoUpload['secure_url'];
       final thumbnail = thumbnailUpload['secure_url'];
       http.Response response =
-      await sendRequest(request: (token)async{
+      await AuthController().sendRequest(request: (token)async{
         return await http.post(
             Uri.parse('$uri/api/send-video'),
             headers: <String, String>{
@@ -129,7 +132,7 @@ class VideoService {
               'localId':localId
             })
         );
-      },ref: ref);
+      },ref: ref,context: context);
       if(response.statusCode == 200){
         return;
       }else{

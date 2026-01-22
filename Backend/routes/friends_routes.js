@@ -89,7 +89,7 @@ partnerRouter.get('/api/user-connections', auth, async (req, res) => {
 });
 
 
-partnerRouter.get('/api/get-all-sent-requests', auth, async(req, res) => {
+partnerRouter.get('/api/get-all-sent-requests',auth, async(req, res) => {
   try {
     const userId = req.user.id;
 

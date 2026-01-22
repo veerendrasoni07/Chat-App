@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/global_variable.dart';
 import 'package:chatapp/models/group.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
@@ -8,9 +9,9 @@ import 'package:http/http.dart' as http;
 
 class GroupApiService {
 
-  Future<List<Group>> getAllGroups ({required String token,required Ref ref})async{
+  Future<List<Group>> getAllGroups ({required String token,required WidgetRef ref,required BuildContext context})async{
     try{
-      http.Response response = await sendRequest(request: (token)async{
+      http.Response response = await AuthController().sendRequest(request: (token)async{
         return await http.get(
             Uri.parse('$uri/api/get-all-groups'),
             headers: <String,String>{
@@ -18,7 +19,7 @@ class GroupApiService {
               'x-auth-token':token
             }
         );
-      }, ref: ref);
+      }, ref: ref,context: context);
 
 
       if(response.statusCode == 200){
@@ -35,9 +36,9 @@ class GroupApiService {
       throw Exception("We got the error:${e.toString()}");
     }
   }
-  Future<void> addFriendsToGroup({required List<String> members,required String groupId,required String token,required Ref ref,required BuildContext context})async{
+  Future<void> addFriendsToGroup({required List<String> members,required String groupId,required String token,required WidgetRef ref,required BuildContext context})async{
     try{
-      http.Response response= await sendRequest(request: (token)async{
+      http.Response response= await AuthController().sendRequest(request: (token)async{
         return await http.post(
             Uri.parse('$uri/api/add-members'),
             body: jsonEncode({
@@ -49,7 +50,7 @@ class GroupApiService {
               'x-auth-token':token
             }
         );
-      }, ref: ref);
+      }, ref: ref,context: context);
       if(response.statusCode == 200){
         showSnackBar(context, "Selected members are successfully added to the group");
       }else{
@@ -59,9 +60,9 @@ class GroupApiService {
       throw Exception(e.toString());
     }
   }
-  Future<void> removeFriendsFromTheGroup({required List<String> members,required Ref ref,required String groupId,required String token,required BuildContext context})async{
+  Future<void> removeFriendsFromTheGroup({required List<String> members,required WidgetRef ref,required String groupId,required String token,required BuildContext context})async{
     try{
-      http.Response response= await sendRequest(request: (token)async{
+      http.Response response= await AuthController().sendRequest(request: (token)async{
         return await http.delete(
             Uri.parse('$uri/api/remove-members-from-group'),
             body: jsonEncode({
@@ -73,7 +74,7 @@ class GroupApiService {
               'x-auth-token':token
             }
         );
-      },ref: ref);
+      },ref: ref,context: context);
       if(response.statusCode == 200){
         showSnackBar(context, "Selected members are successfully removed from the group");
       }else{

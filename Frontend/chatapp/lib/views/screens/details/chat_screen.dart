@@ -109,7 +109,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     isFetching = true;
 
     try {
-     await ref.read(messageRepoProvider).initialSync(widget.receiverId,senderId);
+     await ref.read(messageRepoProvider).initialSync(widget.receiverId,senderId,ref,context);
       print("FROM CHAT SCREEN");
 
     } catch (e, s) {
@@ -151,7 +151,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       print(thumbPath);
       if(await Navigator.push(context, MaterialPageRoute(builder: (_)=>VideoPreviewScreen(video: video!, receiverId: widget.receiverId)))){
         final senderId = ref.read(userProvider)!.id;
-        ref.read(messageProvider(widget.receiverId).notifier).sendVideo(senderId: senderId, receiverId: widget.receiverId, filePath: video!, message: messageController.text,thumbnail: thumbPath!);
+        ref.read(messageProvider(widget.receiverId).notifier).sendVideo(senderId: senderId, receiverId: widget.receiverId, filePath: video!,context: context,ref: ref ,message: messageController.text,thumbnail: thumbPath!);
       }
     }
   }

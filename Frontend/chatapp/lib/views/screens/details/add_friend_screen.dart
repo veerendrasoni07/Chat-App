@@ -64,14 +64,14 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     });
   }
 
-  Future<void> getAllRequests() async {
-    ref.read(sentRequestProvider.notifier).loadInitialData();
+  Future<void> getAllRequests({required WidgetRef ref,required BuildContext context}) async {
+    ref.read(sentRequestProvider.notifier).loadInitialData(context: context,ref: ref);
   }
 
   @override
   void initState() {
     super.initState();
-    getAllRequests();
+    getAllRequests(context: context,ref: ref);
   }
 
   @override

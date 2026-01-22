@@ -1,10 +1,12 @@
 
 import 'dart:convert';
+import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/interaction.dart';
 import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/request_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '';
@@ -15,16 +17,16 @@ import '../global_variable.dart';
 
 
 class FriendApiService {
-  Future<List<User>> getAllFriends({required String token,required Ref ref})async{
+  Future<List<User>> getAllFriends({required String token,required WidgetRef ref,required BuildContext context})async{
     try{
-      http.Response response = await sendRequest(request: (token)async{
+      http.Response response = await AuthController().sendRequest(request: (token)async{
          return await http.get(Uri.parse('$uri/api/user-connections'),
             headers: <String,String>{
               'Content-Type':'application/json; charset=UTF-8',
               'x-auth-token':token
             }
         );
-      }, ref: ref);
+      }, ref: ref,context: context);
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
         final List<User> users = data.map((user)=> User.fromMap(user)).toList();
@@ -39,9 +41,9 @@ class FriendApiService {
       throw Exception(e.toString());
     }
   }
-  Future<void> removeFriend({required String token,required String friendId,required Ref ref})async{
+  Future<void> removeFriend({required String token,required String friendId,required WidgetRef ref,required BuildContext context})async{
     try{
-      http.Response response = await sendRequest(request: (token)async{
+      http.Response response = await AuthController().sendRequest(request: (token)async{
          return await http.delete(
             Uri.parse('$uri/api/remove-friend/$friendId'),
             headers: <String,String>{
@@ -49,7 +51,7 @@ class FriendApiService {
               'x-auth-token':token
             }
         );
-      }, ref: ref);
+      }, ref: ref,context: context);
       if(response.statusCode == 200){
         final data = jsonDecode(response.body);
         final User users = User.fromMap(data);
@@ -65,9 +67,9 @@ class FriendApiService {
   }
 
 
-  Future<void> getAllRequests({required Ref ref})async{
+  Future<void> getAllRequests({required WidgetRef ref,required BuildContext context})async{
     try{
-      http.Response response = await sendRequest(request:(token)async{
+      http.Response response = await AuthController().sendRequest(request:(token)async{
         return  await http.get(
           Uri.parse('$uri/api/get-all-requests'),
           headers: <String,String>{
@@ -75,7 +77,7 @@ class FriendApiService {
             'x-auth-token':token
           },
         );
-      },ref: ref);
+      },ref: ref,context: context);
 
       if(response.statusCode == 200){
         print(response.body);
@@ -114,10 +116,10 @@ class FriendApiService {
   }
 
 
-  Future<List<Interaction>> getAllSentRequests({required Ref ref})async{
+  Future<List<Interaction>> getAllSentRequests({required WidgetRef ref,required BuildContext context})async{
     try{
 
-      http.Response response = await sendRequest(request:(token)async{
+      http.Response response = await AuthController().sendRequest(request:(token)async{
         return await http.get(
           Uri.parse('$uri/api/get-all-sent-requests'),
           headers: <String,String>{
@@ -125,7 +127,7 @@ class FriendApiService {
             'x-auth-token':token
           },
         );
-      },ref: ref);
+      },ref: ref,context: context);
 
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
@@ -135,6 +137,9 @@ class FriendApiService {
         return requests;
       }
       else{
+        print("MAka bosda");
+
+        print(response.body);
         throw Exception('Failed to fetch sent requests');
       }
 
@@ -142,9 +147,9 @@ class FriendApiService {
       throw Exception(w.toString());
     }
   }
-  Future<List<Interaction>> getAllRecentActivities({required Ref ref})async{
+  Future<List<Interaction>> getAllRecentActivities({required WidgetRef ref,required BuildContext context})async{
     try{
-      http.Response response = await sendRequest(request:(token)async{
+      http.Response response = await AuthController().sendRequest(request:(token)async{
         return await http.get(
           Uri.parse('$uri/api/recent-notification-activities'),
           headers: <String,String>{
@@ -152,7 +157,7 @@ class FriendApiService {
             'x-auth-token':token
           },
         );
-      },ref: ref);
+      },ref: ref,context: context);
 
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
@@ -162,6 +167,7 @@ class FriendApiService {
         return requests;
       }
       else{
+        print(response.body);
         throw Exception('Failed to fetch sent requests');
       }
 

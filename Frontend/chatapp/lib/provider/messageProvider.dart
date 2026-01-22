@@ -168,6 +168,8 @@ class MessageProvider extends StateNotifier<List<Message>> {
     required String receiverId,
     required File filePath, // local path
     required String message,
+    required BuildContext context,
+    required WidgetRef ref,
     required String thumbnail,
   }) async {
     final localId = const Uuid().v4();
@@ -195,6 +197,8 @@ class MessageProvider extends StateNotifier<List<Message>> {
         receiverId: receiverId,
         videoFile: filePath,
         message: message,
+        context: context,
+        ref: ref,
         localId: localId,
         thumbnailFile: thumbnail,
       );

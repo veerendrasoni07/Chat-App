@@ -8,6 +8,7 @@ import 'package:chatapp/views/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class AuthController{
 
@@ -100,7 +101,11 @@ class AuthController{
     }
   }
 
-  Future<bool> refreshToken({required Ref ref}) async {
+
+  Future<bool> refreshToken({required WidgetRef ref}) async {
+
+
+    print("REFRESH TOKEN NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN");
     final prefs = await SharedPreferences.getInstance();
     final refreshToken = prefs.getString('refreshToken');
 
@@ -118,18 +123,16 @@ class AuthController{
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      await prefs.remove('token');
-      await prefs.remove('refreshToken');
       await prefs.setString('token', data['accessToken']);
       await prefs.setString('refreshToken', data['refreshToken']);
+      print(data);
       return true;
     }
     else{
-      ref.read(authManagerProvider.notifier).logout();
+      return false;
     }
-
-    return false;
   }
+
 
 
 
@@ -192,6 +195,31 @@ class AuthController{
     }
   }
 
+  Future<http.Response> sendRequest({
+    required Future<http.Response> Function ( String token) request,
+    required WidgetRef ref,
+    required BuildContext context
+  })async{
+    try{
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? accessToken = prefs.getString('token');
+
+      http.Response requestResponse = await request(accessToken!);
+      if(requestResponse.statusCode == 401){
+        print("ACCESS TOKEN EXPIRED");
+        bool refreshed = await refreshToken(ref: ref);
+        if (!refreshed) {
+          ref.read(authManagerProvider.notifier).logout(context: context);
+        }
+        accessToken = prefs.getString('token');
+        requestResponse = await request(accessToken!);
+      }
+      return requestResponse;
+    }catch(e){
+      print(e);
+      throw Exception(e);
+    }
+  }
 
 
 }

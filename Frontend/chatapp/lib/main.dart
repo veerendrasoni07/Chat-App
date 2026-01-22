@@ -56,7 +56,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     // TODO: implement initState
     super.initState();
     Future.microtask((){
-      ref.read(backendSyncProvider).backendSync();
+      ref.read(backendSyncProvider).backendSync(ref: ref,context: context);
     });
   }
 

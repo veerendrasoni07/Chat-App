@@ -226,7 +226,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   _DotsIndicator(controller: pageController, itemCount: 4),
 
 
-                  ElevatedButton(onPressed: ()=>ref.read(authManagerProvider.notifier).logout(), child: Text("Logout"))
+                  ElevatedButton(onPressed: ()=>ref.read(authManagerProvider.notifier).logout(context: context), child: Text("Logout"))
                 ],
               ),
             ),

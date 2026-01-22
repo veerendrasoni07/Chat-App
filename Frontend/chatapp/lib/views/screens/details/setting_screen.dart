@@ -49,7 +49,7 @@ class SettingsScreen extends ConsumerWidget {
                         _glassTile(Icons.person_rounded, "Edit Profile"),
                         _glassTile(Icons.phone_android, "Change Phone"),
                         _glassTile(Icons.logout, "Logout",
-                            onTap: () => ref.read(authManagerProvider.notifier).logout()),
+                            onTap: () => ref.read(authManagerProvider.notifier).logout(context: context)),
 
                         const SizedBox(height: 25),
                         _sectionTitle("Chats"),

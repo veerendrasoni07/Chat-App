@@ -12,10 +12,10 @@ class BackendSyncService {
   Ref ref;
   BackendSyncService(this._groupRepo,this._friendRepo,this.ref);
 
-  Future<void> backendSync()async{
+  Future<void> backendSync({required WidgetRef ref,required BuildContext context})async{
     try{
-     await _groupRepo.syncAllGroups(ref);
-     await _friendRepo.syncAllFriends();
+     await _groupRepo.syncAllGroups(ref,context);
+     await _friendRepo.syncAllFriends(context: context,ref: ref);
     }catch(e){
 
     }

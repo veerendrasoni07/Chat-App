@@ -565,7 +565,7 @@ Widget _buildSettingsList(context,WidgetRef ref,ResponsiveClass size,bool isMe,U
         _settingsTile(Icons.block, "Blocked Users", () {},size),
         if(isMe)
           _settingsTile(Icons.logout, "Logout", () {
-            ref.read(authManagerProvider.notifier).logout();
+            ref.read(authManagerProvider.notifier).logout(context: context);
           },size),
       ],
     ),

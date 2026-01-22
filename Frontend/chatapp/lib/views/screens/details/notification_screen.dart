@@ -22,7 +22,8 @@ class NotificationScreen extends ConsumerStatefulWidget {
 class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
   Future<void> _load() async {
-    await ref.read(friendRepoProvider).getAllRequests();
+    await ref.read(friendRepoProvider).getAllRequests(context: context,ref: ref);
+    ref.read(activityProvider.notifier).setActivity(ref: ref, context: context);
   }
 
   @override
