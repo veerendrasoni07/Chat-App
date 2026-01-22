@@ -1,16 +1,10 @@
 import 'dart:convert';
-
 import 'package:chatapp/global_variable.dart';
-import 'package:chatapp/localDB/provider/isar_provider.dart';
-import 'package:chatapp/localDB/service/isar_service.dart';
-import 'package:chatapp/models/user.dart';
+import 'package:chatapp/provider/auth_manager_provider.dart';
 import 'package:chatapp/provider/tokenProvider.dart';
 import 'package:chatapp/provider/userProvider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
-import 'package:chatapp/views/entry%20point/authentication/login_screen.dart';
-import 'package:chatapp/views/entry%20point/onBoarding/onboarding_page.dart';
 import 'package:chatapp/views/screens/main_screen.dart';
-import 'package:chatapp/views/screens/nav_screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -44,12 +38,14 @@ class AuthController{
         preferences.setString('refreshToken', refreshToken);
         ref.read(userProvider.notifier).addUser(userJson);
         ref.read(tokenProvider.notifier).setToken(token);
-        showSnackBar(context, 'Account created successfully');
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
-              (route) => false, // remove all previous routes
-        );
+        if(context.mounted){
+          showSnackBar(context, 'Account created successfully');
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false, // remove all previous routes
+          );
+        }
       }
       else{
         print(response.body);
@@ -86,12 +82,14 @@ class AuthController{
         preferences.setString('refreshToken', refreshToken);
         ref.read(userProvider.notifier).addUser(userJson);
         ref.read(tokenProvider.notifier).setToken(token);
-        showSnackBar(context, 'Logged in successfully');
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
-              (route) => false, // remove all previous routes
-        );
+        if(context.mounted){
+          showSnackBar(context, 'Logged in successfully');
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false, // remove all previous routes
+          );
+        }
       }
       else{
         throw Exception('Failed to create account');
@@ -102,7 +100,7 @@ class AuthController{
     }
   }
 
-  Future<bool> refreshToken() async {
+  Future<bool> refreshToken({required Ref ref}) async {
     final prefs = await SharedPreferences.getInstance();
     final refreshToken = prefs.getString('refreshToken');
 
@@ -121,25 +119,19 @@ class AuthController{
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       await prefs.remove('token');
+      await prefs.remove('refreshToken');
       await prefs.setString('token', data['accessToken']);
+      await prefs.setString('refreshToken', data['refreshToken']);
       return true;
+    }
+    else{
+      ref.read(authManagerProvider.notifier).logout();
     }
 
     return false;
   }
 
 
-
-  Future<void> logout(BuildContext context,WidgetRef ref)async{
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.remove('user');
-    await preferences.remove('token');
-    await preferences.remove('refreshToken');
-    ref.read(userProvider.notifier).signOut();
-    await IsarService(ref.read(isarProvider)).deleteAllData();
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=> const OnboardingPage()) , (route) => false);
-    showSnackBar(context, 'Logged out successfully');
-  }
 
   Future<bool> usernameCheck(String username)async {
     try {
@@ -188,7 +180,9 @@ class AuthController{
         final userJson = jsonEncode(user);
         await preferences.setString('user', userJson);
         ref.read(userProvider.notifier).addUser(userJson);
-        showSnackBar(context, 'Profile updated successfully');
+        if(context.mounted){
+          showSnackBar(context, 'Profile updated successfully');
+        }
       }else{
         throw Exception('Failed to update profile');
       }

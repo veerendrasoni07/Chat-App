@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/user.dart';
+import 'package:chatapp/provider/auth_manager_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,7 +49,7 @@ class SettingsScreen extends ConsumerWidget {
                         _glassTile(Icons.person_rounded, "Edit Profile"),
                         _glassTile(Icons.phone_android, "Change Phone"),
                         _glassTile(Icons.logout, "Logout",
-                            onTap: () => AuthController().logout(context, ref)),
+                            onTap: () => ref.read(authManagerProvider.notifier).logout()),
 
                         const SizedBox(height: 25),
                         _sectionTitle("Chats"),

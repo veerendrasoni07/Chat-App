@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:chatapp/controller/message_controller.dart';
+import 'package:chatapp/provider/friend_controller_provider.dart';
+import 'package:chatapp/provider/message_repo_provider.dart';
 import 'package:chatapp/views/widgets/video_preview_screen.dart';
 import 'package:chatapp/views/widgets/video_view_Screen.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -16,8 +19,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:record/record.dart';
-import 'package:chatapp/controller/friend_controller.dart';
 import 'package:chatapp/controller/voice_service.dart';
 import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/messageProvider.dart';
@@ -53,7 +54,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
-  ScrollController scrollController = ScrollController();
+  ScrollController _scrollController = ScrollController();
   final VoiceService _voiceService = VoiceService();
   late VideoPlayerController videoPlayerController;
   late RecorderController _controller;
@@ -64,6 +65,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool isTyping = false;
   bool isRecording = false;
   File? pickedImage;
+  bool isFetching = false;
 
   bool isVideoPlaying = false;
 
@@ -75,6 +77,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void initState() {
     super.initState();
     final userId = ref.read(userProvider)!.id;
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _initialLoad(userId);
+    });
+
+    // _scrollController.addListener((){
+    //   if(_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100){
+    //     fetchMessage(userId);
+    //   }
+    // });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(messageProvider(widget.receiverId).notifier).chatOpened(userId);
     });
@@ -83,6 +95,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   }
 
+
+
+  // Future<void> fetchMessage(String senderId)async{
+  //   if(isFetching) return;
+  //   isFetching = true;
+  //   await ref.read(messageRepoProvider).syncMessages(receiverId: widget.receiverId, senderId: senderId);
+  //   isFetching = false;
+  // }
+
+  Future<void> _initialLoad(String senderId) async {
+    if (isFetching) return;
+    isFetching = true;
+
+    try {
+     await ref.read(messageRepoProvider).initialSync(widget.receiverId,senderId);
+      print("FROM CHAT SCREEN");
+
+    } catch (e, s) {
+      debugPrint('Initial sync failed');
+      debugPrintStack(stackTrace: s);
+    } finally {
+      isFetching = false;
+    }
+  }
 
 
 
@@ -212,9 +248,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             MaterialPageRoute(
                               builder:
                                   (_) => FutureBuilder(
-                                    future: FriendController().getUserById(
-                                      userId: widget.receiverId,
-                                    ),
+                                    future: ref.read(friendRepoProvider).getUserById(userId: widget.receiverId),
                                     builder: (context, snap) {
                                       if (!snap.hasData) {
                                         return const Scaffold(
@@ -321,7 +355,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   children: [
                     Expanded(
                       child: ListView.builder(
-                        controller: scrollController,
+                        controller: _scrollController,
                         reverse: true,
                         itemCount: messages.length,
                         itemBuilder: (context, index) {

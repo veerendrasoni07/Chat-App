@@ -120,11 +120,11 @@ class IsarService {
   Future<void> _syncSingleGroup(Group group) async {
     final groupIsar = await upsertGroup(group);
 
-    // 🔥 CLEAR OLD LINKS (MANDATORY)
+    // CLEAR OLD LINKS
     groupIsar.groupMembers.clear();
     groupIsar.groupAdmins.clear();
 
-    // ✅ MEMBERS (DEDUP)
+    // MEMBERS (DEDUP)
     for (final member in group.groupMembers.toSet()) {
       final userIsar = await upsertUser(member);
       groupIsar.groupMembers.add(userIsar);
@@ -204,7 +204,7 @@ class IsarService {
 
   Future<void> saveServerMessage(Message message) async {
     await _isar.writeTxn(() async {
-      // 1️⃣ Already exists by server ID → ignore
+      // Already exists by server ID → ignore
       final byServerId = await _isar.messageIsars
           .filter()
           .serverMessageIdEqualTo(message.id)
@@ -212,7 +212,7 @@ class IsarService {
 
       if (byServerId != null) return;
 
-      // 2️⃣ Check placeholder by temp/local ID
+      // Check placeholder by temp/local ID
       final placeholder = await _isar.messageIsars
           .filter()
           .localMessageIdEqualTo(message.id)
@@ -223,14 +223,23 @@ class IsarService {
           ..serverMessageId = message.id
           ..status = message.status
           ..content = message.message
-          //..media = message.media
+          ..media = message.media != null ?
+          (
+              MediaIsar()
+                ..url = message.media?['url']
+                ..thumbnail = message.media?['thumbnail']
+                ..size = message.media?['size']
+                ..width = message.media?['width']
+                ..height = message.media?['height']
+                ..duration = message.media?['duration']
+          ) : null
           ..serverCreatedAt = message.createdAt;
 
         await _isar.messageIsars.put(placeholder);
         return;
       }
 
-      // 3️⃣ New incoming message
+      // New incoming message
       final isarMessage = MessageIsar()
         ..localMessageId = const Uuid().v4()
         ..serverMessageId = message.id
@@ -272,7 +281,6 @@ class IsarService {
       final existing = await isExist(localId);
       if (existing == null) return;
 
-      // 🚨 prevent duplicate serverMessageId
       final alreadyExists = await _isar.messageIsars
           .filter()
           .serverMessageIdEqualTo(message.id)
@@ -284,7 +292,16 @@ class IsarService {
         ..serverMessageId = message.id
         ..status = message.status
         ..content = message.message
-        //..media = message.media
+        ..media = message.media != null ?
+        (
+            MediaIsar()
+              ..url = message.media?['url']
+              ..thumbnail = message.media?['thumbnail']
+              ..size = message.media?['size']
+              ..width = message.media?['width']
+              ..height = message.media?['height']
+              ..duration = message.media?['duration']
+        ) : null
         ..serverCreatedAt = message.createdAt;
 
       await _isar.messageIsars.put(existing);
@@ -325,6 +342,17 @@ class IsarService {
       await _isar.clear();
     });
   }
+
+
+  Future<DateTime> lastMessageDate(String chatId,String senderId)async{
+    return await _isar.messageIsars.filter().group((q){
+      return q.senderIdEqualTo(senderId).and().chatIdEqualTo(chatId)
+          .or()
+          .senderIdEqualTo(chatId).and().chatIdEqualTo(senderId);
+    }).sortByServerCreatedAtDesc().findFirst().then((value) => value?.serverCreatedAt ?? DateTime.now());
+  }
+
+
 
 
 }

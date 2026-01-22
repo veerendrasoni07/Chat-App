@@ -7,6 +7,7 @@ import 'package:chatapp/models/user.dart';
 import 'package:chatapp/models/user_status.dart';
 import 'package:chatapp/provider/activity_provider.dart';
 import 'package:chatapp/provider/combined_chat_provider.dart';
+import 'package:chatapp/provider/friend_controller_provider.dart';
 import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/new_group_screen.dart';
@@ -43,6 +44,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
+    if(user == null){
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     final friendStream = ref.watch(combinedChatStream);
     final status = ref.watch(statusListener);
 
@@ -72,7 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 children: [
-                  _buildGlassCapsuleHeader(context, user!,ref),
+                  _buildGlassCapsuleHeader(context, user,ref),
                    _buildFriendOrbit(context, ref, status),
                   const Divider(color: Colors.white12, thickness: 0.4),
                    friendStream.when(
@@ -364,8 +372,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             MaterialPageRoute(
                               builder: (_) =>
                                   FutureBuilder(
-                                    future: FriendController().getUserById(
-                                        userId: f.id),
+                                    future: ref.read(friendRepoProvider).getUserById(userId: f.id),
                                     builder: (context, snap) {
                                       if (!snap.hasData) {
                                         return const Scaffold(

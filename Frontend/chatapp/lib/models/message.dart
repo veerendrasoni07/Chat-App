@@ -9,7 +9,7 @@ class Message {
   final Map<String,dynamic>? media;
   final String message;
   final String status;
-  final DateTime? createdAt;
+  final DateTime createdAt;
 
   Message({required this.id, required this.senderId, required this.receiverId, required this.message,required this.status,required this.type,this.media,required this.createdAt});
 
@@ -26,6 +26,13 @@ class Message {
   }
 
   factory Message.fromMap(Map<String, dynamic> map) {
+    DateTime parseDate(dynamic value) {
+      try {
+        return DateTime.parse(value.toString());
+      } catch (_) {
+        return DateTime.now(); // or throw if you want strictness
+      }
+    }
     return Message(
       id: (map['_id'] ?? map['id'] ?? '').toString(),
       senderId: (map['senderId'] ?? '').toString(),
@@ -34,9 +41,7 @@ class Message {
       status: (map['status'] ?? 'sent').toString(),
       type: (map['type'] ?? '').toString(),
       media: map['media'] != null ? Map<String, dynamic>.from(map['media']) : null,
-      createdAt: map['createdAt'] != null
-          ? DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now()
-          : DateTime.now(),
+      createdAt: parseDate(map['createdAt']),
     );
   }
 

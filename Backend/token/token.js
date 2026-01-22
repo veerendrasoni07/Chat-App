@@ -16,9 +16,10 @@ export const generateRefreshToken =   (userId)=>{
 }
 
 export const generateAccessToken = (userId)=>{
+    console.log("access token has been generated");
     return jwt.sign(
         {id:userId},
         process.env.ACCESS_TOKEN_SECRET_KET,
-        {expiresIn:'2h'}
+        {expiresIn:'1h'}
     );
 }

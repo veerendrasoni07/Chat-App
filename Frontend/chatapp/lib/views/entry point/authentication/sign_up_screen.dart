@@ -209,7 +209,7 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                           ),
                         ),
                       ),
-                      if (isUserNameExist == false && _userNameController.text.isNotEmpty)
+                      if (_userNameController.text.isNotEmpty)
                         const Text(
                           "Username already exists",
                           style: TextStyle(color: Colors.red),
@@ -223,7 +223,7 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                       CustomElevatedButton(
                         buttonText: "Next",
                         onPressed: (){
-                          if(isUserNameExist && _formKeys[1].currentState!.validate()){
+                          if(_formKeys[1].currentState!.validate()){
                             nextPage();
                           }
                         },

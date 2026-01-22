@@ -38,6 +38,52 @@ messageRoute.get('/api/get-messages/:receiverId/:lastMessageDate', auth, async (
 });
 
 
+// cursor based pagination logic 
+messageRoute.get('/api/v1/get-messages',async(req,res)=>{
+  try {
+    const {chatId,senderId,cursor,limit=30} = req.query;
+
+    console.log(cursor);
+    const query = {
+      $or:[
+        {senderId:senderId,receiverId:chatId},
+        {receiverId:chatId,senderId:senderId}
+      ]
+    }
+    const parsedCursor = new Date(cursor);
+    let initialSync = true;
+    if (cursor && !isNaN(parsedCursor.getTime())) {
+      query.createdAt = { $lt: parsedCursor };
+      initialSync = false;
+    }
+    console.log(query);
+    const messages = initialSync ? await Message.find(query).limit((Number)(limit)+1) : await Message.find(query).limit((Number)(limit)+1);
+
+    const hasMore = messages.length > limit;
+    
+
+    if(hasMore){
+      messages.pop();
+    }
+    let nextCursor = null;
+    if(messages.length>0){
+      nextCursor = messages[messages.length-1].createdAt;
+    }
+    console.log("message being sent to the user");
+    console.log(messages);
+    console.log(hasMore);
+    res.status(200).json({
+      messages,
+      hasMore,
+      nextCursor
+    });
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({error:"Internal Server error"});
+    }
+})
+
+
 
 // get all users 
 messageRoute.get('/api/get-all-users/:userId',async(req,res)=>{

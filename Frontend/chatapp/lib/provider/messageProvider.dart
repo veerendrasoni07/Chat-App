@@ -15,7 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 class MessageProvider extends StateNotifier<List<Message>> {
-  final MessageController controller;
+  final MessageService controller;
   final VoiceService _voiceService;
   final VideoService _videoService;
   final ImageService _imageService;
@@ -25,13 +25,10 @@ class MessageProvider extends StateNotifier<List<Message>> {
   final SocketService socket;
   bool _isChatOpen = false;
   MessageProvider(this.controller, this.receiverId,this.senderId, this.socket, this._voiceService,this._isarService ,this._imageService,this._videoService) : super([]) {
-    getMessages();
     listenMessage();
   }
 
-  Future<void> getMessages() async {
-    final messages = await controller.getMessages(receiverId: receiverId,lastMessageDate: DateTime.now());
-  }
+
 
   Future<void> sendMessage({required String senderId,required String receiverId,required String userMessage,required double duration,required String type,required String uploadUrl})async{
     try{
@@ -171,7 +168,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
     required String receiverId,
     required File filePath, // local path
     required String message,
-    required String thumbnail
+    required String thumbnail,
   }) async {
     final localId = const Uuid().v4();
     final placeholder = Message(
@@ -199,7 +196,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
         videoFile: filePath,
         message: message,
         localId: localId,
-        thumbnailFile: thumbnail
+        thumbnailFile: thumbnail,
       );
     } catch (e) {
       rethrow;
@@ -233,6 +230,6 @@ StateNotifierProvider.autoDispose.family<MessageProvider, List<Message>, String>
       (ref, receiverId) {
     final socket = ref.read(socketProvider);
     final user = ref.read(userProvider);
-    return MessageProvider(MessageController(), receiverId,user!.id, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService(),VideoService());
+    return MessageProvider(MessageService(), receiverId,user!.id, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService(),VideoService(ref: ref));
   },
 );

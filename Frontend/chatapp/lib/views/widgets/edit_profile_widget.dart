@@ -9,234 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-Future<void> editProfileBottomSheet(BuildContext context,UserIsar user,WidgetRef ref,TextEditingController nameController,TextEditingController bioController,TextEditingController phoneController,TextEditingController locationController )async{
-  String? gender;
-  await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enableDrag: true,
-      sheetAnimationStyle: const AnimationStyle(
-        curve: Curves.fastOutSlowIn,
-        duration: Duration(milliseconds: 350,),
-      ),
-      builder: (context){
-        return StatefulBuilder(
-          builder:(context,setState){
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => FocusScope.of(context).unfocus(),
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.85,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF450072),
-                        Color(0xFF330060),
-                        Color(0xFF27003F),
-                        Color(0xFF17001F),
-                      ]
-                  ),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 20,sigmaY: 20),
-                      ),
-                    ),
-                    SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0,horizontal: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.06,
-                            ),
-                            _glassAvatar('',user.fullname , ResponsiveClass(MediaQuery.of(context).size.height, MediaQuery.of(context).size.width)),
-                            Text(
-                              "Name",
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const Divider(color: Colors.white12, thickness: 0.4),
-                            TextFormField(
-                              decoration: InputDecoration(
-                                hintText: "Enter your name",
-                                hintStyle: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                              ),
-                            ),
-                            const SizedBox(height: 10,),
-                            Text(
-                              "Bio",
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const Divider(color: Colors.white12, thickness: 0.4),
-                            TextFormField(
-                              decoration: InputDecoration(
-                                hintText: "Enter your bio",
-                                hintStyle: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                              ),
-                            ),
-                            const SizedBox(height: 10,),
-                            Text(
-                              "Location",
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const Divider(color: Colors.white12, thickness: 0.4),
-                            TextFormField(
-                              decoration: InputDecoration(
-                                hintText: "Enter your location",
-                                hintStyle: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                              ),
-                            ),
-                            const SizedBox(height: 10,),
-                            AutoSizeText(
-                              "What's your gender?",
-                              maxLines: 2,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const Divider(color: Colors.white12, thickness: 0.4),
-                            const SizedBox(height:10),
-                            RadioListTile<String>(
-                              title:  Text("Male",style: TextStyle(color: Theme.of(context).colorScheme.primary),),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              value: "male",
-                              fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Colors.green; // Color when selected
-                                }
-                                return Colors.white; // Color when NOT selected (the outer circle)
-                              }),
-                              groupValue: gender,
-                              tileColor: Colors.grey.shade200,
-                              onChanged: (value) => setState(() => gender = value),
-                            ),
-                            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-                            RadioListTile<String>(
-                              title:  Text("Female",style: TextStyle(color: Theme.of(context).colorScheme.primary),),
-                              value: "female",
-                              enabled: true,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              tileColor: Colors.grey.shade200,
-                              fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Colors.blue; // Color when selected
-                                }
-                                return Colors.white; // Color when NOT selected (the outer circle)
-                              }),
-                              hoverColor: Colors.white,
-                              groupValue: gender,
-                              onChanged: (value) => setState(() => gender = value),
-                            ),
-                            SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-                            RadioListTile<String>(
-                              title:  Text("Other",style: TextStyle(color: Theme.of(context).colorScheme.primary),),
-                              value: "other",
-
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              tileColor: Colors.grey.shade200,
-                              fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Colors.pink; // Color when selected
-                                }
-                                return Colors.white; // Color when NOT selected (the outer circle)
-                              }),
-                              groupValue: gender,
-                              onChanged: (value) => setState(() => gender = value),
-                            ),
-
-
-                            CustomElevatedButton(
-                              buttonText: "Save",
-                              onPressed: () {
-                                if (gender != null) {
-                                  AuthController().updateUserProfile(
-                                      fullname: nameController.text,
-                                      bio: bioController.text,
-                                      phone: phoneController.text,
-                                      location: locationController.text,
-                                      gender: gender!,
-                                      ref: ref,
-                                      context: context
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text("Please select your gender")));
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            );
-          }
-        );
-      }
-  );
-}
 Widget _glassAvatar(String profilePic,String text,ResponsiveClass size) {
   return Container(
     width: size.wp(30),
@@ -277,4 +49,151 @@ Widget _glassAvatar(String profilePic,String text,ResponsiveClass size) {
       ),
     ),
   );
+}
+
+class EditProfileWidget extends StatefulWidget {
+  const EditProfileWidget({super.key});
+
+  @override
+  State<EditProfileWidget> createState() => _EditProfileWidgetState();
+}
+
+class _EditProfileWidgetState extends State<EditProfileWidget> {
+  late final TextEditingController nameController;
+  late final TextEditingController bioController;
+  late final TextEditingController phoneController;
+  late final TextEditingController locationController;
+  String? gender;
+  bool isSaving = false;
+
+
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          height: height * 0.9,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF450072),
+                Color(0xFF330060),
+                Color(0xFF27003F),
+                Color(0xFF17001F),
+              ],
+            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              top: 16,
+            ),
+            child: Column(
+              children: [
+                _dragHandle(),
+                Expanded(child: _form()),
+                _saveButton(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _form(){
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _label("Name"),
+          _field(nameController, "Enter your name"),
+          _label("Bio"),
+          _field(bioController, "Enter your bio"),
+          _label("Location"),
+          _field(locationController, "Enter your location"),
+          _label("Gender"),
+          _genderOption("Male"),
+          _genderOption("Female"),
+          _genderOption("Other"),
+        ],
+      ),
+    );
+  }
+  Widget _label(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+  Widget _dragHandle() {
+    return Container(
+      width: 50,
+      height: 5,
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white24,
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }
+  Widget _field(TextEditingController c, String hint) {
+    return TextField(
+      controller: c,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white60),
+        filled: true,
+        fillColor: Colors.white12,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _genderOption(String value) {
+    return RadioListTile<String>(
+      value: value,
+      groupValue: gender,
+      title: Text(
+        value.toUpperCase(),
+        style: const TextStyle(color: Colors.white),
+      ),
+      onChanged: (v) => setState(() => gender = v),
+      activeColor: Colors.greenAccent,
+    );
+  }
+
+  Widget _saveButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton(
+          onPressed: isSaving ? null : (){},
+          child: isSaving
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Text("Save"),
+        ),
+      ),
+    );
+  }
 }

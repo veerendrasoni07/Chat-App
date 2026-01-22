@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:chatapp/controller/friend_controller.dart';
 import 'package:chatapp/models/interaction.dart';
 import 'package:chatapp/provider/activity_provider.dart';
+import 'package:chatapp/provider/friend_controller_provider.dart';
 import 'package:chatapp/provider/request_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/views/screens/details/chat_screen.dart';
@@ -19,10 +20,9 @@ class NotificationScreen extends ConsumerStatefulWidget {
 }
 
 class _NotificationScreenState extends ConsumerState<NotificationScreen> {
-  final FriendController _friendController = FriendController();
 
   Future<void> _load() async {
-    _friendController.getAllRequests(ref);
+    await ref.read(friendRepoProvider).getAllRequests();
   }
 
   @override

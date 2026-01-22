@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/user.dart';
+import 'package:chatapp/provider/auth_manager_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -225,7 +226,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   _DotsIndicator(controller: pageController, itemCount: 4),
 
 
-                  ElevatedButton(onPressed: ()=>AuthController().logout(context, ref), child: Text("Logout"))
+                  ElevatedButton(onPressed: ()=>ref.read(authManagerProvider.notifier).logout(), child: Text("Logout"))
                 ],
               ),
             ),

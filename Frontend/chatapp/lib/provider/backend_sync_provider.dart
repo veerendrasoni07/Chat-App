@@ -9,5 +9,5 @@ import 'group_controller_provider.dart';
 final backendSyncProvider = Provider<BackendSyncService>((ref){
   final _groupRepo = ref.read(groupRepoProvider);
   final _friendRepo = ref.read(friendRepoProvider);
-  return BackendSyncService(_groupRepo, _friendRepo);
+  return BackendSyncService(_groupRepo, _friendRepo,ref);
 });

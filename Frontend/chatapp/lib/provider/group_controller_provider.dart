@@ -8,5 +8,5 @@ import '../localDB/provider/isar_provider.dart';
 
 final groupRepoProvider = Provider<GroupRepo>((ref){
   final isar = ref.read(isarProvider);
-  return GroupRepo(GroupApiService(), IsarService(isar));
+  return GroupRepo(GroupApiService(), IsarService(isar),ref);
 });

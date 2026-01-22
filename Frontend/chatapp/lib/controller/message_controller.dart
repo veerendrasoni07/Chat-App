@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:chatapp/models/message.dart';
+import 'package:chatapp/models/next_cursor.dart';
 import 'package:chatapp/provider/messageProvider.dart';
+import 'package:chatapp/provider/next_cursor_provider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,40 +15,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../global_variable.dart';
 
-class MessageController{
+class MessageService{
 
 
 
-  Future<List<Message>> getMessages({required String receiverId,required DateTime lastMessageDate})async{
-    try{
-      print("receiverId:$receiverId");
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      final token = preferences.getString('token');
-      if(token == null){
-        throw Exception('No token found');
-      }
 
-      http.Response response = await http.get(
-          Uri.parse('$uri/api/get-messages/$receiverId/$lastMessageDate'),
-        headers: <String,String>{
-            'Content-Type':'application/json; charset=UTF-8',
-          'x-auth-token':token
-        }
-      );
-
-      if(response.statusCode == 200){
-        final List<dynamic> data = jsonDecode(response.body);
-        final List<Message> messages = data.map((e) => Message.fromMap(e)).toList();
-        return messages;
-      }else{
-        throw Exception('Failed to fetch messages : ${response.statusCode}');
-      }
-
-    }catch(e){
-      print(e.toString());
-      throw Exception(e);
-    }
-  }
 
 
   Future<Message> sendVoiceMessage({required File audio,required String senderId,required String receiverId,required double duration,required context,required WidgetRef ref})async{
@@ -106,33 +79,41 @@ class MessageController{
 
 
 
-  //
-  // Future<void> syncMessages({required String receiverId})async{
-  //   try{
-  //     final lastMessageDate = await _isarService.lastMessageDate();
-  //     SharedPreferences preferences = await SharedPreferences.getInstance();
-  //     final token = preferences.getString('token');
-  //     if(token == null){
-  //       throw Exception('No token found');
-  //     }
-  //     await _messageSyncRepo.syncMessages(token: token, lastMessageDate: lastMessageDate, receiverId: receiverId);
-  //   }catch(e){
-  //     throw Exception('Failed to sync messages');
-  //   }
-  // }
 
+  Future<List<Message>> syncMessages({required String receiverId,required String senderId,required Ref ref,required DateTime? cursor})async{
+    try{
+      http.Response response = await sendRequest(request: (token){
+        return http.get(
+            Uri.parse('$uri/api/v1/get-messages?chatId=$receiverId&senderId=$senderId&cursor=$cursor'),
+            headers: <String,String>{
+              'Content-Type':'application/json; charset=UTF-8',
+              'x-auth-token':token
+            }
+        );
+      }, ref: ref);
+      if(response.statusCode == 200){
+        final Map<String,dynamic> data = jsonDecode(response.body);
+        print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDAAAAAAAAAAAAAAAAAAAAAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        print(data.toString());
+        final cursor = data['nextCursor'];
+        final List<dynamic> msg = data['messages'];
+        final List<Message> messages = msg.map((e) => Message.fromMap(e)).toList();
+        try{
+          NextCursor nextCursor =  NextCursor(cursor, data['isMore']);
+          ref.read(nextCursorProvider.notifier).addCursor(nextCursor);
+        }catch(e){
+          print(e.toString());
+        }
+        return messages;
+      }
+      else{
+        print(response.body);
+        throw Exception('Failed to sync messages');
+      }
 
-
-
-
-
-
-
-
-
-
-
-
-
+    }catch(e){
+      throw Exception('Failed to sync messages');
+    }
+  }
 
 }

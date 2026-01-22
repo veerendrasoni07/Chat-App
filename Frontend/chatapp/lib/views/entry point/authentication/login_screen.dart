@@ -29,11 +29,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              size: 15, color: Colors.grey),
-          onPressed: () => Navigator.pop(context),
-        ),
         elevation: 0,
       ),
       body: Padding(

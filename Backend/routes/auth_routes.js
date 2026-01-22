@@ -5,7 +5,7 @@ import User from '../models/user.js';
 import dotenv from 'dotenv';
 import Interaction from '../models/interaction.js';
 import auth from '../middleware/auth.js';
-import {generateRefreshToken,generateAccessToken, hashToken, hashToken, hashToken} from '../token/token.js'
+import {generateRefreshToken,generateAccessToken,hashToken} from '../token/token.js'
 import RefreshToken from '../models/refresh_token.js';
 
 
@@ -16,6 +16,8 @@ const authRouter = express.Router();
 authRouter.post('/api/sign-up',async(req,res)=>{
     try {
         const {fullname,email,password,gender,username} = req.body;
+        console.log(req.body,"hehehehe");
+        
         if(!fullname || !email || !password){
             return res.status(400).json({msg:"Name or Email Or Password is missing!"});
         }
@@ -36,10 +38,10 @@ authRouter.post('/api/sign-up',async(req,res)=>{
         newUser = await newUser.save();
         const refreshToken = generateRefreshToken(newUser._id);
         const accessToken = generateAccessToken(newUser._id);
-        const hashToken = hashToken(refreshToken);
+        const hashTn = hashToken(refreshToken);
         await RefreshToken.create({
             userId:newUser._id,
-            refreshToken:hashToken,
+            refreshToken:hashTn,
             expiresAt : Date.now()+ 7*24*60*60*1000
         });
         console.log("sign up successfully");
@@ -68,10 +70,10 @@ authRouter.post('/api/sign-in',async(req,res)=>{
         }
         const refreshToken = generateRefreshToken(user._id);
         const accessToken = generateAccessToken(user._id);
-        const hashToken = hashToken(refreshToken);
+        const hash = hashToken(refreshToken);
         await RefreshToken.create({
             userId:user._id,
-            refreshToken:hashToken,
+            refreshToken:hash,
             expiresAt : Date.now()+ 7*24*60*60*1000
         });
 
@@ -90,8 +92,8 @@ authRouter.post('/api/sign-in',async(req,res)=>{
 authRouter.post('/api/refresh-token',async(req,res)=>{
     try {
         const {refreshToken} = req.body;
-        const hashToken = hashToken(refreshToken);
-        const stored = await RefreshToken.findOne({refreshToken:hashToken});
+        const hash = hashToken(refreshToken);
+        const stored = await RefreshToken.findOne({refreshToken:hash});
         if(!stored){
             return res.status(401).json({msg:"Invaild token or token expired"});
         }

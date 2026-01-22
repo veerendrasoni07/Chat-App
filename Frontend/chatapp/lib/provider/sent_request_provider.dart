@@ -1,13 +1,15 @@
 import 'package:chatapp/controller/friend_controller.dart';
 import 'package:chatapp/models/interaction.dart';
+import 'package:chatapp/service/friend_api_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chatapp/service/socket_service.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 
 class SentRequestProvider extends StateNotifier<List<Interaction>> {
   final SocketService socketService;
-  final FriendController controller;
-  SentRequestProvider(this.socketService,this.controller) : super([]) {
+  final FriendApiService controller;
+  Ref ref;
+  SentRequestProvider(this.socketService,this.controller,this.ref) : super([]) {
     _listen();
   }
 
@@ -39,7 +41,7 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
 
 
   void loadInitialData() async {
-    final data = await controller.getAllSentRequests();
+    final data = await controller.getAllSentRequests(ref: ref);
     state = data;
   }
 
@@ -53,5 +55,5 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
 final sentRequestProvider =
 StateNotifierProvider<SentRequestProvider, List<Interaction>>((ref) {
   final socket = ref.read(socketProvider);
-  return SentRequestProvider(socket,FriendController());
+  return SentRequestProvider(socket,FriendApiService(),ref);
 });

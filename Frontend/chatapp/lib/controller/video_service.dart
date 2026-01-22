@@ -3,13 +3,18 @@ import 'dart:io';
 
 import 'package:chatapp/global_variable.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
+import 'package:flutter/cupertino.dart' show BuildContext;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import "package:http/http.dart" as http;
 import 'package:shared_preferences/shared_preferences.dart';
 class VideoService {
 
+  Ref ref;
+  VideoService({required this.ref});
 
 
-  Future<Map<String,dynamic>> getSign({required String type,required String token})async{
+
+  Future<Map<String,dynamic>> getSign({required String type,required String token,required Ref ref})async{
     try{
 
       http.Response response =
@@ -24,7 +29,7 @@ class VideoService {
             'x-auth-token': token,
           },
         );
-      });
+      },ref: ref);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data;
@@ -88,15 +93,15 @@ class VideoService {
     required String receiverId,
     required String thumbnailFile,
     required String message,
-    required String localId
+    required String localId,
 })async{
     try{
 
       SharedPreferences preferences = await SharedPreferences.getInstance();
       final token = preferences.getString('token');
 
-      final videoSign = await getSign(type: 'video',token: token!);
-      final thumbnailSign = await getSign(type: 'image',token: token);
+      final videoSign = await getSign(type: 'video',token: token!,ref: ref);
+      final thumbnailSign = await getSign(type: 'image',token: token,ref: ref);
       final videoUpload = await uploadVideoToTheCloudinary(signedData: videoSign, filePath: videoFile.path);
       final thumbnailUpload = await uploadImageToCloudinary(thumbnailSign,thumbnailFile);
 
@@ -124,7 +129,7 @@ class VideoService {
               'localId':localId
             })
         );
-      });
+      },ref: ref);
       if(response.statusCode == 200){
         return;
       }else{

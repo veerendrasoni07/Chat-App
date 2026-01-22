@@ -6,5 +6,5 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../service/friend_api_service.dart';
 
 final friendRepoProvider = Provider<FriendRepo>((ref){
-  return FriendRepo(IsarService(ref.read(isarProvider)), FriendApiService());
+  return FriendRepo(IsarService(ref.read(isarProvider)), FriendApiService(),ref);
 });

@@ -1,6 +1,8 @@
 
 import 'package:chatapp/localDB/model/message_isar.dart';
+import 'package:chatapp/provider/auth_manager_provider.dart';
 import 'package:chatapp/provider/backend_sync_provider.dart';
+import 'package:chatapp/views/entry%20point/authentication/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
@@ -62,36 +64,13 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
-    Future<void> checkUserAndToken() async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String? token = prefs.getString('token');
-      final String? user = prefs.getString('user');
-      print("User json lets print it!");
-      print(user);
-      if (token != null && user != null) {
-        ref.read(userProvider.notifier).addUser(user);
-      } else {
-        ref.read(userProvider.notifier).signOut();
-      }
-    }
-
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_,__){
         return  GetMaterialApp(
-          home: FutureBuilder(
-            future: checkUserAndToken(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else {
-                final user = ref.read(userProvider);
-                return user != null ? MainScreen() : OnboardingPage();
-              }
-            },
-          ),
+          home: ref.watch(authManagerProvider) == AuthStatus.authenticated ? const MainScreen() : const LoginScreen() ,
           defaultTransition: Transition.cupertino,
           darkTheme: darkMode,
           theme: lightMode,

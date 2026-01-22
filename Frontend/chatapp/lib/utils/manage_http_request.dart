@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -43,7 +43,8 @@ void manageHttpResponse(
 }
 
 Future<http.Response> sendRequest({
-  required Future<http.Response> Function (String token) request
+  required Future<http.Response> Function ( String token) request,
+  required Ref ref
 })async{
   try{
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -51,7 +52,7 @@ Future<http.Response> sendRequest({
 
     http.Response requestResponse = await request(accessToken!);
     if(requestResponse.statusCode == 401){
-      bool refreshed = await AuthController().refreshToken();
+      bool refreshed = await AuthController().refreshToken(ref: ref);
       if (!refreshed) {
         throw Exception('Session expired');
       }

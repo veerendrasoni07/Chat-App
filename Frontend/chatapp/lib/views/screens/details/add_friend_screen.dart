@@ -5,11 +5,13 @@ import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/localDB/Mapper/mapper.dart';
 import 'package:chatapp/models/interaction.dart';
 import 'package:chatapp/models/user.dart';
+import 'package:chatapp/provider/friend_controller_provider.dart';
 import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/request_provider.dart';
 import 'package:chatapp/provider/sent_request_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
+import 'package:chatapp/service/friend_api_service.dart';
 import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/chat_screen.dart';
 import 'package:chatapp/views/screens/details/profile_screen.dart';
@@ -29,7 +31,6 @@ class AddFriendScreen extends ConsumerStatefulWidget {
 }
 
 class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
-  final FriendController _friendController = FriendController();
   List<User> futureUserList = [];
   Timer? debounce;
   bool isLoading = false;
@@ -54,8 +55,9 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   }
 
   Future<void> friendSuggestion(String username) async {
+    final _friend = ref.read(friendRepoProvider);
     setState(() => isLoading = true);
-    final users = await _friendController.searchUser(username: username);
+    final users = await _friend.searchUser(username: username);
     setState(() {
       futureUserList = users;
       isLoading = false;

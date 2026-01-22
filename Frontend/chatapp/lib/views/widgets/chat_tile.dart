@@ -48,7 +48,7 @@ class ChatTile extends ConsumerWidget {
             children: [
               SlidableAction(
                   onPressed: (_)async{
-                    isGroup ? (){} : await friendRepo.removeFriend(friendId: chatId,context: context);
+                    isGroup ? (){} : await friendRepo.removeFriend(friendId: chatId,);
                   },
                 icon: Icons.delete,
                 foregroundColor: Colors.white,

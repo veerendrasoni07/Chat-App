@@ -1,7 +1,6 @@
 import 'package:chatapp/controller/group_controller.dart';
 import 'package:chatapp/localDB/provider/isar_provider.dart';
 import 'package:chatapp/localDB/service/isar_service.dart';
-import 'package:chatapp/models/group_message.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/service/socket_service.dart';
