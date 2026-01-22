@@ -23,8 +23,12 @@ class Interaction {
   factory Interaction.fromMap(Map<String, dynamic> map) {
     return Interaction(
       id: map['_id']?.toString() ?? '',
-      fromUser: User.fromMap(map['fromUser'] as Map<String, dynamic>) ,
-      toUser: User.fromMap(map['toUser'] as Map<String, dynamic>),
+      fromUser: map['fromUser'] is Map<String, dynamic>
+          ? User.fromMap(map['fromUser'])
+          : throw Exception('fromUser is not populated'),
+      toUser: map['toUser'] is Map<String, dynamic>
+          ? User.fromMap(map['toUser'])
+          : throw Exception('toUser is not populated'),
       status: map['status'] as String,
     );
   }

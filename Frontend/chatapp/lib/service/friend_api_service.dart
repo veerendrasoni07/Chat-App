@@ -137,8 +137,6 @@ class FriendApiService {
         return requests;
       }
       else{
-        print("MAka bosda");
-
         print(response.body);
         throw Exception('Failed to fetch sent requests');
       }

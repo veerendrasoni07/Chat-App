@@ -87,7 +87,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     final fromUser = ref.watch(userProvider);
     final friends = ref.watch(friendsProvider);
     final sentRequest = ref.watch(sentRequestProvider);
-    final requests = ref.watch(requestProvider(fromUser!.id));
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -128,7 +127,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                           futureUserList,
                           sentRequest,
                           friends,
-                          fromUser.id,
+                          fromUser!.id,
                           primary,
                           size
                         ),
