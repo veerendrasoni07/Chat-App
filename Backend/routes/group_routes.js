@@ -38,10 +38,7 @@ groupRouter.post('/api/create-group', auth, async (req, res) => {
             groupId: newGroup._id.toString()
         });
 
-        res.status(200).json({
-            ...newGroup.toObject(),
-            id: newGroup._id.toString()
-        });
+        res.status(201).json(newGroup);
 
     } catch (error) {
         console.error(error);

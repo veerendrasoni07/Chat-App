@@ -114,6 +114,7 @@ partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) =
     const requests = await Interaction.find({
       fromUser:{$ne:null},
       toUser: userId,
+      status: "accepted"
     }).populate('toUser').populate('fromUser').sort({createdAt:-1});
 
     res.status(200).json(requests);
@@ -132,7 +133,7 @@ partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
           fromUser:{$ne:null},
           toUser: userId,
           status: "pending"
-        }).populate('fromUser').populate('toUser'); 
+        }).populate('fromUser'); 
         res.json(requests);
     } catch (error) {
         console.log(error);
