@@ -1,19 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/message.dart';
 import 'package:chatapp/models/next_cursor.dart';
-import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/next_cursor_provider.dart';
-import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:chatapp/models/user.dart';
-import 'package:isar/isar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../global_variable.dart';
 

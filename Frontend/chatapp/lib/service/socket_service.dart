@@ -66,8 +66,17 @@ class SocketService {
     print("Mark as seen done");
   }
 
+
+  void markChatSeen(String userId,String chatWith){
+    socket.emit('mark-chat-seen',{'viewerId':userId,'chatWith':chatWith});
+  }
+
   void chatOpen(String userId,String chatWith){
     socket.emit('chatOpened',{'userId':userId,'chatWith':chatWith});
+  }
+
+  void seenChat(Function (dynamic) callback){
+    socket.on('chat-seen',callback);
   }
   
   void chatClosed(String userId){
@@ -80,18 +89,19 @@ class SocketService {
   }
 
   void newGroupCreated(Function (dynamic) callback){
-    socket.on('group-created', callback);
+    socket.on('group-created', (data){
+      print("Received group data: $data (${data.runtimeType})");
+      final id = data['id'];
+      joinGroup(id);
+    });
   }
 
   void syncGroups (Function(dynamic) callback){
     socket.on('sync-groups', callback);
   }
 
-  void joinGroup(){
-    socket.on('join-group', (data){
-      final groupId = data['groupId'];
-      socket.emit("join-group-room", groupId);
-    });
+  void joinGroup(String groupId){
+    socket.emit("join-group-room", groupId);
   }
 
   void sendGroupMessage(String groupId,String senderId,String message){

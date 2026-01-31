@@ -132,6 +132,19 @@ const MessageIsarSchema = CollectionSchema(
         )
       ],
     ),
+    r'status': IndexSchema(
+      id: -107785170620420283,
+      name: r'status',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'status',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
     r'localCreatedAt': IndexSchema(
       id: -44009826510721484,
       name: r'localCreatedAt',
@@ -577,6 +590,51 @@ extension MessageIsarQueryWhere
               indexName: r'senderId',
               lower: [],
               upper: [senderId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause> statusEqualTo(
+      String status) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'status',
+        value: [status],
+      ));
+    });
+  }
+
+  QueryBuilder<MessageIsar, MessageIsar, QAfterWhereClause> statusNotEqualTo(
+      String status) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'status',
+              lower: [],
+              upper: [status],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'status',
+              lower: [status],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'status',
+              lower: [status],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'status',
+              lower: [],
+              upper: [status],
               includeUpper: false,
             ));
       }

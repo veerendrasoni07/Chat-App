@@ -1,14 +1,13 @@
 import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:chatapp/controller/auth_controller.dart';
-import 'package:chatapp/controller/friend_controller.dart';
 import 'package:chatapp/localDB/Mapper/mapper.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/models/user_status.dart';
 import 'package:chatapp/provider/activity_provider.dart';
 import 'package:chatapp/provider/combined_chat_provider.dart';
 import 'package:chatapp/provider/friend_controller_provider.dart';
-import 'package:chatapp/provider/friends_provider.dart';
+import 'package:chatapp/provider/friend_stream_provider.dart';
+import 'package:chatapp/provider/group_provider.dart';
 import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/new_group_screen.dart';
 import 'package:chatapp/views/screens/details/notification_screen.dart';
@@ -342,126 +341,126 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
    // ---------------------------- FRIEND ORBIT ----------------------------
   Widget _buildFriendOrbit(BuildContext context, WidgetRef ref,
       Map<String, UserStatus> status) {
-    final friends = ref.watch(friendsProvider);
+    final friends = ref.watch(friendStreamProvider);
+    return friends.when(data: (friends){
+      return friends.isEmpty ? SizedBox() : SizedBox(
+        height: 80,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          itemCount: friends.length,
+          itemBuilder: (context, index) {
+            final f = friends[index];
+            final isOnline = status[f.id] == true;
 
-    return friends.isEmpty ? SizedBox() : SizedBox(
-      height: 80,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        itemCount: friends.length,
-        itemBuilder: (context, index) {
-          final f = friends[index];
-          final isOnline = status[f.id] == true;
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        final friends = ref.read(friendsProvider);
-                        final friend = friends.firstWhere(
-                                (u) => u.id == f.id
-                        );
-                        if (friend == null) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          final friend = friends.firstWhere(
+                                  (u) => u.userId == f.userId
+                          );
+                          if (friend == null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    FutureBuilder(
+                                      future: ref.read(friendRepoProvider).getUserById(userId: f.userId),
+                                      builder: (context, snap) {
+                                        if (!snap.hasData) {
+                                          return const Scaffold(
+                                            body: Center(
+                                                child: CircularProgressIndicator()),
+                                          );
+                                        }
+                                        return ProfileScreen(user: snap.data!);
+                                      },
+                                    ),
+                              ),
+                            );
+                            return;
+                          }
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  FutureBuilder(
-                                    future: ref.read(friendRepoProvider).getUserById(userId: f.id),
-                                    builder: (context, snap) {
-                                      if (!snap.hasData) {
-                                        return const Scaffold(
-                                          body: Center(
-                                              child: CircularProgressIndicator()),
-                                        );
-                                      }
-                                      return ProfileScreen(user: snap.data!);
-                                    },
-                                  ),
+                              builder: (_) => AccountScreen(backgroundType: '',user: friend),
                             ),
                           );
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ProfileScreen(user: friend),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: 55,
-                        height: 55,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withOpacity(0.25)),
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.16),
-                              Colors.white.withOpacity(0.05),
-                            ],
-                          ),
-                        ),
-                        child: ClipOval(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                            child: Center(
-                              child: Text(
-                                f.fullname[0],
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14.sp,
-                                  height: 1,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white
-                                ),
-                              )
-                            )
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isOnline)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
+                        },
                         child: Container(
-                          height: 14,
-                          width: 14,
+                          width: 55,
+                          height: 55,
                           decoration: BoxDecoration(
-                            color: Colors.green,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.black, width: 2),
+                            border: Border.all(color: Colors.white.withOpacity(0.25)),
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.16),
+                                Colors.white.withOpacity(0.05),
+                              ],
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                                child: Center(
+                                    child: Text(
+                                      f.fullname[0],
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 14.sp,
+                                          height: 1,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white
+                                      ),
+                                    )
+                                )
+                            ),
                           ),
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                AutoSizeText(
-                  f.fullname
-                      .split(" ")
-                      .first,
-                  style: GoogleFonts.poppins(
-                      color: Theme
-                          .of(context)
-                          .colorScheme
-                          .primary,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.8
+                      if (isOnline)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            height: 14,
+                            width: 14,
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.black, width: 2),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+                  const SizedBox(height: 4),
+                  AutoSizeText(
+                    f.fullname
+                        .split(" ")
+                        .first,
+                    style: GoogleFonts.poppins(
+                        color: Theme
+                            .of(context)
+                            .colorScheme
+                            .primary,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.8
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    }, error: (error, stackTrace) => Text(error.toString()), loading: ()=>const Center(child: CircularProgressIndicator()));
 }
 Widget _buildRadialMenu(BuildContext context, WidgetRef ref) {
   return Padding(
@@ -488,7 +487,7 @@ Widget _buildRadialMenu(BuildContext context, WidgetRef ref) {
 }
 
 Widget _buildRadialOptions(BuildContext context, WidgetRef ref) {
-  final friends = ref.watch(friendsProvider);
+  final friends = ref.watch(friendStreamProvider);
   final controller = TextEditingController();
   final users = friends;
   return Container(
@@ -501,7 +500,7 @@ Widget _buildRadialOptions(BuildContext context, WidgetRef ref) {
       children: [
         _radialItem(context, Icons.chat_bubble, "New Chat", () {}),
         const SizedBox(width: 10,),
-        _radialItem(context, Icons.group, "New Group", () => newGroupModalSheet(context, controller, users, ref)
+        _radialItem(context, Icons.group, "New Group", () => newGroupModalSheet(context, controller, users.value!, ref)
         ),
         const SizedBox(width: 10,),
         _radialItem(context, Icons.person_add, "Add Friend", () {

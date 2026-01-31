@@ -3,25 +3,23 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:chatapp/componentss/responsive.dart';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/localDB/Mapper/mapper.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/interaction.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:chatapp/provider/friend_controller_provider.dart';
-import 'package:chatapp/provider/friends_provider.dart';
-import 'package:chatapp/provider/request_provider.dart';
+import 'package:chatapp/provider/friend_stream_provider.dart';
 import 'package:chatapp/provider/sent_request_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
-import 'package:chatapp/service/friend_api_service.dart';
 import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/screens/details/chat_screen.dart';
-import 'package:chatapp/views/screens/details/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../controller/friend_controller.dart';
+
 
 class AddFriendScreen extends ConsumerStatefulWidget {
   const AddFriendScreen({super.key});
@@ -85,7 +83,10 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
     final fromUser = ref.watch(userProvider);
-    final friends = ref.watch(friendsProvider);
+    final friends = ref.watch(friendStreamProvider);
+    print("---------------ff------------------------------ff-----------------------------");
+    print(friends);
+    print("---------------ff------------------------------ff-----------------------------");
     final sentRequest = ref.watch(sentRequestProvider);
 
     return Scaffold(
@@ -118,20 +119,26 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
                     if (isLoading) _buildLoader(primary,size),
 
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        child: futureUserList.isEmpty && !isLoading
-                            ? friends.isNotEmpty ? _buildFriendsSection(friends, primary) : _buildEmptyState(primary,size)
-                            : _buildUserList(
-                          futureUserList,
-                          sentRequest,
-                          friends,
-                          fromUser!.id,
-                          primary,
-                          size
-                        ),
-                      ),
+                    friends.when(
+                        data: (friends){
+                          return Expanded(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 250),
+                              child: futureUserList.isEmpty && !isLoading
+                                  ? friends.isNotEmpty ? _buildFriendsSection(friends, primary) : _buildEmptyState(primary,size)
+                                  : _buildUserList(
+                                  futureUserList,
+                                  sentRequest,
+                                  friends,
+                                  fromUser!.id,
+                                  primary,
+                                  size
+                              ),
+                            ),
+                          );
+                        },
+                        error: (error, stackTrace) => Text(error.toString()),
+                        loading: () => const Center(child: CircularProgressIndicator(),)
                     ),
 
 
@@ -219,7 +226,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   Widget _buildUserList(
       List<User> users,
       List<Interaction> sentRequest,
-      List<User> friends,
+      List<UserIsar> friends,
       String fromUserId,
       Color primary,
       ResponsiveClass size
@@ -230,7 +237,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       itemBuilder: (context, index) {
         final u = users[index];
         final alreadySent =
-        sentRequest.any((x) => x.toUser.id == u.id);
+        sentRequest.any((x) => mapUserToIsar(x.toUser).userId == u.id);
         bool alreadyFriend = friends.any((x)=>x.id == u.id);
         final userIsar = mapUserToIsar(u);
         return GestureDetector(
@@ -273,13 +280,13 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                             fontWeight: FontWeight.w600,
                             color: primary),
                       ),
-                      Text(
-                        "@${u.username}",
-                        style: GoogleFonts.poppins(
-                          fontSize: size.font(13),
-                          color: primary.withOpacity(0.7),
-                        ),
-                      ),
+                      // Text(
+                      //   "@${u.username}",
+                      //   style: GoogleFonts.poppins(
+                      //     fontSize: size.font(13),
+                      //     color: primary.withOpacity(0.7),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -345,7 +352,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   }
 
   // ---------------- FRIENDS SECTION ----------------
-  Widget _buildFriendsSection(List<User> friends, Color primary) {
+  Widget _buildFriendsSection(List<UserIsar> friends, Color primary) {
     if (friends.isEmpty) return const SizedBox();
 
     return Column(
@@ -378,7 +385,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   child: Text(fr.fullname[0], style: TextStyle(color: primary)),
                 ),
                 title: Text(fr.fullname, style: GoogleFonts.poppins(color: primary)),
-                subtitle: Text("@${fr.username}", style: GoogleFonts.poppins(color: primary.withOpacity(0.6))),
+                //subtitle: Text("@${fr.username}", style: GoogleFonts.poppins(color: primary.withOpacity(0.6))),
                 trailing: Icon(Icons.messenger_rounded, color: primary),
               );
             },

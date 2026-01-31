@@ -3,9 +3,12 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:chatapp/controller/message_controller.dart';
 import 'package:chatapp/provider/friend_controller_provider.dart';
+import 'package:chatapp/provider/friend_stream_provider.dart';
 import 'package:chatapp/provider/message_repo_provider.dart';
+import 'package:chatapp/views/screens/details/account_screen.dart';
 import 'package:chatapp/views/widgets/video_preview_screen.dart';
 import 'package:chatapp/views/widgets/video_view_Screen.dart';
+import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
@@ -20,7 +23,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:chatapp/controller/voice_service.dart';
-import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/messageProvider.dart';
 import 'package:chatapp/provider/online_status_provider.dart';
 import 'package:chatapp/provider/socket_provider.dart';
@@ -82,27 +84,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _initialLoad(userId);
     });
 
-    // _scrollController.addListener((){
-    //   if(_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100){
-    //     fetchMessage(userId);
-    //   }
-    // });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(messageProvider(widget.receiverId).notifier).chatOpened(userId);
+      ref.read(messageProvider(widget.receiverId)).chatOpened(userId);
     });
     SoundManager.preload();
     _controller = RecorderController();
 
   }
-
-
-
-  // Future<void> fetchMessage(String senderId)async{
-  //   if(isFetching) return;
-  //   isFetching = true;
-  //   await ref.read(messageRepoProvider).syncMessages(receiverId: widget.receiverId, senderId: senderId);
-  //   isFetching = false;
-  // }
 
   Future<void> _initialLoad(String senderId) async {
     if (isFetching) return;
@@ -119,9 +107,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       isFetching = false;
     }
   }
-
-
-
 
   void pickImageFromGallery()async{
     final picker = ImagePicker();
@@ -151,7 +136,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       print(thumbPath);
       if(await Navigator.push(context, MaterialPageRoute(builder: (_)=>VideoPreviewScreen(video: video!, receiverId: widget.receiverId)))){
         final senderId = ref.read(userProvider)!.id;
-        ref.read(messageProvider(widget.receiverId).notifier).sendVideo(senderId: senderId, receiverId: widget.receiverId, filePath: video!,context: context,ref: ref ,message: messageController.text,thumbnail: thumbPath!);
+        ref.read(messageProvider(widget.receiverId)).sendVideo(senderId: senderId, receiverId: widget.receiverId, filePath: video!,context: context,ref: ref ,message: messageController.text,thumbnail: thumbPath!);
       }
     }
   }
@@ -167,8 +152,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       socket.stopTyping(senderId, receiverId);
     });
   }
-
-
 
   @override
   void dispose() {
@@ -195,7 +178,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         if (!didPop) {
           final userId = ref.read(userProvider)!.id;
           ref
-              .read(messageProvider(widget.receiverId).notifier)
+              .read(messageProvider(widget.receiverId))
               .chatClosed(userId);
           print('🔙 System back pressed → chatClosed emitted');
           Get.to(
@@ -206,7 +189,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         } else {
           final userId = ref.read(userProvider)!.id;
           ref
-              .read(messageProvider(widget.receiverId).notifier)
+              .read(messageProvider(widget.receiverId))
               .chatClosed(userId);
           print('🔙 System back pressed → chatClosed emitted (auto pop)');
         }
@@ -236,11 +219,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        final friends = ref.read(friendsProvider);
-                        final friend = friends.firstWhere(
-                          (u) => u.id == widget.receiverId,
-                          orElse: () => null as dynamic,
-                        );
+                        final friendAsync  = ref.read(friendStreamProvider.select((value){
+                            return value.whenData((list){
+                              list.firstWhereOrNull((element) => element.userId == widget.receiverId);
+                            });
+                        }));
+                        final friend = friendAsync.value;
 
                         if (friend == null) {
                           Navigator.push(
@@ -265,7 +249,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           return;
                         }
 
-                        Get.to(()=>ProfileScreen(user: friend),
+                        Get.to(()=>AccountScreen(user: friend.value, backgroundType: '',),
                           transition: Transition.fade,
                           duration: const Duration(milliseconds: 350),
                         );
@@ -556,7 +540,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     IconButton(
                                         onPressed: (){
                                           if(isImage) {
-                                            ref.read(messageProvider(widget.receiverId).notifier).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!, message: messageController.text);
+                                            ref.read(messageProvider(widget.receiverId)).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!, message: messageController.text);
                                             setState(() {
                                               pickedImage = null;
                                               isImage = false;
@@ -566,7 +550,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                           }
                                           else{
                                            if(messageController.text.isNotEmpty){
-                                             ref.read(messageProvider(widget.receiverId).notifier).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
+                                             ref.read(messageProvider(widget.receiverId)).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
                                              messageController.clear();
                                            }
                                           }

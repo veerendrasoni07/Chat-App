@@ -102,7 +102,7 @@ class IsarService {
       ..groupName = group.groupName
       ..groupPic = group.groupPic
       ..groupDescription = group.groupDescription;
-
+    print("------------------------group is added to the local db----------------------------");
     await _isar.groupIsars.put(g);
     return g;
   }
@@ -112,12 +112,12 @@ class IsarService {
   Future<void> saveAllGroups(List<Group> groups)async{
     await _isar.writeTxn(()async{
       for(final group in groups){
-         await _syncSingleGroup(group);
+         await syncSingleGroup(group);
       }
     });
   }
 
-  Future<void> _syncSingleGroup(Group group) async {
+  Future<void> syncSingleGroup(Group group) async {
     final groupIsar = await upsertGroup(group);
 
     // CLEAR OLD LINKS
@@ -352,6 +352,30 @@ class IsarService {
     }).sortByServerCreatedAtDesc().findFirst().then((value) => value?.serverCreatedAt ?? DateTime.now());
   }
 
+  Future<void> clearAllMessage({required String chatId,required String senderId})async{
+    await _isar.writeTxn(()async{
+      return await _isar.messageIsars.filter().group((q){
+        return q.senderIdEqualTo(chatId).or().chatIdEqualTo(chatId).
+        and().senderIdEqualTo(senderId).or().chatIdEqualTo(senderId);
+      }).deleteAll();
+    });
+  }
+
+  Future<void> markMessagesSeen(String senderId) async {
+    await _isar.writeTxn(() async {
+      final messages = await _isar.messageIsars
+          .filter()
+          .senderIdEqualTo(senderId)
+          .findAll();
+      final messagesToUpdate = messages
+          .where((m) => m.status != 'seen')
+          .toList();
+      for (final m in messagesToUpdate) {
+        m.status = 'seen';
+      }
+      await _isar.messageIsars.putAll(messagesToUpdate);
+    });
+  }
 
 
 

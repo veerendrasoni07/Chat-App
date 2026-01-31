@@ -61,6 +61,7 @@ dependencies:
   permission_handler: ^12.0.1
   video_player: ^2.8.3
   video_thumbnail: ^0.5.3
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -93,6 +94,7 @@ flutter:
     - assets/icons/chat.png
     - assets/icons/home.png
     - assets/icons/like.png
+    - assets/icons/google_png.png
     - assets/animation/cat_typing.json
     - assets/animation/Typing.json
     - assets/animation/globe.json

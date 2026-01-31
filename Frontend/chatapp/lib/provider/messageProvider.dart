@@ -14,7 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-class MessageProvider extends StateNotifier<List<Message>> {
+class MessageProvider {
   final MessageService controller;
   final VoiceService _voiceService;
   final VideoService _videoService;
@@ -24,8 +24,9 @@ class MessageProvider extends StateNotifier<List<Message>> {
   final String receiverId;
   final SocketService socket;
   bool _isChatOpen = false;
-  MessageProvider(this.controller, this.receiverId,this.senderId, this.socket, this._voiceService,this._isarService ,this._imageService,this._videoService) : super([]) {
+  MessageProvider(this.controller, this.receiverId,this.senderId, this.socket, this._voiceService,this._isarService ,this._imageService,this._videoService) : super() {
     listenMessage();
+    seenChat();
   }
 
 
@@ -58,14 +59,6 @@ class MessageProvider extends StateNotifier<List<Message>> {
       // Receiver side: save message
       if (message.receiverId == currentUserId) {
         await _isarService.saveServerMessage(message);
-
-        if (_isChatOpen) {
-          socket.markAsSeen(message.id);
-          await _isarService.updateMessageStatus(message.id, "seen");
-        } else {
-          await _isarService.updateMessageStatus(message.id, "delivered");
-        }
-
         SoundManager.playReceiveSound();
       }
     });
@@ -103,7 +96,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
       createdAt: DateTime.now(),
     );
 
-    state = [...state, placeholder];
+
 
     try {
       // upload & notify server (this will trigger server -> socket -> newMessage)
@@ -115,13 +108,7 @@ class MessageProvider extends StateNotifier<List<Message>> {
       // Do not update state here — wait for socket event to replace placeholder.
     } catch (e) {
       // mark placeholder failed
-      state = state.map((m) {
-        if (m.id == tempId) {
-          return m.copyWith(status: 'failed');
-        }
-        return m;
-      }).toList();
-      rethrow;
+
     }
   }
 
@@ -207,18 +194,23 @@ class MessageProvider extends StateNotifier<List<Message>> {
     }
   }
 
-
-
-
-
-  void chatOpened(String userId) async{
+  void chatOpened(String userId) {
     _isChatOpen = true;
-    socket.chatOpen(userId, receiverId);
-    List<String> ids = await _isarService.updateListOfMessageStatus("seen", receiverId,socket);
-    for(final id in ids){
-      socket.markAsSeen(id);
-    }
-    debugPrint("✅ Chat opened with $receiverId — all delivered messages marked as seen");
+    socket.markChatSeen(userId, receiverId);
+    debugPrint("📖 Chat opened → requesting seen update");
+  }
+
+  void seenChat() {
+    socket.seenChat((data) async {
+      final viewerId = data['by']; // The person who just saw our messages
+
+      // Only update our local messages if WE are the sender
+      // (i.e., messages we sent TO the viewerId should now show as 'seen')
+      if (viewerId == receiverId) {
+        print("📖 Our messages have been seen by $receiverId");
+        await _isarService.markMessagesSeen(receiverId);
+      }
+    });
   }
 
   void chatClosed(String userId){
@@ -229,11 +221,18 @@ class MessageProvider extends StateNotifier<List<Message>> {
 
 }
 
-final messageProvider =
-StateNotifierProvider.autoDispose.family<MessageProvider, List<Message>, String>(
-      (ref, receiverId) {
-    final socket = ref.read(socketProvider);
-    final user = ref.read(userProvider);
-    return MessageProvider(MessageService(), receiverId,user!.id, socket,VoiceService(),IsarService(ref.read(isarProvider)),ImageService(),VideoService(ref: ref));
-  },
-);
+final messageProvider = Provider.family<MessageProvider, String>((ref, receiverId) {
+  final socket = ref.read(socketProvider);
+  final user = ref.read(userProvider)!;
+
+  return MessageProvider(
+    MessageService(),
+    receiverId,
+    user.id,
+    socket,
+    VoiceService(),
+    IsarService(ref.read(isarProvider)),
+    ImageService(),
+    VideoService(ref: ref),
+  );
+});

@@ -21,22 +21,17 @@ class NotificationScreen extends ConsumerStatefulWidget {
 
 class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
-  Future<void> _load() async {
-    await ref.read(friendRepoProvider).getAllRequests(context: context,ref: ref);
-    ref.read(activityProvider.notifier).setActivity(ref: ref, context: context);
-  }
+
 
   @override
   void initState() {
     super.initState();
-    _load();
   }
 
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final requests = ref.watch(requestProvider(user!.id));
-    final activities = ref.watch(activityProvider);
     final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
@@ -66,7 +61,11 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                     padding: const EdgeInsets.all(16),
                     children: [
                       // Requests Title
-                      if (requests.isNotEmpty) _sectionTitle(context, "Friend Requests"),
+                      requests.isNotEmpty ? _sectionTitle(context, "Friend Requests"): Center(child: Text("No Requests",style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),),),
             
                       ...requests.map((req) => _RequestTile(
                         key: ValueKey(req.id),
@@ -75,16 +74,6 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                       )),
             
                       if (requests.isNotEmpty) const SizedBox(height: 20),
-            
-                      // Activity Title
-                      if (activities.isNotEmpty) _sectionTitle(context, "Recent Activity"),
-            
-                      // Empty UI
-                      if (requests.isEmpty && activities.isEmpty)
-                        _emptyState(context),
-            
-                      // Activity List
-                      ...activities.map((a) => _activityTile(context, a)),
                     ],
                   ),
                 )

@@ -1,24 +1,30 @@
 import 'dart:convert';
 import 'package:chatapp/global_variable.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
+import 'package:chatapp/localDB/provider/isar_provider.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
 import 'package:chatapp/models/group.dart';
 import 'package:chatapp/models/group_message.dart';
 import 'package:chatapp/models/user.dart';
+import 'package:chatapp/provider/group_provider.dart';
 import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 class GroupController{
 
   Future<void> createNewGroup({
     required String groupName,
-    required List<User> members,
+    required List<UserIsar> members,
+    required WidgetRef ref,
     required BuildContext context
   }) async {
     try {
       SharedPreferences preferences = await SharedPreferences.getInstance();
       final token = preferences.getString('token');
 
-      final memberIds = members.map((m) => m.id).toList();
+      final memberIds = members.map((m) => m.userId).toList();
 
       final body = jsonEncode({
         "groupName": groupName,
@@ -35,6 +41,9 @@ class GroupController{
       );
 
       if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final isar =  ref.read(isarProvider);
+        IsarService(isar).syncSingleGroup(Group.fromMap(data));
         showSnackBar(context, "Group Created");
         Navigator.pop(context);
       } else {

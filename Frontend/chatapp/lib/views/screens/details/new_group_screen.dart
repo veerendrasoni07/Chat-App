@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:chatapp/controller/group_controller.dart';
+import 'package:chatapp/localDB/model/user_isar.dart';
 import 'package:chatapp/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,8 +10,8 @@ import 'package:uuid/uuid.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 
-Future<void> newGroupModalSheet(BuildContext context, TextEditingController controller,List<User> users,WidgetRef ref) async {
-  List<User> selectedUsers = [];
+Future<void> newGroupModalSheet(BuildContext context, TextEditingController controller,List<UserIsar> users,WidgetRef ref) async {
+  List<UserIsar> selectedUsers = [];
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -180,7 +181,7 @@ Future<void> newGroupModalSheet(BuildContext context, TextEditingController cont
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () async{
-                            GroupController().createNewGroup(groupName: controller.text, members: selectedUsers,context: context);
+                            GroupController().createNewGroup(groupName: controller.text, members: selectedUsers,context: context,ref: ref);
                           },
                           child: Text(
                             "Create Group",

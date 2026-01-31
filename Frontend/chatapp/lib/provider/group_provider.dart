@@ -1,45 +1,33 @@
-//
-//
-// import 'package:chatapp/models/group.dart';
-// import 'package:chatapp/provider/socket_provider.dart';
-// import 'package:chatapp/service/socket_service.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-//
-// class GroupProvider extends StateNotifier<List<Group>>{
-//   final SocketService service;
-//   GroupProvider(this.service):super([]){
-//     syncGroups();
-//     addGroup();
-//     joinGroup();
-//   }
-//
-//
-//   void addGroup(){
-//     service.newGroupCreated((data){
-//       print("Received group data: $data (${data.runtimeType})");
-//       final group = Group.fromMap(data);
-//       state = [group,...state];
-//     });
-//   }
-//
-//   void joinGroup(){
-//     service.joinGroup();
-//   }
-//
-//   void syncGroups(){
-//     service.syncGroups((data){
-//       print("These are the groups that we have connected");
-//       print(data);
-//       // data is already List<dynamic>
-//       final List<Group> groups = (data as List<dynamic>)
-//           .map((group) => Group.fromMap(Map<String, dynamic>.from(group)))
-//           .toList();
-//       state = groups;
-//     });
-//   }
-//
-//
-//
-// }
-//
-// final groupProvider = StateNotifierProvider<GroupProvider,List<Group>>((ref)=>GroupProvider(ref.read(socketProvider)));
+
+
+import 'package:chatapp/localDB/provider/isar_provider.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
+import 'package:chatapp/models/group.dart';
+import 'package:chatapp/provider/socket_provider.dart';
+import 'package:chatapp/service/socket_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class GroupProvider extends StateNotifier<List<Group>>{
+  final SocketService service;
+  final IsarService _isarService;
+  GroupProvider(this.service,this._isarService):super([]){
+    addGroup();
+  }
+
+
+  void addGroup(){
+    service.newGroupCreated((data){
+      print("Received group data: $data (${data.runtimeType})");
+      final group = Group.fromMap(data);
+      _isarService.syncSingleGroup(group);
+    });
+  }
+
+
+
+
+
+
+}
+
+final groupProvider = StateNotifierProvider<GroupProvider,List<Group>>((ref)=>GroupProvider(ref.read(socketProvider),IsarService(ref.read(isarProvider))));

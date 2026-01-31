@@ -217,7 +217,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> with TickerProvid
           return Transform(
             alignment: Alignment.center,
             transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.001)
+              ..setEntry(3, 2, 0.006)
               ..rotateX(_rotateX)
               ..rotateY(_rotateY)
               ..scale(s),

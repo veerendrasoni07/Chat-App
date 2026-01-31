@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:chatapp/localDB/provider/isar_provider.dart';
@@ -49,12 +50,15 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-
+  final GoogleSignIn googleSignIn = GoogleSignIn.instance;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      googleSignIn.initialize();
+    });
     Future.microtask((){
       ref.read(backendSyncProvider).backendSync(ref: ref,context: context);
     });

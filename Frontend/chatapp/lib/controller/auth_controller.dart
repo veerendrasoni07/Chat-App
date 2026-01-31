@@ -7,6 +7,7 @@ import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:chatapp/views/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -220,6 +221,19 @@ class AuthController{
       throw Exception(e);
     }
   }
+
+
+  // google sign in
+  // Future<void> googleSignIn()async{
+  //   try{
+  //     final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+  //     GoogleSignInAccount? gUser = await googleSignIn.authenticate();
+  //     final gAuth = await gUser.authorizationClient.authorizeScopes(scopes);
+  //   }catch(e){
+  //     print(e);
+  //   }
+  // }
+
 
 
 }

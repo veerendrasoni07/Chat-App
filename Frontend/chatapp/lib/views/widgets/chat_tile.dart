@@ -2,6 +2,8 @@
 import 'dart:ui';
 
 import 'package:chatapp/localDB/model/user_isar.dart';
+import 'package:chatapp/localDB/provider/isar_provider.dart';
+import 'package:chatapp/localDB/service/isar_service.dart';
 import 'package:chatapp/provider/combined_chat_provider.dart';
 import 'package:chatapp/provider/friend_controller_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
@@ -32,6 +34,7 @@ class ChatTile extends ConsumerWidget {
         : ref.watch(friendInfoProvider(chatId)).value?.profilePic ?? 'User';
     final Iterable<UserIsar>? groupMembers = isGroup ? ref.watch(groupInfoProvider(chatId)).value?.groupMembers : [] ;
     final Iterable<UserIsar>? groupAdmins = isGroup ? ref.watch(groupInfoProvider(chatId)).value?.groupAdmins : [];
+    final isar = ref.read(isarProvider);
     // tiny derived data — will rebuild only if these particular values change
     //     final lastMessageTime = isGroup
     //     ? ref.watch(lastGroupMessageProvider(chatId))
@@ -52,7 +55,7 @@ class ChatTile extends ConsumerWidget {
                   },
                 icon: Icons.delete,
                 foregroundColor: Colors.white,
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(30),bottomLeft:  Radius.circular(30)),
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(30),bottomRight:  Radius.circular(30)),
                 label: isGroup ? "Exist" : 'Delete',
 
                 backgroundColor: Colors.white.withOpacity(0.10),
@@ -63,11 +66,21 @@ class ChatTile extends ConsumerWidget {
                   icon: Icons.block_flipped,
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.white.withOpacity(0.10),
-                  borderRadius: const BorderRadius.only(topRight: Radius.circular(30),bottomRight:  Radius.circular(30)),
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(30),bottomRight:  Radius.circular(30)),
                   label: 'Block',
 
                 ),
+              SlidableAction(
+                onPressed: (_)async{
+                  await IsarService(isar).clearAllMessage(chatId: chatId, senderId: ref.read(userProvider)!.id);
+                },
+                icon: Icons.more_vert,
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white.withOpacity(0.10),
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(30),bottomRight:  Radius.circular(30)),
+                label: 'Block',
 
+              ),
             ]
         ),
         child: Container(

@@ -1,12 +1,9 @@
 import 'dart:ui';
 
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:chatapp/componentss/elevated_button.dart';
+
 import 'package:chatapp/componentss/responsive.dart';
-import 'package:chatapp/controller/auth_controller.dart';
-import 'package:chatapp/localDB/model/user_isar.dart';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Widget _glassAvatar(String profilePic,String text,ResponsiveClass size) {

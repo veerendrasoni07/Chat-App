@@ -162,7 +162,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: height * 0.015),
+                    Column(
+                      children: [
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Divider(),
+                            Text(
+                              "OR",
+                            ),
+                            Divider(),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.black)
+                              ),
+                              child: Image.asset('assets/icons/google_png.png',height: 50,width: 50,fit: BoxFit.cover,),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

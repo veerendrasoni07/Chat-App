@@ -2,10 +2,8 @@
 import 'dart:convert';
 import 'package:chatapp/controller/auth_controller.dart';
 import 'package:chatapp/models/interaction.dart';
-import 'package:chatapp/provider/friends_provider.dart';
 import 'package:chatapp/provider/request_provider.dart';
 import 'package:chatapp/provider/userProvider.dart';
-import 'package:chatapp/utils/manage_http_request.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -83,8 +81,6 @@ class FriendApiService {
         print(response.body);
         final List<dynamic> data = jsonDecode(response.body);
         final List<Interaction> requests = data.map((r)=> Interaction.fromMap(r)).toList();
-        print("data:");
-        print(requests);
         ref.read(requestProvider(ref.read(userProvider)!.id).notifier).getAllRequest(requests);
       }
 

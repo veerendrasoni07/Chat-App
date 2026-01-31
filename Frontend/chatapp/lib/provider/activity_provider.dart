@@ -8,10 +8,10 @@ class ActivityProvider extends StateNotifier<List<Interaction>>{
   ActivityProvider():super([]);
 
 
-  void setActivity({required WidgetRef ref,required BuildContext context})async{
-    final activities = await ref.read(friendRepoProvider).getAllRecentActivities(ref: ref,context: context);
-    state = activities;
-  }
+  // void setActivity({required WidgetRef ref,required BuildContext context})async{
+  //   final activities = await ref.read(friendRepoProvider).getAllRecentActivities(ref: ref,context: context);
+  //   state = activities;
+  // }
 
 
 }

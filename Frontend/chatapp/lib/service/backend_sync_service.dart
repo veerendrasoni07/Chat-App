@@ -16,6 +16,7 @@ class BackendSyncService {
     try{
      await _groupRepo.syncAllGroups(ref,context);
      await _friendRepo.syncAllFriends(context: context,ref: ref);
+     await _friendRepo.getAllRecentActivities(ref: ref, context: context);
     }catch(e){
 
     }

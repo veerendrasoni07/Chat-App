@@ -14,8 +14,9 @@ StreamProvider.family<List<MessageIsar>, String>((ref, otherUserId) {
       .group((q) => q
       .senderIdEqualTo(myId)
       .and()
-      .chatIdEqualTo(otherUserId)
+      .chatIdEqualTo(otherUserId))
       .or()
+      .group((q) => q
       .senderIdEqualTo(otherUserId)
       .and()
       .chatIdEqualTo(myId))
