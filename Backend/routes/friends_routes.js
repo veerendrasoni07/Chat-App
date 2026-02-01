@@ -2,7 +2,8 @@ import express from 'express';
 import auth from "../middleware/auth.js";
 import Interaction from "../models/interaction.js";
 import User from "../models/user.js";
-import mongoose  from 'mongoose';
+import mongoose from 'mongoose';
+import db from '../db.js';
 
 const partnerRouter = express.Router();
 
@@ -72,16 +73,54 @@ partnerRouter.get('/api/search-user/:userName',async(req,res)=>{
 
 partnerRouter.get('/api/user-connections', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const user = await User.findById(userId)
-      .populate("connections");
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.status(200).json(user.connections);
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+  
+    const connections  = await Interaction.aggregate([
+      {
+        $match :{
+          status:"accepted",
+          $or:[
+            {fromUser:userId},
+            {toUser:userId}
+          ]
+        }
+      },
+      {
+        $addFields:{
+          otherUser:{
+            $cond:[
+              {$eq:["$fromUser",userId]},
+              "$toUser",
+              "$fromUser"
+            ]
+          }
+        }
+      },
+      {
+        $lookup:{
+          from:"users",
+          localField:"otherUser",
+          foreignField:"_id",
+          as:"user",
+        }
+      },
+      {
+        $unwind:"$user"
+      },
+      {
+        $project:{
+          _id:0,
+          "user.fullname":1,
+          "user.username":1,
+          "user.bio":1,
+          "user.gender":1,
+          "user.createdAt":1,
+          "user._id":1
+        }
+      }
+    ]);
+    console.log(connections);
+    res.status(200).json(connections);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal Server Error" });

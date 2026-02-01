@@ -23,9 +23,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  profilePic:{
-    type:String,
-  },
   gender:{
     type:String,
   },
@@ -44,10 +41,10 @@ const userSchema = new mongoose.Schema({
   isOnline:{type:Boolean},
   bio:{
     type:String,
+    default:"Hey there! I am using Orbit."
   },
   lastSeen:{type:Date},
   groups:[String],
-  connections : [{type:mongoose.Schema.Types.ObjectId,ref:'User'}]
 
 },{timestamps:true});
 

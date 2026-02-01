@@ -106,7 +106,7 @@ authRouter.post('/api/refresh-token',async(req,res)=>{
             return res.status(401).json({msg:"Somethings suspecious noticed, Session Expired Login Again!"})
         }
 
-        const verify = jsonwebtoken.verify(refreshToken,process.env.REFRESH_TOKEN_SCRET_KEY);
+        const verify = jsonwebtoken.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET_KEY);
         if(!verify){
             return res.status(401).json({msg:"Token verification failed"});
         }

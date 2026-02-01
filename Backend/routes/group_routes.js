@@ -9,6 +9,7 @@ const groupRouter = express.Router();
 
 groupRouter.post('/api/create-group', auth, async (req, res) => {
     try {
+        console.log("create group api called");
         const { groupName, groupMembers } = req.body;
         const userId = req.user.id;
 
@@ -17,12 +18,14 @@ groupRouter.post('/api/create-group', auth, async (req, res) => {
             return res.status(400).json({ msg: "Invalid member(s)" });
         }
 
-        const newGroup = await Group.create({
+        let newGroup = await Group.create({
             groupName,
             groupMembers,
             groupAdmin: [userId]
         });
-
+newGroup = await Group.findById(newGroup._id)
+  .populate("groupMembers")
+  .populate("groupAdmin");
         const allMembers = [...groupMembers, userId];
 
         await User.updateMany(
@@ -37,7 +40,7 @@ groupRouter.post('/api/create-group', auth, async (req, res) => {
         io.to(allMembers.map(id => id.toString())).emit("join-group", {
             groupId: newGroup._id.toString()
         });
-
+        console.log(newGroup);
         res.status(201).json(newGroup);
 
     } catch (error) {
