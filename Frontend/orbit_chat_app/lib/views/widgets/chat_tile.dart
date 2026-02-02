@@ -131,7 +131,9 @@ class ChatTile extends ConsumerWidget {
                       } else {
                         Get.to(
                             ()=>  ChatScreen(
-                                receiverId: chatId, fullname: name),
+                                receiverId: chatId,
+                                fullname: name
+                            ),
                           transition: Transition.rightToLeft,
                           duration:const Duration(milliseconds: 300),
                           curve: Curves.easeOutCubic,
