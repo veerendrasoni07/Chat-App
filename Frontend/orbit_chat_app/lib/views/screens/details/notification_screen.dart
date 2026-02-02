@@ -1,11 +1,15 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:orbit_chat_app/localDB/Mapper/mapper.dart';
 import 'package:orbit_chat_app/models/interaction.dart';
+import 'package:orbit_chat_app/models/request.dart';
 import 'package:orbit_chat_app/provider/request_provider.dart';
-import 'package:orbit_chat_app/provider/socket_provider.dart' show socketProvider;
+import 'package:orbit_chat_app/provider/socket_provider.dart';
+import 'package:orbit_chat_app/service/friend_api_service.dart';
+import 'package:orbit_chat_app/views/screens/details/account_screen.dart';
 import 'package:orbit_chat_app/views/screens/details/chat_screen.dart';
 import 'package:orbit_chat_app/views/screens/details/profile_screen.dart';
 import '../../../provider/userProvider.dart';
@@ -18,12 +22,10 @@ class NotificationScreen extends ConsumerStatefulWidget {
 }
 
 class _NotificationScreenState extends ConsumerState<NotificationScreen> {
-
-
-
   @override
   void initState() {
     super.initState();
+    FriendApiService().getAllRequests(ref: ref, context: context);
   }
 
   @override
@@ -33,8 +35,6 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-
-
       body: Stack(
         children: [
           Container(
@@ -43,7 +43,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                 colors: [
                   const Color(0xFF450072),
                   const Color(0xFF270249),
-                  const Color(0xFF1F0033)
+                  const Color(0xFF1F0033),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -55,31 +55,40 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               children: [
                 _header(context, primary),
                 Expanded(
-                  child:  ListView(
+                  child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
                       // Requests Title
-                      requests.isNotEmpty ? _sectionTitle(context, "Friend Requests"): Center(child: Text("No Requests",style: GoogleFonts.poppins(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),),),
-            
-                      ...requests.map((req) => _RequestTile(
-                        key: ValueKey(req.id),
-                        req: req,
-                        userId: user.id,
-                      )),
-            
+                      requests.isNotEmpty
+                          ? _sectionTitle(context, "Friend Requests")
+                          : Center(
+                              child: Text(
+                                "No Requests",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+
+                      ...requests.map(
+                        (req) => _RequestTile(
+                          key: ValueKey(req.from!.id),
+                          req: req,
+                          userId: user.id,
+                        ),
+                      ),
+
                       if (requests.isNotEmpty) const SizedBox(height: 20),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
         ],
-      )
+      ),
     );
   }
 
@@ -101,9 +110,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => ProfileScreen(user: a.fromUser),
-        ),
+        MaterialPageRoute(builder: (_) => ProfileScreen(user: a.fromUser)),
       ),
       child: _glassTile(
         context: context,
@@ -116,10 +123,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    a.fromUser.fullname,
-                    style: _titleStyle(context),
-                  ),
+                  Text(a.fromUser.fullname, style: _titleStyle(context)),
                   const SizedBox(height: 3),
                   Text(
                     "@${a.fromUser.username}",
@@ -150,15 +154,11 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     );
   }
 
-  Widget _avatar(BuildContext context,  String name) {
+  Widget _avatar(BuildContext context, String name) {
     return CircleAvatar(
       radius: 26,
-      backgroundColor:
-      Theme.of(context).colorScheme.primary.withOpacity(0.15),
-      child: Text(
-        name[0].toUpperCase(),
-        style: _titleStyle(context),
-      )
+      backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+      child: Text(name[0].toUpperCase(), style: _titleStyle(context)),
     );
   }
 
@@ -198,7 +198,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 /// ----------------------
 
 class _RequestTile extends ConsumerStatefulWidget {
-  final Interaction req;
+  final Request req;
   final String userId;
   const _RequestTile({super.key, required this.req, required this.userId});
 
@@ -213,56 +213,68 @@ class _RequestTileState extends ConsumerState<_RequestTile>
   @override
   Widget build(BuildContext context) {
     final req = widget.req;
-
-    return _glassTile(
-      context: context,
-      child: Row(
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: Theme.of(context)
-                .colorScheme
-                .primary
-                .withOpacity(0.15),
-            child: Text(
-              req.fromUser.fullname[0].toUpperCase(),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+    final userId = ref.read(userProvider)!.id;
+    return GestureDetector(
+      onTap: (){
+        Get.to(()=>AccountScreen(backgroundType: "", user: mapUserToIsar(req.from!)),transition: Transition.cupertinoDialog,duration: const Duration(milliseconds: 400),curve: Curves.easeInOut,);
+      },
+      child: _glassTile(
+        context: context,
+        child: Row(
+          children: [
+            // Avatar
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withOpacity(0.15),
+              child: Text(
+                req.from!.fullname[0].toUpperCase(),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
             ),
-          ),
 
-          const SizedBox(width: 16),
+            const SizedBox(width: 16),
 
-          Expanded(
-            child: Text(
-              req.fromUser.fullname,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
+            Expanded(
+              child: Text(
+                req.from!.fullname,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
               ),
             ),
-          ),
 
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: accepted
-                ? _accepted()
-                : Row(
-              children: [
-                _button(context, "Accept", Colors.greenAccent,
-                        () => _accept(req)),
-                const SizedBox(width: 10),
-                _button(context, "Reject", Colors.redAccent,
-                        () => _reject(req)),
-              ],
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: accepted
+                  ? _accepted()
+                  : Row(
+                      children: [
+                        _button(
+                          context,
+                          "Accept",
+                          Colors.greenAccent,
+                          () => _accept(req,userId),
+                        ),
+                        const SizedBox(width: 10),
+                        _button(
+                          context,
+                          "Reject",
+                          Colors.redAccent,
+                          () => _reject(req, userId),
+                        ),
+                      ],
+                    ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -288,7 +300,11 @@ class _RequestTileState extends ConsumerState<_RequestTile>
   }
 
   Widget _button(
-      BuildContext ctx, String label, Color color, VoidCallback onTap) {
+    BuildContext ctx,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -310,20 +326,26 @@ class _RequestTileState extends ConsumerState<_RequestTile>
     );
   }
 
-  void _accept(Interaction req) {
-    setState(() => accepted = true);
+  void _accept(Request req,String userId) {
     final socket = ref.read(socketProvider);
     socket.acceptRequest({
-      'senderId': req.fromUser.id,
-      'receiverId': widget.userId,
+      'senderId': req.from!.id,
+      'receiverId': userId,
     });
+    print(userId);
+    print(req.from!.id);
+    setState(() => accepted = true);
+
   }
 
-  void _reject(Interaction req) {
+  void _reject(Request req, String userId) {
     final socket = ref.read(socketProvider);
-    socket.requestRejected(req.fromUser.id, req.toUser.id);
-    ref.read(requestProvider(req.fromUser.id).notifier)
-        .removeByFrom(req.fromUser.id);
+    if (req != null) {
+      socket.requestRejected(req.from!.id, userId);
+      ref
+          .read(requestProvider(req.from!.id).notifier)
+          .removeByFrom(req.from!.id);
+    }
   }
 }
 
@@ -344,15 +366,13 @@ Widget _glassTile({required BuildContext context, required Widget child}) {
     child: ClipRRect(
       borderRadius: BorderRadius.circular(22),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: child,
-        ),
+        filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+        child: Padding(padding: const EdgeInsets.all(16), child: child),
       ),
     ),
   );
 }
+
 Widget _header(BuildContext context, Color primary) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -371,7 +391,7 @@ Widget _header(BuildContext context, Color primary) {
             color: Colors.white,
           ),
         ),
-        SizedBox()
+        SizedBox(),
       ],
     ),
   );

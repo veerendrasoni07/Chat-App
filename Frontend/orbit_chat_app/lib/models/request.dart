@@ -1,31 +1,29 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:orbit_chat_app/models/user.dart';
+
 class Request {
 
-  final String from;
+  final User? from;
   final String status;
-  final String fullname;
-  final String image;
-
-  Request({required this.from, required this.status, required this.fullname, required this.image});
+  final DateTime createdAt;
+  Request({required this.from, required this.status,required this.createdAt});
 
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'from': from,
       'status': status,
-      'fullname': fullname,
-      'image': image,
+      'createdAt':createdAt
     };
   }
 
   factory Request.fromMap(Map<String, dynamic> map) {
     return Request(
-      from: map['from']?.toString() ?? "",
+      from: map['fromUserDetails'] != null ? User.fromMap(map['fromUserDetails']) :null ,
       status: map['status']?.toString() ?? "",
-      fullname: map['fullname']?.toString() ?? "",
-      image: map['image']?.toString() ?? "",
+      createdAt: DateTime.parse(map['createdAt'].toString())
     );
   }
 

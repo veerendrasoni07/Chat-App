@@ -403,16 +403,10 @@ Widget _buildFriendOrbit(
                                 final friend = friends.firstWhere(
                                   (u) => u.userId == f.userId,
                                 );
-                    
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AccountScreen(
-                                      backgroundType: '',
-                                      user: friend,
-                                    ),
-                                  ),
-                                );
+                                Get.to(()=> AccountScreen(
+                                  backgroundType: '',
+                                  user: friend,
+                                ),transition: Transition.cupertinoDialog,duration: const Duration(milliseconds: 400),curve: Curves.easeInOut,);
                               },
                               child: Container(
                                 width: 55,

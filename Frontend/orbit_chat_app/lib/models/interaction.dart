@@ -6,19 +6,19 @@ import 'package:orbit_chat_app/models/user.dart';
 class Interaction {
   final String id;
   final User fromUser;
-  final User toUser;
+  final User? toUser;
   final String status;
 
   Interaction({required this.id,required this.fromUser, required this.toUser, required this.status});
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id':id,
-      'fromUser': fromUser.toMap(),
-      'toUser': toUser.toMap(),
-      'status': status,
-    };
-  }
+  //
+  // Map<String, dynamic> toMap() {
+  //   return <String, dynamic>{
+  //     'id':id,
+  //     'fromUser': fromUser.toMap(),
+  //     'toUser': toUser.toMap(),
+  //     'status': status,
+  //   };
+  // }
 
   factory Interaction.fromMap(Map<String, dynamic> map) {
     return Interaction(
@@ -33,7 +33,7 @@ class Interaction {
     );
   }
 
-  String toJson() => json.encode(toMap());
+  // String toJson() => json.encode(toMap());
 
   factory Interaction.fromUserJson(String source) =>
       Interaction.fromMap(json.decode(source) as Map<String, dynamic>);

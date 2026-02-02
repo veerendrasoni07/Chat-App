@@ -236,7 +236,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       itemBuilder: (context, index) {
         final u = users[index];
         final alreadySent =
-        sentRequest.any((x) => mapUserToIsar(x.toUser).userId == u.id);
+        sentRequest.any((x) => mapUserToIsar(x.toUser!).userId == u.id);
         bool alreadyFriend = friends.any((x)=>x.userId== u.id);
         final userIsar = mapUserToIsar(u);
         return GestureDetector(

@@ -415,16 +415,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       const SizedBox(height: 16),
 
                       // stat row
-                      Row(
-                        children: [
-                          _StatBlock(
-                              title: 'Followers', value: '${widget.user.connections.length}'),
-                          const SizedBox(width: 14),
-                          _StatBlock(title: 'Posts', value: '0'),
-                          const SizedBox(width: 14),
-                          _StatBlock(title: 'Level', value: 'Creator'),
-                        ],
-                      ),
+                      // Row(
+                      //   children: [
+                      //     _StatBlock(
+                      //         title: 'Followers', value: '${widget.user.connections.length}'),
+                      //     const SizedBox(width: 14),
+                      //     _StatBlock(title: 'Posts', value: '0'),
+                      //     const SizedBox(width: 14),
+                      //     _StatBlock(title: 'Level', value: 'Creator'),
+                      //   ],
+                      // ),
                     ],
                   ),
                 ),

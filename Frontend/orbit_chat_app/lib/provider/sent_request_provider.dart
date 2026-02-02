@@ -19,11 +19,11 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
     socketService.sentRequest((data) {
       if (data == null) return;
       final request = Interaction.fromMap(data);
-      final exists = state.any((r) => r.toUser.id == request.toUser.id);
+      final exists = state.any((r) => r.toUser!.id == request.toUser!.id);
       if (!exists) {
         state = [request, ...state];
       } else {
-        state = state.map((r) => r.toUser.id == request.toUser.id ? request : r).toList();
+        state = state.map((r) => r.toUser!.id == request.toUser!.id ? request : r).toList();
       }
     });
 
@@ -34,13 +34,13 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
 
       // Update the matching interaction
       state = state.map((req) {
-        return req.toUser.id == updated.toUser.id ? updated : req;
+        return req.toUser!.id == updated.toUser!.id ? updated : req;
       }).toList();
     });
 
   }
 
-  //
+
   // void loadInitialData({required WidgetRef ref,required BuildContext context}) async {
   //   final data = await controller.getAllSentRequests(ref: ref,context:context );
   //   state = data;

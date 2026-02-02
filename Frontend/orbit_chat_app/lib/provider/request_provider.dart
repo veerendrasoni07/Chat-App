@@ -1,15 +1,19 @@
 
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orbit_chat_app/localDB/service/isar_service.dart';
 import 'package:orbit_chat_app/models/interaction.dart';
+import 'package:orbit_chat_app/models/request.dart';
+import 'package:orbit_chat_app/models/user.dart';
+import 'package:orbit_chat_app/provider/isar_service_provider.dart';
 import 'package:orbit_chat_app/provider/socket_provider.dart';
 import 'package:orbit_chat_app/service/socket_service.dart';
 
-class RequestProvider extends StateNotifier<List<Interaction>> {
+class RequestProvider extends StateNotifier<List<Request>> {
   final SocketService socketService;
   final String userId;
-
-  RequestProvider(this.socketService, this.userId) : super([]) {
+  final Ref ref;
+  RequestProvider(this.socketService, this.userId,this.ref) : super([]) {
     _init();
   }
 
@@ -17,34 +21,30 @@ class RequestProvider extends StateNotifier<List<Interaction>> {
     socketService.receivedRequest((data) {
       if (data == null) return;
 
-      final req = Interaction.fromMap(Map<String, dynamic>.from(data));
+      final req = Request.fromMap(Map<String, dynamic>.from(data));
 
       // Add only requests sent TO ME
-      if (userId == req.toUser) {
+      
         state = [req, ...state];
-      }
+      
     });
 
     socketService.requestAccepted((data) {
       if (data == null) return;
+      print("REquest Accepted : $data");
 
-      final updated = Interaction.fromMap(Map<String, dynamic>.from(data));
-
-      state = state.map((r) {
-        if (r.id == updated.id) {
-          return updated; // same request but status=accepted
-        }
-        return r;
-      }).toList();
+      final updated = User.fromMap(Map<String, dynamic>.from(data));
+      ref.read(isarServiceProvider).upsertUser(updated);
     });
+
   }
 
-  void getAllRequest(List<Interaction> requests) {
+  void getAllRequest(List<Request> requests) {
     state = requests;
   }
 
   void removeByFrom(String fromId) {
-    state = state.where((r) => r.fromUser.id != fromId).toList();
+    state = state.where((r) => r.from!.id != fromId).toList();
   }
   
 
@@ -53,8 +53,8 @@ class RequestProvider extends StateNotifier<List<Interaction>> {
 
 /// family so provider depends on current user id
 final requestProvider =
-StateNotifierProvider.family<RequestProvider, List<Interaction>, String>(
+StateNotifierProvider.family<RequestProvider, List<Request>, String>(
         (ref, userId) {
       final socket = ref.read(socketProvider);
-      return RequestProvider(socket, userId);
+      return RequestProvider(socket, userId, ref);
     });

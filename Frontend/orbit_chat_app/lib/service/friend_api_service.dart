@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orbit_chat_app/controller/auth_controller.dart';
 import 'package:orbit_chat_app/models/interaction.dart';
+import 'package:orbit_chat_app/models/request.dart';
 import 'package:orbit_chat_app/models/user.dart';
 import 'package:orbit_chat_app/provider/request_provider.dart';
 import 'package:orbit_chat_app/provider/userProvider.dart';
 import 'package:http/http.dart' as http;
+import 'package:orbit_chat_app/utils/manage_http_request.dart';
 
 import '../global_variable.dart';
 
@@ -16,7 +18,6 @@ import '../global_variable.dart';
 class FriendApiService {
   Future<List<User>> getAllFriends({required WidgetRef ref,required BuildContext context})async{
     try{
-      debugPrint("Ssssssssssssssssssssssssssssssssssssssssssssssssssssssss");
       http.Response response = await AuthController().sendRequest(request: (token)async{
          return await http.get(Uri.parse('$uri/api/user-connections'),
             headers: <String,String>{
@@ -28,8 +29,6 @@ class FriendApiService {
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
         final List<User> users = data.map((user)=> User.fromMap(user['user'])).toList();
-        debugPrint("fasdfasdfjasdjfhaskjdf");
-        debugPrint(response.body);
         return users;
       }
       else{
@@ -52,9 +51,7 @@ class FriendApiService {
       }, ref: ref,context: context);
       if(response.statusCode == 200){
         final data = jsonDecode(response.body);
-        final User users = User.fromMap(data);
-        print("fasdfasdfjasdjfhaskjdf");
-        print(response.body);
+        showSnackBar(context, data['msg']);
       }
       else{
         throw Exception('Failed to remove friends');
@@ -80,7 +77,7 @@ class FriendApiService {
       if(response.statusCode == 200){
         print(response.body);
         final List<dynamic> data = jsonDecode(response.body);
-        final List<Interaction> requests = data.map((r)=> Interaction.fromMap(r)).toList();
+        final List<Request> requests = data.map((r)=> Request.fromMap(r)).toList();
         ref.read(requestProvider(ref.read(userProvider)!.id).notifier).getAllRequest(requests);
       }
 

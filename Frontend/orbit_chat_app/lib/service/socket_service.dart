@@ -157,7 +157,7 @@ class SocketService {
   }
 
   void requestRejected(String fromId,String toId){
-    socket.emit('request-reject',{
+    socket.emit('reject-request',{
       'fromId':fromId,
       'toId':toId
     });
