@@ -5,6 +5,7 @@ import 'package:orbit_chat_app/localDB/Mapper/mapper.dart';
 import 'package:orbit_chat_app/localDB/service/isar_service.dart';
 import 'package:orbit_chat_app/models/user.dart';
 import 'package:orbit_chat_app/service/friend_api_service.dart';
+import 'package:orbit_chat_app/utils/manage_http_request.dart';
 
 
 class FriendRepo {
@@ -28,6 +29,7 @@ class FriendRepo {
     await _friendApiService.removeFriend(
         friendId: friendId, ref: ref,context: context);
     await _isarService.removeFriendFromIsar(friendId: friendId);
+    showSnackBar(context, "Friend removed successfully");
   }
 
 

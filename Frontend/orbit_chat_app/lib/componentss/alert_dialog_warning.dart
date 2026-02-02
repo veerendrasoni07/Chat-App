@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 
-class AlertDialogWarning extends StatelessWidget {
-  Widget? title;
-  Widget? content;
-  void Function()? onSave;
-  void Function()? onCancel;
-  AlertDialogWarning({super.key, required this.title, required this.content,required this.onSave});
 
-  @override
-  Widget build(BuildContext context) {
+
+  Widget alertDialogWarning({required Text title, required Text content,required   void Function()? onSave,required BuildContext context}) {
     return AlertDialog(
       title:title,
       content: content,
@@ -37,4 +31,4 @@ class AlertDialogWarning extends StatelessWidget {
       ]
     );
   }
-}
+

@@ -8,6 +8,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_navigation/src/routes/transitions_type.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:orbit_chat_app/componentss/alert_dialog_warning.dart';
 import 'package:orbit_chat_app/localDB/model/user_isar.dart';
 import 'package:orbit_chat_app/localDB/provider/isar_provider.dart';
 import 'package:orbit_chat_app/localDB/service/isar_service.dart';
@@ -50,7 +51,13 @@ class ChatTile extends ConsumerWidget {
             children: [
               SlidableAction(
                   onPressed: (_)async{
-                    isGroup ? (){} : await friendRepo.removeFriend(friendId: chatId,context: context,ref: ref);
+                    showDialog(context: context, builder: (_){
+                      return alertDialogWarning(title: Text("Remove Friend"), content: Text("Do you really want to remove $name from your friend list?"), onSave: ()async{
+                        isGroup ? (){} : await friendRepo.removeFriend(friendId: chatId,context: context,ref: ref);
+                        Navigator.pop(context);
+                      }, context: context);
+                    });
+
                   },
                 icon: Icons.delete,
                 foregroundColor: Colors.white,
@@ -61,7 +68,13 @@ class ChatTile extends ConsumerWidget {
               ),
               if(!isGroup)
                 SlidableAction(
-                  onPressed: (_){},
+                  onPressed: (_){
+                    showDialog(context: context, builder: (_){
+                      return alertDialogWarning(title: Text("Block User"), content: Text("Do you really want to block $name"), onSave: (){
+
+                      }, context: context);
+                    });
+                  },
                   icon: Icons.block_flipped,
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.white.withOpacity(0.10),
@@ -71,13 +84,17 @@ class ChatTile extends ConsumerWidget {
                 ),
               SlidableAction(
                 onPressed: (_)async{
-                  await IsarService(isar).clearAllMessage(chatId: chatId, senderId: ref.read(userProvider)!.id);
+                  showDialog(context: context, builder: (_){
+                    return alertDialogWarning(title: Text("Clear All Messages?"), content: Text("Do you really want to clear all messages (Note:Messages will only clear from your device not from server"), onSave: ()async{
+                      await IsarService(isar).clearAllMessage(chatId: chatId, senderId: ref.read(userProvider)!.id);
+                    }, context: context);
+                  });
                 },
                 icon: Icons.more_vert,
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.white.withOpacity(0.10),
                 borderRadius: const BorderRadius.only(topLeft: Radius.circular(30),bottomRight:  Radius.circular(30)),
-                label: 'Block',
+                label: 'Chat',
 
               ),
             ]

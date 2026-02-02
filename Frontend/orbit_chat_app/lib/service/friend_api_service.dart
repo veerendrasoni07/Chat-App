@@ -50,10 +50,10 @@ class FriendApiService {
         );
       }, ref: ref,context: context);
       if(response.statusCode == 200){
-        final data = jsonDecode(response.body);
-        showSnackBar(context, data['msg']);
+        return;
       }
       else{
+        print(response.body);
         throw Exception('Failed to remove friends');
       }
     }catch(e){
