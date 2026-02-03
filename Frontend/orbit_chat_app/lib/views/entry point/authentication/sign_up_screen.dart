@@ -6,8 +6,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:orbit_chat_app/componentss/elevated_button.dart';
 import 'package:orbit_chat_app/controller/auth_controller.dart';
+import 'package:orbit_chat_app/componentss/container_button.dart';
 
 class SignUpFlow extends ConsumerStatefulWidget {
   const SignUpFlow({super.key});
@@ -26,12 +26,11 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final AuthController _authController = AuthController();
+  TextEditingController();
   Timer? debounce;
   String? gender;
   bool isPassShown = false;
-  bool isUserNameExist = false;
+  bool isUserNameExist = true;
   final List<GlobalKey<FormState>> _formKeys = [
     GlobalKey<FormState>(), // Name
     GlobalKey<FormState>(), // Username
@@ -42,7 +41,7 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
 
 
   void checkUserName(String username)async{
-    final bool userName = await _authController.usernameCheck(username);
+    final bool userName = await AuthController().usernameCheck(username);
     setState(() {
       isUserNameExist = userName;
     });
@@ -50,11 +49,9 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
 
   void userNameOnChanged(String value){
     if(debounce?.isActive ?? false ){
-      print("cancel kr dia is ki maa ki ");
       debounce?.cancel();
     }
     debounce = Timer(Duration(milliseconds: 800), (){
-      print("check kr dia");
       checkUserName(value.trim());
     });
   }
@@ -101,12 +98,17 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
         backgroundColor: Colors.transparent,
         leading: _currentPage > 0
             ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                size: 15,
-                    color: Colors.grey),
-                onPressed: previousPage,
-              )
-            : null,
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              size: 15,
+              color: Colors.black),
+          onPressed: previousPage,
+        )
+            : IconButton(
+          icon:  Icon(Icons.arrow_back_ios_new_rounded,
+              size: 15,
+              color: Colors.black),
+          onPressed:()=> Navigator.pop(context),
+        ),
       ),
 
       body: SafeArea(
@@ -137,13 +139,13 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                       TextFormField(
                         controller: _nameController,
                         validator: (value) =>
-                            value == null || value.isEmpty
-                                ? "Please enter your name"
-                                : null,
+                        value == null || value.isEmpty
+                            ? "Please enter your name"
+                            : null,
                         cursorColor: Colors.green,
                         style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16.sp
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16.sp
                         ),
                         decoration: InputDecoration(
                           hintText: "Enter your name",
@@ -151,23 +153,24 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                           filled: true,
                           enabled: true,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none
                           ),
                         ),
                       ),
                       SizedBox(height: size.height * 0.05),
-                      CustomElevatedButton(
-                        buttonText: "Next",
-                        onPressed: nextPage,
+                      GestureDetector(
+                          onTap: nextPage,
+                          child: ContainerButton(height: MediaQuery.of(context).size.height * 0.05, width: MediaQuery.of(context).size.width * 0.9, text: "Next")
                       ),
+
                     ],
                   ),
                 ),
               ),
             ),
 
-            // 2️⃣ Username Page
+
             SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.symmetric(
@@ -210,25 +213,24 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                           ),
                         ),
                       ),
-                      if (_userNameController.text.isNotEmpty)
+                      if ( isUserNameExist && _userNameController.text.isNotEmpty)
                         const Text(
                           "Username already exists",
                           style: TextStyle(color: Colors.red),
                         )
-                      else
+                      else if(!isUserNameExist && _userNameController.text.isNotEmpty)
                         const Text(
                           "Username is available",
                           style: TextStyle(color: Colors.green),
                         ),
                       SizedBox(height: size.height * 0.05),
-                      CustomElevatedButton(
-                        buttonText: "Next",
-                        onPressed: (){
-                          if(_formKeys[1].currentState!.validate()){
-                            nextPage();
-                          }
-                        },
-                      ),
+                      GestureDetector(
+                          onTap: (){
+                            if( !isUserNameExist && _formKeys[1].currentState!.validate()){
+                              nextPage();
+                            }
+                          },
+                          child: ContainerButton(height: MediaQuery.of(context).size.height * 0.05, width: MediaQuery.of(context).size.width * 0.9, text: "Next"))
                     ],
                   ),
                 ),
@@ -258,9 +260,9 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                       TextFormField(
                         controller: _emailController,
                         validator: (value) =>
-                            value == null || value.isEmpty
-                                ? "Please enter your email"
-                                : null,
+                        value == null || value.isEmpty
+                            ? "Please enter your email"
+                            : null,
                         cursorColor: Colors.green,
                         style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
@@ -271,16 +273,15 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                           filled: true,
                           fillColor: Colors.grey.shade200,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none
                           ),
                         ),
                       ),
                       SizedBox(height: size.height * 0.05),
-                      CustomElevatedButton(
-                        buttonText: "Next",
-                        onPressed: nextPage,
-                      ),
+                      GestureDetector(
+                          onTap: nextPage,
+                          child: ContainerButton(height: MediaQuery.of(context).size.height * 0.05 , width: MediaQuery.of(context).size.width * 0.9, text: "Next"))
                     ],
                   ),
                 ),
@@ -344,9 +345,9 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                         onChanged: (value) => setState(() => gender = value),
                       ),
                       SizedBox(height: size.height * 0.05),
-                      CustomElevatedButton(
-                        buttonText: "Next",
-                        onPressed: () {
+
+                      GestureDetector(
+                        onTap: (){
                           if (gender != null) {
                             nextPage();
                           } else {
@@ -355,14 +356,18 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                                     content: Text("Please select your gender")));
                           }
                         },
-                      ),
+                        child: ContainerButton(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            text: "Next"
+                        ),
+                      )
                     ],
                   ),
                 ),
               ),
             ),
 
-            // 5️⃣ Password Page
             SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.symmetric(
@@ -386,9 +391,9 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                         controller: _passwordController,
                         obscureText: false,
                         validator: (value) =>
-                            value == null || value.isEmpty
-                                ? "Please enter your password"
-                                : null,
+                        value == null || value.isEmpty
+                            ? "Please enter your password"
+                            : null,
                         style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 16.sp
@@ -399,8 +404,8 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                           filled: true,
                           fillColor: Colors.grey.shade200,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none
                           ),
                         ),
                       ),
@@ -426,20 +431,27 @@ class _SignUpFlowState extends ConsumerState<SignUpFlow> {
                             });
                           }, icon: isPassShown ? const Icon(CupertinoIcons.eye_solid) : const Icon( CupertinoIcons.eye_slash_fill)),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide.none
                           ),
                         ),
                       ),
                       SizedBox(height: size.height * 0.05),
-                      CustomElevatedButton(
-                        buttonText: "Accept and Continue",
-                        onPressed: () {
+
+                      GestureDetector(
+                        onTap: (){
                           if (_formKeys[4].currentState!.validate()) {
-                            AuthController().signUp(fullname: _nameController.text,username: _userNameController.text, email: _emailController.text, password: _passwordController.text, gender: gender!, context: context, ref: ref);
+                            showDialog(context: context, builder: (_)=>Center(child: CircularProgressIndicator()));
+                            AuthController().signUp(fullname: _nameController.text.trim(),username: _userNameController.text.trim(), email: _emailController.text.trim(), password: _passwordController.text.trim(), gender: gender!, context: context, ref: ref);
+                            Navigator.pop(context);
                           }
                         },
-                      ),
+                        child: ContainerButton(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            text: "Next"
+                        ),
+                      )
                     ],
                   ),
                 ),

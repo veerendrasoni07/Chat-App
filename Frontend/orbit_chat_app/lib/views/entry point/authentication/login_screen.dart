@@ -146,11 +146,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           minimumSize: Size(width * 0.75, height * 0.065),
                         ),
                         onPressed: () async {
+                          showDialog(context: context, builder: (_)=>Center(child: CircularProgressIndicator(),));
                           await AuthController().login(
                               email: emailController.text,
                               password: passwordController.text,
                               context: context,
                               ref: ref);
+                          Navigator.pop(context);
                         },
                         child: Text(
                           "Login",

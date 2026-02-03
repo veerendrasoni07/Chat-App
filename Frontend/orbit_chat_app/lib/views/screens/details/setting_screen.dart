@@ -45,7 +45,6 @@ class SettingsScreen extends ConsumerWidget {
                         _profileTile(user),
                         const SizedBox(height: 20),
                         _sectionTitle("Account"),
-                        _glassTile(Icons.person_rounded, "Edit Profile"),
                         _glassTile(Icons.phone_android, "Change Phone"),
                         _glassTile(Icons.logout, "Logout",
                             onTap: () => ref.read(authManagerProvider.notifier).logout(context: context)),
@@ -53,19 +52,15 @@ class SettingsScreen extends ConsumerWidget {
                         const SizedBox(height: 25),
                         _sectionTitle("Chats"),
                         _glassTile(Icons.wallpaper_rounded, "Chat Wallpaper"),
-                        _glassTile(Icons.hd_rounded, "Media Quality"),
                         _glassSwitchTile("Auto-download Media", true),
 
                         const SizedBox(height: 25),
                         _sectionTitle("Notifications"),
                         _glassSwitchTile("Message Notifications", true),
                         _glassSwitchTile("Sound Effects", true),
-                        _glassSwitchTile("Vibration", true),
 
                         const SizedBox(height: 25),
                         _sectionTitle("Privacy"),
-                        _glassTile(Icons.visibility_rounded, "Last Seen"),
-                        _glassTile(Icons.photo_rounded, "Profile Photo"),
                         _glassTile(Icons.block, "Blocked Users"),
 
                         const SizedBox(height: 25),
