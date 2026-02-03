@@ -97,8 +97,8 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
             child: Column(
               children: [
                 _dragHandle(),
-                Expanded(child: _form()),
-                _saveButton(),
+                _form(),
+                Expanded(child: _saveButton()),
               ],
             ),
           ),
