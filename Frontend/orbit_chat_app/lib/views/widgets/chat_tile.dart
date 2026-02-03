@@ -71,7 +71,7 @@ class ChatTile extends ConsumerWidget {
                   onPressed: (_){
                     showDialog(context: context, builder: (_){
                       return alertDialogWarning(title: Text("Block User"), content: Text("Do you really want to block $name"), onSave: (){
-
+                        Navigator.pop(context);
                       }, context: context);
                     });
                   },
@@ -87,6 +87,7 @@ class ChatTile extends ConsumerWidget {
                   showDialog(context: context, builder: (_){
                     return alertDialogWarning(title: Text("Clear All Messages?"), content: Text("Do you really want to clear all messages (Note:Messages will only clear from your device not from server"), onSave: ()async{
                       await IsarService(isar).clearAllMessage(chatId: chatId, senderId: ref.read(userProvider)!.id);
+                      Navigator.pop(context);
                     }, context: context);
                   });
                 },

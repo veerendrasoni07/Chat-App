@@ -140,12 +140,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   void userTyping(SocketService socket, String senderId, String receiverId) {
     if (!isTyping) {
-      isTyping = true;
+      setState(() {
+        isTyping = true;
+      });
       socket.userTyping(senderId, receiverId);
     }
     debounce?.cancel();
     debounce = Timer(Duration(milliseconds: 700), () {
-      isTyping = false;
+      setState(() {
+        isTyping=false;
+      });
       socket.stopTyping(senderId, receiverId);
     });
   }
@@ -435,12 +439,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         children: [
                           if(pickedImage!=null)
                             Chip(
+                              autofocus: true,
+                              backgroundColor: Colors.white.withOpacity(0.5),
                                 onDeleted: (){
                                   setState(() {
                                     pickedImage = null;
                                   });
                                 },
-                                label: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,)
+                                label: ClipRRect(borderRadius: BorderRadius.circular(12),child: Image.file(File(pickedImage!.path),height: 50.h,width: 50.w,fit: BoxFit.cover,))
                             ),
                           TextField(
                             controller: messageController,
@@ -450,6 +456,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               user!.id,
                               widget.receiverId,
                             ),
+                            maxLines: null,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Theme.of(context).colorScheme.primary,
@@ -471,15 +478,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 Icons.door_back_door_outlined,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
-                              suffixIcon: SizedBox(
+                              suffixIcon:  SizedBox(
                                 width: 200.w,
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
-                                    IconButton(onPressed: ()=>pickVideoFromGallery(),icon:Icon(Icons.video_collection,color: Theme.of(context).colorScheme.primary,)),
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: !isTyping ?  [
+                                     IconButton(onPressed: ()=>pickImageFromGallery(),icon:Icon(Icons.image_rounded,color: Theme.of(context).colorScheme.primary,)),
+                                    IconButton(onPressed: ()=>pickVideoFromGallery(),icon:Icon(Icons.video_collection,color: Theme.of(context).colorScheme.primary,)) ,
                                     // Microphone button with gesture detection
-                                    GestureDetector(
+                                     GestureDetector(
                                       onLongPressStart: (details) async {
 
                                         await recordVoice(_controller);
@@ -503,18 +510,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                           print(filePath);
                                           print(duration);
 
-                                        //   await ref
-                                        //       .read(
-                                        //     messageProvider(
-                                        //       widget.receiverId,
-                                        //     ).notifier,
-                                        //   )
-                                        //       .sendVoice(
-                                        //     senderId: user!.id,
-                                        //     receiverId: widget.receiverId,
-                                        //     filePath: filePath,
-                                        //     duration: duration,
-                                        //   );
+                                          //   await ref
+                                          //       .read(
+                                          //     messageProvider(
+                                          //       widget.receiverId,
+                                          //     ).notifier,
+                                          //   )
+                                          //       .sendVoice(
+                                          //     senderId: user!.id,
+                                          //     receiverId: widget.receiverId,
+                                          //     filePath: filePath,
+                                          //     duration: duration,
+                                          //   );
                                         }
 
                                         setState(() {
@@ -534,6 +541,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                         ),
                                       ),
                                     ),
+                                    IconButton(
+                                        onPressed: (){
+                                          if(isImage) {
+                                            ref.read(messageProvider(widget.receiverId)).sendImage(senderId: user!.id, receiverId: widget.receiverId, filePath: pickedImage!, message: messageController.text);
+                                            setState(() {
+                                              pickedImage = null;
+                                              isImage = false;
+                                              messageController.clear();
+                                            });
+
+                                          }
+                                          else{
+                                            if(messageController.text.isNotEmpty){
+                                              ref.read(messageProvider(widget.receiverId)).sendMessage(senderId: user!.id, receiverId: widget.receiverId, userMessage: messageController.text.isEmpty ? '' : messageController.text, duration: 0.0, type: 'text', uploadUrl: '');
+                                              messageController.clear();
+                                            }
+                                          }
+                                        },
+                                        icon:Icon(Icons.send,color: Theme.of(context).colorScheme.primary,))
+                                  ] : [
+
                                     IconButton(
                                         onPressed: (){
                                           if(isImage) {

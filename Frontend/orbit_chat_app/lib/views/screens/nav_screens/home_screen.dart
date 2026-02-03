@@ -10,6 +10,7 @@ import 'package:orbit_chat_app/localDB/Mapper/mapper.dart';
 import 'package:orbit_chat_app/models/user.dart';
 import 'package:orbit_chat_app/models/user_status.dart';
 import 'package:orbit_chat_app/provider/activity_provider.dart';
+import 'package:orbit_chat_app/provider/app_start_up.dart';
 import 'package:orbit_chat_app/provider/backend_sync_provider.dart';
 import 'package:orbit_chat_app/provider/combined_chat_provider.dart';
 import 'package:orbit_chat_app/provider/friend_controller_provider.dart';
@@ -38,11 +39,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+
+  }
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    if(ref.watch(appStartUpProvider)!=true){
       Future.microtask((){
         if(context.mounted){
           ref.read(backendSyncProvider).backendSync(ref: ref,context: context);
+          ref.read(appStartUpProvider.notifier).appStartUp();
         }
       });
+    }
   }
 
   @override
