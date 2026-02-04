@@ -159,33 +159,31 @@ class AuthController{
   Future<void> updateUserProfile({required String fullname,required String bio,required String phone,required String location,required String gender ,required WidgetRef ref,required BuildContext context})async{
     try{
       SharedPreferences preferences = await SharedPreferences.getInstance();
-      final token = preferences.getString('token');
-      http.Response response = await http.put(
-          Uri.parse('$uri/api/update-profile'),
-        body: jsonEncode({
-          "details": {
-            'fullname':fullname,
-            'bio':bio,
-            'phone':phone,
-            'location':location,
-            'gender':gender
-          }
-        }),
-        headers: <String,String>{
-            'Content-Type':'application/json; charset=UTF-8',
-            'x-auth-token':token!
-        }
-      );
+      http.Response response = await sendRequest(request: (token)async{
+        return await http.put(
+            Uri.parse('$uri/api/update-profile'),
+            body: jsonEncode({
+              "details": {
+                'fullname':fullname,
+                'bio':bio,
+                'phone':phone,
+                'location':location,
+                'gender':gender
+              }
+            }),
+            headers: <String,String>{
+              'Content-Type':'application/json; charset=UTF-8',
+              'x-auth-token':token
+            }
+        );
+      }, ref: ref, context: context);
+
       if(response.statusCode == 200){
         final data = jsonDecode(response.body);
         final user = data['user'];
-        await preferences.remove('user');
         final userJson = jsonEncode(user);
         await preferences.setString('user', userJson);
         ref.read(userProvider.notifier).addUser(userJson);
-        if(context.mounted){
-          showSnackBar(context, 'Profile updated successfully');
-        }
       }else{
         throw Exception('Failed to update profile');
       }

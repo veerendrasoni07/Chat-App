@@ -4,16 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orbit_chat_app/componentss/alert_dialog_warning.dart';
-import 'package:orbit_chat_app/componentss/elevated_button.dart';
 import 'package:orbit_chat_app/componentss/responsive.dart';
 import 'package:orbit_chat_app/controller/auth_controller.dart';
 import 'package:orbit_chat_app/localDB/model/user_isar.dart';
 import 'package:orbit_chat_app/provider/auth_manager_provider.dart';
+import 'package:orbit_chat_app/provider/friend_stream_provider.dart';
+import 'package:orbit_chat_app/provider/message_count_provider.dart';
 import 'package:orbit_chat_app/provider/userProvider.dart';
+import 'package:orbit_chat_app/utils/manage_http_request.dart';
+import 'package:intl/intl.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   final String backgroundType;
   final UserIsar user;
+
   const AccountScreen({
     super.key,
     required this.backgroundType,
@@ -30,6 +34,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   double _rotateY = 0;
   double _scale = 1;
 
+
+  int? joined;
   double _nx = 0;
   double _ny = 0;
 
@@ -61,6 +67,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
         ];
     }
   }
+  int joinedFormat(String? createdAt) {
+    int currentYear = int.parse(DateFormat('dd/MM/yyyy').format(DateTime.now()).split('/').toList()[2]);
+    int joinedYear = int.parse(DateFormat('dd/MM/yyyy').format(DateTime.parse(createdAt!)).split('/').toList()[2]);
+    debugPrint(currentYear.toString());
+    debugPrint(joinedYear.toString());
+      return currentYear-joinedYear;
+
+  }
 
   @override
   void dispose() {
@@ -75,9 +89,13 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
-    final userId = ref.watch(userProvider)?.id == null
+    final messageCount = ref.watch(messageCountProvider);
+    final user = ref.watch(userProvider);
+    final friends = ref.watch(friendStreamProvider).value?.length;
+    final userId = user?.id == null
         ? ""
         : ref.watch(userProvider)!.id;
+    joined =joinedFormat(user?.createdAt);
     final isMe = widget.user.userId == userId;
     return Scaffold(
       body: Stack(
@@ -114,31 +132,31 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                               color: primary,
                             ),
                           ),
-                          Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {},
-                                icon: Icon(
-                                  Icons.qr_code_2,
-                                  size: size.wp(6),
-                                  color: primary,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () => {},
-                                icon: Icon(
-                                  Icons.more_vert,
-                                  size: size.wp(6),
-                                  color: primary,
-                                ),
-                              ),
-                            ],
-                          ),
+                          // Row(
+                          //   children: [
+                          //     IconButton(
+                          //       onPressed: () {},
+                          //       icon: Icon(
+                          //         Icons.qr_code_2,
+                          //         size: size.wp(6),
+                          //         color: primary,
+                          //       ),
+                          //     ),
+                          //     IconButton(
+                          //       onPressed: () => {},
+                          //       icon: Icon(
+                          //         Icons.more_vert,
+                          //         size: size.wp(6),
+                          //         color: primary,
+                          //       ),
+                          //     ),
+                          //   ],
+                          // ),
                         ],
                       ),
                       _buildHeader(widget.user, size, isMe),
                       SizedBox(height: size.hp(8)),
-                      _interactiveTiltCard(),
+                      _interactiveTiltCard(messageCount,friends ?? 0),
                       SizedBox(height: size.hp(10)),
                       _buildSettingsList(
                         context,
@@ -160,6 +178,147 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _interactiveTiltCard(int messageCount,int friends) {
+    return Listener(
+      onPointerUp: (_) => setState(() {
+        _rotateX = 0;
+        _rotateY = 0;
+        _scale = 1;
+      }),
+      onPointerMove: (value) {
+        final size = MediaQuery.of(context).size.width * 0.8;
+        final center = size / 2;
+        final dx = value.localPosition.dx - center;
+        final dy = value.localPosition.dy - center;
+
+        _nx = dx / center;
+        _ny = dy / center;
+
+        setState(() {
+          _rotateY = _nx * 0.18;
+          _rotateX = -_ny * 0.18;
+          _scale = 1.06;
+        });
+      },
+      child: TweenAnimationBuilder(
+        tween: Tween<double>(begin: 1, end: _scale),
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+        builder: (context, s, child) {
+          return Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.0006)
+              ..rotateX(_rotateX)
+              ..rotateY(_rotateY)
+              ..scale(s),
+            child: child,
+          );
+        },
+        child: _glassStatsCard(messageCount,friends),
+      ),
+    );
+  }
+
+  Widget _glassStatsCard(int messageCount,int friends) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.92,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.10),
+            Colors.white.withOpacity(0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: Stack(
+          children: [
+            //Frosted Blur
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                child: const SizedBox(),
+              ),
+            ),
+
+            // Shine layer
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment(_nx, _ny),
+                    radius: 1.1,
+                    colors: [
+                      Colors.white.withOpacity(0.18),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            _buildStatsContent(messageCount,friends),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsContent(int messageCount,int friends) {
+    return Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _statColumn(messageCount.toString(), "Messages"),
+              _statColumn(friends.toString(), "Friends"),
+              _statColumn(joined == 0? "Recently" :"${joined.toString()} yr" , "Joined"),
+            ],
+          ),
+          Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              widget.user.bio?.isNotEmpty == true
+                  ? widget.user.bio!
+                  : "Available",
+              style: GoogleFonts.poppins(fontSize: 15, color: Colors.white70),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statColumn(String value, String label) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 13, color: Colors.white70),
+        ),
+      ],
     );
   }
   Future<Widget> editProfileBottomSheet()async{
@@ -200,302 +359,345 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   ),
                   Column(
                     children: [
-                      SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8.0,
-                            horizontal: 8.0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              SizedBox(
-                                height:
-                                MediaQuery.of(context).size.height *
-                                    0.06,
-                              ),
-                              glassAvatar(
-                                widget.user.fullname,
-                                ResponsiveClass(
-                                  MediaQuery.of(context).size.height,
-                                  MediaQuery.of(context).size.width,
+                      Expanded(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 8.0,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height *
+                                      0.06,
                                 ),
-                              ),
-                              Text(
-                                "Name",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                ),
-                              ),
-                              const Divider(
-                                color: Colors.white12,
-                                thickness: 0.4,
-                              ),
-                              TextFormField(
-                                decoration: InputDecoration(
-                                  hintText: "Enter your name",
-                                  hintStyle: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
+                                glassAvatar(
+                                  widget.user.fullname,
+                                  ResponsiveClass(
+                                    MediaQuery.of(context).size.height,
+                                    MediaQuery.of(context).size.width,
                                   ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  filled: true,
-                                  fillColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.2),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                "Bio",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                ),
-                              ),
-                              const Divider(
-                                color: Colors.white12,
-                                thickness: 0.4,
-                              ),
-                              TextFormField(
-                                decoration: InputDecoration(
-                                  hintText: "Enter your bio",
-                                  hintStyle: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  filled: true,
-                                  fillColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.2),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                "Location",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                ),
-                              ),
-                              const Divider(
-                                color: Colors.white12,
-                                thickness: 0.4,
-                              ),
-                              TextFormField(
-                                decoration: InputDecoration(
-                                  hintText: "Enter your location",
-                                  hintStyle: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  filled: true,
-                                  fillColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.2),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              AutoSizeText(
-                                "What's your gender?",
-                                maxLines: 2,
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                ),
-                              ),
-                              const Divider(
-                                color: Colors.white12,
-                                thickness: 0.4,
-                              ),
-                              const SizedBox(height: 10),
-                              RadioListTile<String>(
-                                title: Text(
-                                  "Male",
-                                  style: TextStyle(
+                                Text(
+                                  "Name",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
                                     color: Theme.of(
                                       context,
                                     ).colorScheme.primary,
                                   ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                const Divider(
+                                  color: Colors.white12,
+                                  thickness: 0.4,
                                 ),
-                                value: "male",
-                                fillColor:
-                                WidgetStateProperty.resolveWith<Color>((
-                                    states,
-                                    ) {
-                                  if (states.contains(
-                                    WidgetState.selected,
-                                  )) {
+                                TextFormField(
+                                  controller: nameController,
+                                  decoration: InputDecoration(
+                                    hintText: "Enter your name",
+                                    hintStyle: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.2),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Bio",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                                const Divider(
+                                  color: Colors.white12,
+                                  thickness: 0.4,
+                                ),
+                                TextFormField(
+                                  controller: bioController,
+                                  decoration: InputDecoration(
+                                    hintText: "Enter your bio",
+                                    hintStyle: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.2),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Location",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                                const Divider(
+                                  color: Colors.white12,
+                                  thickness: 0.4,
+                                ),
+                                TextFormField(
+                                  controller: locationController,
+                                  decoration: InputDecoration(
+                                    hintText: "Enter your location",
+                                    hintStyle: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.2),
+                                  ),
+                                ),
+                                Text(
+                                  "Phone",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                                const Divider(
+                                  color: Colors.white12,
+                                  thickness: 0.4,
+                                ),
+                                TextFormField(
+                                  controller: phoneController,
+                                  decoration: InputDecoration(
+                                    hintText: "Enter your phone number",
+                                    hintStyle: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.2),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                AutoSizeText(
+                                  "What's your gender?",
+                                  maxLines: 2,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                const Divider(
+                                  color: Colors.white12,
+                                  thickness: 0.4,
+                                ),
+                                const SizedBox(height: 10),
+                                RadioListTile<String>(
+                                  title: Text(
+                                    "Male",
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  value: "male",
+                                  fillColor:
+                                  WidgetStateProperty.resolveWith<Color>((
+                                      states,
+                                      ) {
+                                    if (states.contains(
+                                      WidgetState.selected,
+                                    )) {
+                                      return Colors
+                                          .green; // Color when selected
+                                    }
                                     return Colors
-                                        .green; // Color when selected
-                                  }
-                                  return Colors
-                                      .white; // Color when NOT selected (the outer circle)
-                                }),
-                                groupValue: gender,
-                                tileColor: Colors.grey.shade200,
-                                onChanged: (value) =>
-                                    setState(() => gender = value),
-                              ),
-                              SizedBox(
-                                height:
-                                MediaQuery.of(context).size.height *
-                                    0.01,
-                              ),
-                              RadioListTile<String>(
-                                title: Text(
-                                  "Female",
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
+                                        .white; // Color when NOT selected (the outer circle)
+                                  }),
+                                  groupValue: gender,
+                                  tileColor: Colors.grey.shade200,
+                                  onChanged: (value) =>
+                                      setState(() => gender = value),
+                                ),
+                                SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height *
+                                      0.01,
+                                ),
+                                RadioListTile<String>(
+                                  title: Text(
+                                    "Female",
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
                                   ),
-                                ),
-                                value: "female",
-                                enabled: true,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                tileColor: Colors.grey.shade200,
-                                fillColor:
-                                WidgetStateProperty.resolveWith<Color>((
-                                    states,
-                                    ) {
-                                  if (states.contains(
-                                    WidgetState.selected,
-                                  )) {
-                                    return Colors
-                                        .blue; // Color when selected
-                                  }
-                                  return Colors
-                                      .white; // Color when NOT selected (the outer circle)
-                                }),
-                                hoverColor: Colors.white,
-                                groupValue: gender,
-                                onChanged: (value) =>
-                                    setState(() => gender = value),
-                              ),
-                              SizedBox(
-                                height:
-                                MediaQuery.of(context).size.height *
-                                    0.01,
-                              ),
-                              RadioListTile<String>(
-                                title: Text(
-                                  "Other",
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
+                                  value: "female",
+                                  enabled: true,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                ),
-                                value: "other",
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                tileColor: Colors.grey.shade200,
-                                fillColor:
-                                WidgetStateProperty.resolveWith<Color>((
-                                    states,
-                                    ) {
-                                  if (states.contains(
-                                    WidgetState.selected,
-                                  )) {
+                                  tileColor: Colors.grey.shade200,
+                                  fillColor:
+                                  WidgetStateProperty.resolveWith<Color>((
+                                      states,
+                                      ) {
+                                    if (states.contains(
+                                      WidgetState.selected,
+                                    )) {
+                                      return Colors
+                                          .blue; // Color when selected
+                                    }
                                     return Colors
-                                        .pink; // Color when selected
-                                  }
-                                  return Colors
-                                      .white; // Color when NOT selected (the outer circle)
-                                }),
-                                groupValue: gender,
-                                onChanged: (value) =>
-                                    setState(() => gender = value),
-                              ),
+                                        .white; // Color when NOT selected (the outer circle)
+                                  }),
+                                  hoverColor: Colors.white,
+                                  groupValue: gender,
+                                  onChanged: (value) =>
+                                      setState(() => gender = value),
+                                ),
+                                SizedBox(
+                                  height:
+                                  MediaQuery.of(context).size.height *
+                                      0.01,
+                                ),
+                                RadioListTile<String>(
+                                  title: Text(
+                                    "Other",
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                  value: "other",
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  tileColor: Colors.grey.shade200,
+                                  fillColor:
+                                  WidgetStateProperty.resolveWith<Color>((
+                                      states,
+                                      ) {
+                                    if (states.contains(
+                                      WidgetState.selected,
+                                    )) {
+                                      return Colors
+                                          .pink; // Color when selected
+                                    }
+                                    return Colors
+                                        .white; // Color when NOT selected (the outer circle)
+                                  }),
+                                  groupValue: gender,
+                                  onChanged: (value) =>
+                                      setState(() => gender = value),
+                                ),
 
 
 
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                      Expanded(
-                          child: SafeArea(
-                              bottom:true,
-                              child: ElevatedButton(
-                                  onPressed: (){
-                                    if (gender != null && nameController.text.isNotEmpty && bioController.text.isNotEmpty && phoneController.text.isNotEmpty && locationController.text.isNotEmpty) {
-                                      showDialog(context: context, builder: (_)=>Center(child: CircularProgressIndicator(),));
-                                      AuthController().updateUserProfile(
-                                        fullname: nameController.text,
-                                        bio: bioController.text,
-                                        phone: phoneController.text,
-                                        location: locationController.text,
-                                        gender: gender!,
-                                        ref: ref,
-                                        context: context,
-                                      );
-                                      Navigator.pop(context);
-                                    } else {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Please select your gender",
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  style:ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
+                      SafeArea(
+                          bottom:true,
+                          child: ElevatedButton(
+                              onPressed: (){
+
+                                if (gender != null && nameController.text.isNotEmpty && bioController.text.isNotEmpty && phoneController.text.isNotEmpty && locationController.text.isNotEmpty) {
+                                  showDialog(context: context, builder: (_)=>Center(child: CircularProgressIndicator(),));
+                                  AuthController().updateUserProfile(
+                                    fullname: nameController.text,
+                                    bio: bioController.text,
+                                    phone: phoneController.text,
+                                    location: locationController.text,
+                                    gender: gender!,
+                                    ref: ref,
+                                    context: context,
+                                  );
+                                  showSnackBar(context, "Profile Updated Successfully");
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                } else {
+                                  print("object");
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Please select your gender",
+                                      ),
                                     ),
-                                    backgroundColor: Colors.white.withOpacity(0.2),
-                                    minimumSize: Size(MediaQuery.of(context).size.width*0.75, 70),
-                                    maximumSize: Size(MediaQuery.of(context).size.width*0.75, 70),
-                                    fixedSize: Size(MediaQuery.of(context).size.width*0.75, 70),
-                                  ),
-                                  child: Text("Save")
-                              )
+                                  );
+                                }
+                              },
+                              style:ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                minimumSize: Size(MediaQuery.of(context).size.width*0.75, 70),
+                                maximumSize: Size(MediaQuery.of(context).size.width*0.75, 70),
+                                fixedSize: Size(MediaQuery.of(context).size.width*0.75, 70),
+                              ),
+                              child: Text("Save")
                           )
                       ),
                     ],
@@ -584,147 +786,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
     );
   }
 
-  Widget _interactiveTiltCard() {
-    return Listener(
-      onPointerUp: (_) => setState(() {
-        _rotateX = 0;
-        _rotateY = 0;
-        _scale = 1;
-      }),
-      onPointerMove: (value) {
-        final size = MediaQuery.of(context).size.width * 0.8;
-        final center = size / 2;
-        final dx = value.localPosition.dx - center;
-        final dy = value.localPosition.dy - center;
 
-        _nx = dx / center;
-        _ny = dy / center;
 
-        setState(() {
-          _rotateY = _nx * 0.18;
-          _rotateX = -_ny * 0.18;
-          _scale = 1.06;
-        });
-      },
-      child: TweenAnimationBuilder(
-        tween: Tween<double>(begin: 1, end: _scale),
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOut,
-        builder: (context, s, child) {
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.006)
-              ..rotateX(_rotateX)
-              ..rotateY(_rotateY)
-              ..scale(s),
-            child: child,
-          );
-        },
-        child: _glassStatsCard(),
-      ),
-    );
-  }
-
-  Widget _glassStatsCard() {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.92,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.10),
-            Colors.white.withOpacity(0.04),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
-        child: Stack(
-          children: [
-            //Frosted Blur
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                child: const SizedBox(),
-              ),
-            ),
-
-            // Shine layer
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(_nx, _ny),
-                    radius: 1.1,
-                    colors: [
-                      Colors.white.withOpacity(0.18),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            _buildStatsContent(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsContent() {
-    return Padding(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _statColumn("1.8K", "Messages"),
-              _statColumn("36", "Contacts"),
-              _statColumn("412", "Media"),
-              _statColumn("2 yrs", "Joined"),
-            ],
-          ),
-          Divider(color: Colors.white.withOpacity(0.2), thickness: 1),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              widget.user.bio?.isNotEmpty == true
-                  ? widget.user.bio!
-                  : "Available",
-              style: GoogleFonts.poppins(fontSize: 15, color: Colors.white70),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statColumn(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          label,
-          style: GoogleFonts.poppins(fontSize: 13, color: Colors.white70),
-        ),
-      ],
-    );
-  }
 }
 
 Widget _buildSettingsList(
