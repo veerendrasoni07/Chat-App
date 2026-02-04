@@ -733,7 +733,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 ),
                 SizedBox(height: size.hp(1)),
                 Text(
-                  user.email,
+                 "user.username",
                   style: GoogleFonts.poppins(
                     fontSize: size.font(16),
                     color: Colors.white70,

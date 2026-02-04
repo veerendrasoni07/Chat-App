@@ -219,6 +219,86 @@ class AuthController{
       throw Exception(e);
     }
   }
+  Future<bool> getOTP(String email,BuildContext context)async {
+    try{
+      http.Response response = await  http.post(
+        Uri.parse('$uri/api/get-otp'),
+        body: jsonEncode({
+          "email":email
+        }),
+        headers: <String,String>{
+          'Content-Type':'application/json; charset=UTF-8'
+        },
+      );
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        //showSnackBar(context, "OTP SENT" ,"OTP is sent to your email",ContentType.warning);
+        return data['success'];
+      }
+      else{
+        //showSnackBar(context, "OTP NOT SENT" ,jsonDecode(response.body)['msg'],ContentType.failure);
+        Navigator.pop(context);
+        throw Exception(response.body);
+      }
+    }catch(e){
+      print(e);
+      throw Exception(e);
+    }
+  }
+
+  Future<bool> verifyOTP(String email,int otp)async {
+    try{
+      http.Response response = await  http.post(
+        Uri.parse('$uri/api/get-otp'),
+        body: jsonEncode({
+          "email":email,
+          "otp":otp
+        }),
+        headers: <String,String>{
+          'Content-Type':'application/json; charset=UTF-8'
+        },
+      );
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        return data['success'];
+      }
+      else{
+        print(response.body);
+        throw Exception('Failed to get OTP');
+      }
+    }catch(e){
+      print(e);
+      throw Exception(e);
+    }
+  }
+
+  Future<void> resetPassword({required String email ,required String password,required BuildContext context})async{
+    try{
+      http.Response response = await http.post(
+          Uri.parse('$uri/api/reset-password'),
+          body: jsonEncode({
+            "password":password,
+            "email":email
+          }),
+          headers: <String,String>{
+            'Content-Type':'application/json; charset=UTF-8'
+          }
+      );
+      if(response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        //showSnackBar(context, 'Success', data['msg'],ContentType.success);
+      }
+      else{
+        print(response.body);
+        throw Exception('Failed to reset password');
+      }
+    }catch(e){
+      print(e.toString());
+      throw Exception(e.toString());
+    }
+  }
+
+
 
 
 

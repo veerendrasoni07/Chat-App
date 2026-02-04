@@ -11,6 +11,7 @@ class UserIsar {
   late String fullname;
   late String email;
   late String gender;
+  late String username;
   String? bio;
   String? phone;
   String? location;

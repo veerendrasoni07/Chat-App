@@ -57,6 +57,7 @@ class IsarService {
         ..gender = user.gender
         ..bio = user.bio
         ..phone = user.phone
+        ..username = user.username
         ..location = user.location
         ..isOnline = user.isOnline;
 
@@ -70,6 +71,7 @@ class IsarService {
       ..email = user.email
       ..gender = user.gender
       ..bio = user.bio
+      ..username = user.username
       ..phone = user.phone
       ..location = user.location
       ..isOnline = user.isOnline;

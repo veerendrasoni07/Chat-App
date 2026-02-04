@@ -69,7 +69,6 @@ class _MyAppState extends ConsumerState<MyApp> {
           darkTheme: darkMode,
           theme: lightMode,
           themeMode: theme,
-
           debugShowCheckedModeBanner: false,
 
         );
