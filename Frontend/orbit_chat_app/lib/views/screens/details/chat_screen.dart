@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:orbit_chat_app/controller/voice_service.dart';
+import 'package:orbit_chat_app/localDB/Mapper/mapper.dart';
 import 'package:orbit_chat_app/localDB/model/message_isar.dart';
 import 'package:orbit_chat_app/provider/friend_controller_provider.dart';
 import 'package:orbit_chat_app/provider/friend_stream_provider.dart';
@@ -238,11 +239,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                       if (!snap.hasData) {
                                         return const Scaffold(
                                           body: Center(
-                                            child: CircularProgressIndicator(),
+                                            child: Center(child: CircularProgressIndicator()),
                                           ),
                                         );
                                       }
-                                      return ProfileScreen(user: snap.data!);
+                                      return AccountScreen(user:mapUserToIsar( snap.data!),backgroundType: "",);
                                     },
                                   ),
                             ),
@@ -295,22 +296,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ],
                 ),
                 actions: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.call,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_)=>CallScreen(userId: user!.id, meetingId: "Swasti123")));
-                    },
-                    icon: Icon(
-                      Icons.video_camera_back_rounded,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+                  // IconButton(
+                  //   onPressed: () {},
+                  //   icon: Icon(
+                  //     Icons.call,
+                  //     color: Theme.of(context).colorScheme.primary,
+                  //   ),
+                  // ),
+                  // IconButton(
+                  //   onPressed: () {
+                  //     Navigator.push(context, MaterialPageRoute(builder: (_)=>CallScreen(userId: user!.id, meetingId: "Swasti123")));
+                  //   },
+                  //   icon: Icon(
+                  //     Icons.video_camera_back_rounded,
+                  //     color: Theme.of(context).colorScheme.primary,
+                  //   ),
+                  // ),
                 ],
                 backgroundColor: Theme.of(
                   context,
