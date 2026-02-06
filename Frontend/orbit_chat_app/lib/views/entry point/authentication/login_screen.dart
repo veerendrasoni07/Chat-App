@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orbit_chat_app/controller/auth_controller.dart';
 import 'package:orbit_chat_app/views/entry%20point/authentication/sign_up_screen.dart';
+import 'package:orbit_chat_app/views/screens/main_screen.dart';
 import 'package:otp_timer_button/otp_timer_button.dart';
 import 'package:pinput/pinput.dart';
 
@@ -153,12 +154,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         onPressed: () async {
                           showDialog(context: context, builder: (_)=>Center(child: CircularProgressIndicator(),));
-                          await AuthController().login(
+                          final success = await AuthController().login(
                               email: emailController.text.trim(),
                               password: passwordController.text.trim(),
                               context: context,
                               ref: ref);
-                          Navigator.pop(context);
+                          Navigator.pop(context); // closes dialog ONLY
+                          if(success && context.mounted){
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=>MainScreen()));
+                          }
                         },
                         child: Text(
                           "Login",

@@ -65,6 +65,7 @@ dependencies:
   intl: ^0.20.2
   otp_timer_button: ^1.1.1
   pinput: ^6.0.1
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +82,10 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/orbit_chat_app_logo.png"
 
 # The following section is specific to Flutter packages.
 flutter:

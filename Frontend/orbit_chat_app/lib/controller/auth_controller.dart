@@ -59,7 +59,7 @@ class AuthController{
     }
   }
 
-  Future<void> login({required String email, required String password,required BuildContext context,required WidgetRef ref})async{
+  Future<bool> login({required String email, required String password,required BuildContext context,required WidgetRef ref})async{
     try{
       http.Response response = await http.post(
           Uri.parse('$uri/api/sign-in'),
@@ -84,14 +84,8 @@ class AuthController{
         preferences.setString('refreshToken', refreshToken);
         ref.read(userProvider.notifier).addUser(userJson);
         ref.read(tokenProvider.notifier).setToken(token);
-        if(context.mounted){
-          showSnackBar(context, 'Logged in successfully');
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-                (route) => false, // remove all previous routes
-          );
-        }
+        return true;
+
       }
       else{
         throw Exception('Failed to create account');
@@ -99,6 +93,7 @@ class AuthController{
 
     }catch(e){
       print(e);
+      return false;
     }
   }
 
