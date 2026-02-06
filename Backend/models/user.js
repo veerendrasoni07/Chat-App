@@ -35,9 +35,8 @@ const userSchema = new mongoose.Schema({
     unique:true
   },
   phone:{
-    type:Number
+    type:Number 
   },
-
   isOnline:{type:Boolean},
   bio:{
     type:String,

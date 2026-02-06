@@ -146,33 +146,62 @@ partnerRouter.get('/api/get-all-sent-requests',auth, async(req, res) => {
   }
 });
 
-partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) => {
-  try {
-    const userId = req.user.id;
+// partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) => {
+//   try {
+//     const userId = req.user.id;
 
-    const requests = await Interaction.find({
-      fromUser:{$ne:null},
-      toUser: userId,
-      status: "accepted"
-    }).populate('toUser').populate('fromUser').sort({createdAt:-1});
+//     const requests = await Interaction.find({
+//       fromUser:{$ne:null},
+//       toUser: userId,
+//       status: "accepted"
+//     }).populate('toUser').populate('fromUser').sort({createdAt:-1});
 
-    res.status(200).json(requests);
+//     res.status(200).json(requests);
 
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
 
 partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
     try {
         const userId = req.user.id;
-        const requests = await Interaction.find({
-          fromUser:{$ne:null},
-          toUser: userId,
-          status: "pending"
-        }).populate('fromUser'); 
+        const requests = await Interaction.aggregate([
+          {
+            $match:{
+              toUser:new mongoose.Types.ObjectId(userId),
+              status:"pending"
+            }
+          },
+          {
+            $lookup:{
+              from:"users",
+              localField:"fromUser",
+              foreignField:"_id",
+              as:"fromUserDetails"
+            }
+          },
+          {
+            $unwind:"$fromUserDetails"
+          },
+          {
+            $project:{
+              _id:0,
+              status:1,
+              createdAt:1,
+              "fromUserDetails._id":1,
+              "fromUserDetails.fullname":1,
+              "fromUserDetails.username":1,
+              "fromUserDetails.gender":1,
+              "fromUserDetails.bio":1,
+              "fromUserDetails.createdAt":1
+            }
+          }
+
+        ]);
+        
         res.json(requests);
     } catch (error) {
         console.log(error);
@@ -182,7 +211,7 @@ partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
 
 partnerRouter.get('/api/get-user-by-id/:userId',async(req,res)=>{
     try {
-        const userId = req.params;
+        const {userId} = req.params;
         const user = await User.findById(userId); 
         res.json(user);
     } catch (error) {
@@ -192,21 +221,21 @@ partnerRouter.get('/api/get-user-by-id/:userId',async(req,res)=>{
 });
 
 // remove friend
-partnerRouter.post('/api/remove-friend',auth,async(req,res)=>{
+partnerRouter.delete('/api/remove-friend/:friendId',auth,async(req,res)=>{
   try {
     const userId = req.user.id;
-    const {friendId} = req.body;
+    const {friendId} = req.params;
     console.log("userId:", userId);
-console.log("friendId:", friendId);
+    console.log("friendId:", friendId);
     if(!userId) return res.status(401).json({msg:"User is not authenticated"});
-    const update = await User.findByIdAndUpdate(userId,
-      {
-        $pull:{connections: friendId}
-      },
-      {new:true}
-    );
+    const update = await Interaction.findOneAndDelete({
+      $or:[
+        {fromUser:userId,toUser:friendId,status:"accepted"},
+        {fromUser:friendId,toUser:userId,status:"accepted"}
+      ]
+    });
     console.log(update);
-    res.status(200).json(update);
+    res.status(200).json({success:"true","msg":"Friend Removed Successfully"});
 
 
   } catch (error) {

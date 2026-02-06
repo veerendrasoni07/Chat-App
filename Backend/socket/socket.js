@@ -226,14 +226,42 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
             toUser: toUserId,
             status: "pending"
         });
-        interaction = await interaction.populate([
-      { path: "fromUser" },
-      { path: "toUser" }
-    ]);
-        console.log(interaction);
+        const request = Interaction.aggregate([
+            {
+                      $match:{
+                        toUser:new mongoose.Types.ObjectId(userId),
+                        status:"pending"
+                      }
+                    },
+                    {
+                      $lookup:{
+                        from:"users",
+                        localField:"fromUser",
+                        foreignField:"_id",
+                        as:"fromUserDetails"
+                      }
+                    },
+                    {
+                      $unwind:"$fromUserDetails"
+                    },
+                    {
+                      $project:{
+                        _id:0,
+                        status:1,
+                        createdAt:1,
+                        "fromUserDetails._id":1,
+                        "fromUserDetails.fullname":1,
+                        "fromUserDetails.username":1,
+                        "fromUserDetails.gender":1,
+                        "fromUserDetails.bio":1,
+                        "fromUserDetails.createdAt":1
+                      }
+                  }
+        ])
+        console.log(request);
 
-        io.to(toUserId).emit("request-received", interaction);
-        io.to(fromUserId).emit("request-sent", interaction);
+        io.to(toUserId).emit("request-received", request);
+        //io.to(fromUserId).emit("request-sent", interaction);
 
     } catch (error) {
         console.log(error);
@@ -252,20 +280,13 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
             },
             { status: "accepted" },
             { new: true }
-        );
+        ).populate('fromUser').populate('toUser');
 
         if (!interaction) return console.log("Interaction not found");
 
-        const sender = await User.findById(senderId);
-        const receiver = await User.findById(receiverId);
-
-        sender.connections.push(receiverId);
-        receiver.connections.push(senderId);
-        await sender.save();
-        await receiver.save();
-
-        io.to(senderId).emit("request-accepted", interaction);
-        io.to(receiverId).emit("request-accepted", interaction);
+        
+        io.to(senderId).emit("request-accepted", interaction.toUser);
+        io.to(receiverId).emit("request-accepted", interaction.fromUser);
 
     } catch (error) {
         console.log(error);
