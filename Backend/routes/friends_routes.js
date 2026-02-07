@@ -220,6 +220,9 @@ partnerRouter.get('/api/get-user-by-id/:userId',async(req,res)=>{
     }
 });
 
+
+
+
 // remove friend
 partnerRouter.delete('/api/remove-friend/:friendId',auth,async(req,res)=>{
   try {
