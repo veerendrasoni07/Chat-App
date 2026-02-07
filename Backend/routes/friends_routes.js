@@ -128,22 +128,50 @@ partnerRouter.get('/api/user-connections', auth, async (req, res) => {
 });
 
 
-partnerRouter.get('/api/get-all-sent-requests',auth, async(req, res) => {
-  try {
-    const userId = req.user.id;
 
-    const requests = await Interaction.find({
-      toUser:{$ne:null},
-      fromUser: userId,
-      status: "pending"
-    }).populate('toUser').populate('fromUser');
 
-    res.status(200).json(requests);
+partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
+    try {
+        const userId = req.user.id;
+        const requests = await Interaction.aggregate([
+          {
+            $match:{
+              toUser:new mongoose.Types.ObjectId(userId),
+              status:"pending"
+            }
+          },
+          {
+            $lookup:{
+              from:"users",
+              localField:"fromUser",
+              foreignField:"_id",
+              as:"fromUserDetails"
+            }
+          },
+          {
+            $unwind:"$fromUserDetails"
+          },
+          {
+            $project:{
+              _id:0,
+              status:1,
+              createdAt:1,
+              "fromUserDetails._id":1,
+              "fromUserDetails.fullname":1,
+              "fromUserDetails.username":1,
+              "fromUserDetails.gender":1,
+              "fromUserDetails.bio":1,
+              "fromUserDetails.createdAt":1
+            }
+          }
 
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+        ]);
+        
+        res.json(requests);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error:"Internal Server Error"});        
+    }
 });
 
 // partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) => {
