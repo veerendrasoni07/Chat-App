@@ -496,7 +496,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                       },
 
 
-                                      onLongPressEnd: (_) async {
+                                       onLongPressEnd: (_) async {
 
                                         // final filePath = await _voiceService
                                         //     .stopRecording();

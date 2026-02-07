@@ -14,7 +14,7 @@ class User {
   final String username;
   final bool isOnline;
 
-  User({required this.id,required this.fullname,required this.bio ,required this.email, required  ,required this.phone , required this.gender,required this.username,required this.isOnline,required this.location,required this.createdAt});
+  User({required this.id,required this.fullname,required this.bio ,required this.email, required this.phone , required this.gender,required this.username,required this.isOnline,required this.location,required this.createdAt});
 
 
   Map<String, dynamic> toMap() {

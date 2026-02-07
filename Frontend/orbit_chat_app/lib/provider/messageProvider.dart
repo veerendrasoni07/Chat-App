@@ -10,6 +10,7 @@ import 'package:orbit_chat_app/localDB/service/isar_service.dart';
 import 'package:orbit_chat_app/models/message.dart';
 import 'package:orbit_chat_app/provider/socket_provider.dart';
 import 'package:orbit_chat_app/provider/userProvider.dart';
+import 'package:orbit_chat_app/service/notification_service.dart';
 import 'package:orbit_chat_app/service/socket_service.dart';
 import 'package:orbit_chat_app/service/sound_manager.dart';
 import 'package:uuid/uuid.dart';
@@ -59,6 +60,11 @@ class MessageProvider {
       // Receiver side: save message
       if (message.receiverId == currentUserId) {
         await _isarService.saveServerMessage(message);
+        NotificationService().showNotification(
+          title: 'New Message',
+          body: message.message,
+          id: message.id.hashCode,
+        );
         SoundManager.playReceiveSound();
       }
     });

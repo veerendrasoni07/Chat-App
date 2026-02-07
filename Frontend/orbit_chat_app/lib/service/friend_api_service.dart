@@ -75,7 +75,8 @@ class FriendApiService {
       },ref: ref,context: context);
 
       if(response.statusCode == 200){
-        print(response.body);
+
+        print("the request data:${response.body}");
         final List<dynamic> data = jsonDecode(response.body);
         final List<Request> requests = data.map((r)=> Request.fromMap(r)).toList();
         ref.read(requestProvider(ref.read(userProvider)!.id).notifier).getAllRequest(requests);
@@ -108,36 +109,35 @@ class FriendApiService {
     }
   }
 
-  //
-  // Future<List<Interaction>> getAllSentRequests({required WidgetRef ref,required BuildContext context})async{
-  //   try{
-  //
-  //     http.Response response = await AuthController().sendRequest(request:(token)async{
-  //       return await http.get(
-  //         Uri.parse('$uri/api/get-all-sent-requests'),
-  //         headers: <String,String>{
-  //           'Content-Type':'application/json; charset=UTF-8',
-  //           'x-auth-token':token
-  //         },
-  //       );
-  //     },ref: ref,context: context);
-  //
-  //     if(response.statusCode == 200){
-  //       final List<dynamic> data = jsonDecode(response.body);
-  //       final List<Interaction> requests = data.map((r)=> Interaction.fromMap(r)).toList();
-  //       print("Data : kasgasdfasdfs");
-  //       print(data);
-  //       return requests;
-  //     }
-  //     else{
-  //       print(response.body);
-  //       throw Exception('Failed to fetch sent requests');
-  //     }
-  //
-  //   }catch(w){
-  //     throw Exception(w.toString());
-  //   }
-  // }
+
+  Future<List<Interaction>> getAllSentRequests({required WidgetRef ref,required BuildContext context})async{
+    try{
+
+      http.Response response = await AuthController().sendRequest(request:(token)async{
+        return await http.get(
+          Uri.parse('$uri/api/get-all-sent-requests'),
+          headers: <String,String>{
+            'Content-Type':'application/json; charset=UTF-8',
+            'x-auth-token':token
+          },
+        );
+      },ref: ref,context: context);
+
+      if(response.statusCode == 200){
+        final List<dynamic> data = jsonDecode(response.body);
+        final List<Interaction> requests = data.map((r)=> Interaction.fromMap(r)).toList();
+        print(data);
+        return requests;
+      }
+      else{
+        print(response.body);
+        throw Exception('Failed to fetch sent requests');
+      }
+
+    }catch(w){
+      throw Exception(w.toString());
+    }
+  }
   Future<List<Interaction>> getAllRecentActivities({required WidgetRef ref,required BuildContext context})async{
     try{
       http.Response response = await AuthController().sendRequest(request:(token)async{

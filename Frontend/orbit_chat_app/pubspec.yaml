@@ -66,6 +66,7 @@ dependencies:
   otp_timer_button: ^1.1.1
   pinput: ^6.0.1
   flutter_launcher_icons: ^0.14.4
+  flutter_local_notifications: ^20.0.0
 
 dev_dependencies:
   flutter_test:

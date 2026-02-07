@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orbit_chat_app/localDB/Mapper/mapper.dart';
 import 'package:orbit_chat_app/localDB/service/isar_service.dart';
+import 'package:orbit_chat_app/models/interaction.dart';
 import 'package:orbit_chat_app/models/user.dart';
 import 'package:orbit_chat_app/service/friend_api_service.dart';
 import 'package:orbit_chat_app/utils/manage_http_request.dart';
@@ -42,9 +43,9 @@ class FriendRepo {
   }
 
 
-  // Future<List<Interaction>> getAllSentRequests({required WidgetRef ref,required BuildContext context}) async {
-  //   return await _friendApiService.getAllSentRequests(ref: ref,context: context);
-  // }
+  Future<List<Interaction>> getAllSentRequests({required WidgetRef ref,required BuildContext context}) async {
+    return await _friendApiService.getAllSentRequests(ref: ref,context: context);
+  }
 
   // Future<void> getAllRecentActivities({required WidgetRef ref,required BuildContext context}) async {
   //    final requests = await _friendApiService.getAllRecentActivities(ref: ref,context: context);

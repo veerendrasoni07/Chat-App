@@ -18,6 +18,7 @@ import 'package:uuid/uuid.dart';
         ..email = user.email
         ..gender = user.gender
         ..bio = user.bio
+      ..username = user.username
         ..phone = user.phone
         ..location = user.location
         ..isOnline = user.isOnline;

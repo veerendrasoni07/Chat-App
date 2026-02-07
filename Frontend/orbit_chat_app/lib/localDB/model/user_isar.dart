@@ -10,9 +10,9 @@ class UserIsar {
   late String userId;
   late String fullname;
   late String email;
-  late String gender;
   late String username;
   String? bio;
+  String? gender;
   String? phone;
   String? location;
   bool? isOnline;

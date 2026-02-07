@@ -74,7 +74,6 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
                       ...requests.map(
                         (req) => _RequestTile(
-                          key: ValueKey(req.from!.id),
                           req: req,
                           userId: user.id,
                         ),

@@ -112,7 +112,12 @@ int _userIsarEstimateSize(
   }
   bytesCount += 3 + object.email.length * 3;
   bytesCount += 3 + object.fullname.length * 3;
-  bytesCount += 3 + object.gender.length * 3;
+  {
+    final value = object.gender;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.location;
     if (value != null) {
@@ -157,7 +162,7 @@ UserIsar _userIsarDeserialize(
   object.bio = reader.readStringOrNull(offsets[0]);
   object.email = reader.readString(offsets[1]);
   object.fullname = reader.readString(offsets[2]);
-  object.gender = reader.readString(offsets[3]);
+  object.gender = reader.readStringOrNull(offsets[3]);
   object.id = id;
   object.isOnline = reader.readBoolOrNull(offsets[4]);
   object.location = reader.readStringOrNull(offsets[5]);
@@ -181,7 +186,7 @@ P _userIsarDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readBoolOrNull(offset)) as P;
     case 5:
@@ -792,8 +797,24 @@ extension UserIsarQueryFilter
     });
   }
 
+  QueryBuilder<UserIsar, UserIsar, QAfterFilterCondition> genderIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'gender',
+      ));
+    });
+  }
+
+  QueryBuilder<UserIsar, UserIsar, QAfterFilterCondition> genderIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'gender',
+      ));
+    });
+  }
+
   QueryBuilder<UserIsar, UserIsar, QAfterFilterCondition> genderEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -806,7 +827,7 @@ extension UserIsarQueryFilter
   }
 
   QueryBuilder<UserIsar, UserIsar, QAfterFilterCondition> genderGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -821,7 +842,7 @@ extension UserIsarQueryFilter
   }
 
   QueryBuilder<UserIsar, UserIsar, QAfterFilterCondition> genderLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -836,8 +857,8 @@ extension UserIsarQueryFilter
   }
 
   QueryBuilder<UserIsar, UserIsar, QAfterFilterCondition> genderBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1940,7 +1961,7 @@ extension UserIsarQueryProperty
     });
   }
 
-  QueryBuilder<UserIsar, String, QQueryOperations> genderProperty() {
+  QueryBuilder<UserIsar, String?, QQueryOperations> genderProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'gender');
     });

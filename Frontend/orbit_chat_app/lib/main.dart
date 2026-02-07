@@ -9,6 +9,7 @@ import 'package:orbit_chat_app/localDB/provider/isar_provider.dart';
 import 'package:orbit_chat_app/provider/auth_manager_provider.dart';
 import 'package:orbit_chat_app/provider/backend_sync_provider.dart';
 import 'package:orbit_chat_app/provider/theme_provider.dart';
+import 'package:orbit_chat_app/service/notification_service.dart';
 import 'package:orbit_chat_app/theme/dark_theme.dart';
 import 'package:orbit_chat_app/theme/light_mode.dart';
 import 'package:orbit_chat_app/views/entry%20point/authentication/login_screen.dart';
@@ -30,6 +31,7 @@ void main() async{
       ],
       directory: directory
   );
+  NotificationService().initNotification();
   runApp(
       ProviderScope(
         overrides: [isarProvider.overrideWithValue(isar)],

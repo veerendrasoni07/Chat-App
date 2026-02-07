@@ -61,14 +61,14 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     });
   }
 
-  // Future<void> getAllRequests({required WidgetRef ref,required BuildContext context}) async {
-  //   ref.read(sentRequestProvider.notifier).loadInitialData(context: context,ref: ref);
-  // }
+  Future<void> getAllRequests({required WidgetRef ref,required BuildContext context}) async {
+    ref.read(sentRequestProvider.notifier).loadInitialData(context: context,ref: ref);
+  }
 
   @override
   void initState() {
     super.initState();
-    //getAllRequests(context: context,ref: ref);
+    getAllRequests(context: context,ref: ref);
   }
 
   @override
@@ -238,6 +238,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
         final alreadySent =
         sentRequest.any((x) => mapUserToIsar(x.toUser!).userId == u.id);
         bool alreadyFriend = friends.any((x)=>x.userId== u.id);
+
         final userIsar = mapUserToIsar(u);
         return GestureDetector(
           behavior: HitTestBehavior.translucent,

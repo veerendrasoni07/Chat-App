@@ -14,6 +14,7 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
     _listen();
   }
 
+
   void _listen() {
     // When server confirms a sent-request (so we get canonical data)
     socketService.sentRequest((data) {
@@ -41,10 +42,10 @@ class SentRequestProvider extends StateNotifier<List<Interaction>> {
   }
 
 
-  // void loadInitialData({required WidgetRef ref,required BuildContext context}) async {
-  //   final data = await controller.getAllSentRequests(ref: ref,context:context );
-  //   state = data;
-  // }
+  void loadInitialData({required WidgetRef ref,required BuildContext context}) async {
+    final data = await controller.getAllSentRequests(ref: ref,context:context);
+    state = data;
+  }
 
 
   /// Optionally allow removing (when cancelled or accepted)
