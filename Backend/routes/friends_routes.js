@@ -128,41 +128,6 @@ partnerRouter.get('/api/user-connections', auth, async (req, res) => {
 });
 
 
-partnerRouter.get('/api/get-all-sent-requests',auth, async(req, res) => {
-  try {
-    const userId = req.user.id;
-
-    const requests = await Interaction.find({
-      toUser:{$ne:null},
-      fromUser: userId,
-      status: "pending"
-    }).populate('toUser').populate('fromUser');
-
-    res.status(200).json(requests);
-
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-// partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) => {
-//   try {
-//     const userId = req.user.id;
-
-//     const requests = await Interaction.find({
-//       fromUser:{$ne:null},
-//       toUser: userId,
-//       status: "accepted"
-//     }).populate('toUser').populate('fromUser').sort({createdAt:-1});
-
-//     res.status(200).json(requests);
-
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
 
 
 partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
@@ -208,6 +173,26 @@ partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
         res.status(500).json({error:"Internal Server Error"});        
     }
 });
+
+// partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) => {
+//   try {
+//     const userId = req.user.id;
+
+//     const requests = await Interaction.find({
+//       fromUser:{$ne:null},
+//       toUser: userId,
+//       status: "accepted"
+//     }).populate('toUser').populate('fromUser').sort({createdAt:-1});
+
+//     res.status(200).json(requests);
+
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+
+
 
 partnerRouter.get('/api/get-user-by-id/:userId',async(req,res)=>{
     try {
