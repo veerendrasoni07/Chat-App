@@ -88,14 +88,17 @@ class FriendApiService {
   }
 
 
-  Future<List<User>> searchUser({required String username})async{
+  Future<List<User>> searchUser({required String username,required WidgetRef ref,required BuildContext context})async{
     try{
-      http.Response response = await http.get(
-          Uri.parse('$uri/api/search-user/${username}'),
-          headers: <String,String>{
-            'Content-Type':'application/json; charset=UTF-8'
-          }
-      );
+      http.Response response = await AuthController().sendRequest(request: (token)async{
+        return http.get(
+            Uri.parse('$uri/api/search-user/${username}'),
+            headers: <String,String>{
+              'Content-Type':'application/json; charset=UTF-8',
+              'x-auth-token':token
+            }
+        );
+      },ref:ref,context:context);
       if(response.statusCode == 200){
         final List<dynamic> data = jsonDecode(response.body);
         final List<User> users = data.map((user)=> User.fromMap(user)).toList();

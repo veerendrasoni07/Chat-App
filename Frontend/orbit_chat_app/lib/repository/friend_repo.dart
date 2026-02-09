@@ -38,8 +38,8 @@ class FriendRepo {
     await _friendApiService.getAllRequests(ref: ref,context: context);
   }
 
-  Future<List<User>> searchUser({required String username}) async {
-    return await _friendApiService.searchUser(username: username);
+  Future<List<User>> searchUser({required String username,required WidgetRef ref,required BuildContext context}) async {
+    return await _friendApiService.searchUser(username: username,ref: ref,context: context);
   }
 
 

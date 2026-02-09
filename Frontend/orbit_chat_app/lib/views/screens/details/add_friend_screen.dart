@@ -54,7 +54,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   Future<void> friendSuggestion(String username) async {
     final _friend = ref.read(friendRepoProvider);
     setState(() => isLoading = true);
-    final users = await _friend.searchUser(username: username);
+    final users = await _friend.searchUser(username: username,ref: ref,context: context);
     setState(() {
       futureUserList = users;
       isLoading = false;
