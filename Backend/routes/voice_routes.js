@@ -12,7 +12,7 @@ const voiceRouter = express.Router();
 
 voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
     try {
-        const { senderId, receiverId, uploadUrl, publicId, uploadDuration } = req.body;
+        const { senderId, receiverId, uploadUrl, publicId, uploadDuration ,tempId} = req.body;
 
         // Basic ownership/auth check
         if (req.user.id !== senderId) {
@@ -66,8 +66,8 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
         }
         await conversation.save();
 
-        io.to(receiverId).emit('newMessage', msg);
-        io.to(senderId).emit('newMessage', msg);
+        io.to(receiverId).emit('newMessage', {"newMessage":msg,"tempId":tempId});
+        io.to(senderId).emit('newMessage', {"newMessage":msg,"tempId":tempId});
         res.json(msg);
 
     } catch (error) {
