@@ -60,7 +60,7 @@ class MessageProvider {
       // Receiver side: save message
       if (message.receiverId == currentUserId) {
         await _isarService.saveServerMessage(message);
-        NotificationService().showNotification(
+        NotificationService.instance.showNotification(
           title: 'New Message',
           body: message.message,
           id: message.id.hashCode,
@@ -90,31 +90,36 @@ class MessageProvider {
     required String filePath, // local path
     required double duration,
   }) async {
-    final tempId = 'voice_${DateTime.now().millisecondsSinceEpoch}';
+    final localId = const Uuid().v4();
     final placeholder = Message(
-      id: tempId,
+      id: localId,
       senderId: senderId,
       receiverId: receiverId,
       message: '', // no text
       type: 'voice',
-
+      media: {
+        "url":filePath,
+        "duration":duration,
+        "size":0,
+        "width":0,
+        "height":0,
+      },
       status: 'uploading',
       createdAt: DateTime.now(),
     );
 
-
-
+    await _isarService.saveLocalMessage(placeholder);
     try {
       // upload & notify server (this will trigger server -> socket -> newMessage)
       await _voiceService.sendVoiceMessage(
         senderId: senderId,
+        tempId: localId,
         receiverId: receiverId,
         filePath: filePath,
       );
-      // Do not update state here — wait for socket event to replace placeholder.
     } catch (e) {
       // mark placeholder failed
-
+      rethrow;
     }
   }
 

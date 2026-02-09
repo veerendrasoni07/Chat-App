@@ -48,7 +48,6 @@ class _VoiceBubbleState extends State<VoiceBubble> {
 
   Future<void> _init() async {
     // 1. DOWNLOAD audio file
-    print("Print hoga blk ");
     print(widget.url);
     localPath = await _downloadAudio(widget.url);
 
@@ -123,6 +122,7 @@ class _VoiceBubbleState extends State<VoiceBubble> {
   }
 
   Future<String> _downloadAudio(String url) async {
+    print("VOICE URL : $url");
     final dir = await getTemporaryDirectory();
     final file = File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}.aac");
 

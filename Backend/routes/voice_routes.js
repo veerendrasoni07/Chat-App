@@ -12,15 +12,15 @@ const voiceRouter = express.Router();
 
 voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
     try {
-        const { senderId, receiverId, uploadUrl, publicId, uploadDuration ,tempId} = req.body;
+        const { senderId, receiverId, media, publicId, tempId} = req.body;
 
         // Basic ownership/auth check
         if (req.user.id !== senderId) {
-            return res.status(403).json({ error: 'Invalid sender' });
+            return res.status(403).json({ error: 'Invalid sender'});
         }
 
         try {
-            const url = new URL(uploadUrl);
+            const url = new URL(media.url);
             if (!url.host.endsWith('res.cloudinary.com') && !url.host.includes(process.env.CLOUD_NAME)) {
                  return res.status(400).json({ msg: "Invalid voice url" });
             }
@@ -30,7 +30,7 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
         }
 
         // verify public_id exists & get metadata from cloudinary 
-        let actualDuration = uploadDuration;
+        let actualDuration = media.duration || 0;
         if (publicId) {
             try {
                 const resource = await cloudinary.v2.api.resource(publicId, { resource_type: 'video' });
@@ -46,8 +46,7 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
             senderId,
             receiverId,
             type: "voice",
-            uploadUrl:uploadUrl,
-            voiceDuration: actualDuration,
+            media:media,
         });
 
         let conversation = await Conversation.findOne({
@@ -68,6 +67,7 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
 
         io.to(receiverId).emit('newMessage', {"newMessage":msg,"tempId":tempId});
         io.to(senderId).emit('newMessage', {"newMessage":msg,"tempId":tempId});
+        console.log("Voice message sent:", msg);
         res.json(msg);
 
     } catch (error) {

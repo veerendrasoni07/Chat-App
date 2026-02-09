@@ -511,23 +511,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                           print(filePath);
                                           print(duration);
 
-                                          //   await ref
-                                          //       .read(
-                                          //     messageProvider(
-                                          //       widget.receiverId,
-                                          //     ).notifier,
-                                          //   )
-                                          //       .sendVoice(
-                                          //     senderId: user!.id,
-                                          //     receiverId: widget.receiverId,
-                                          //     filePath: filePath,
-                                          //     duration: duration,
-                                          //   );
+                                            await ref
+                                                .read(
+                                              messageProvider(
+                                                widget.receiverId,
+                                              )
+                                            )
+                                                .sendVoice(
+                                              senderId: user!.id,
+                                              receiverId: widget.receiverId,
+                                              filePath: filePath,
+                                              duration: duration,
+                                            ).whenComplete((){
+                                              setState(() {
+                                                isRecording = false;
+                                              });
+                                            });
                                         }
 
-                                        setState(() {
-                                          isRecording = false;
-                                        });
+
                                       },
 
                                       child: CircleAvatar(

@@ -139,6 +139,7 @@ class VoiceService {
   Future<Map<String, dynamic>> sendVoiceMessage({
     required String senderId,
     required String receiverId,
+    required String tempId,
     required String filePath,
   }) async {
     final duration = await getDurationFromFile(filePath);
@@ -162,9 +163,15 @@ class VoiceService {
       body: jsonEncode({
         "senderId": senderId,
         "receiverId": receiverId,
+        "tempId":tempId,
+        "media":{
+          "url": voiceUrl,
+          "duration": cloudDuration,
+          "size": upload["bytes"] ?? 0,
+          "width": upload["width"] ?? 0,
+          "height": upload["height"] ?? 0,
+        },
         "publicId":publicId,
-        "uploadUrl": voiceUrl,
-        "uploadDuration": cloudDuration,
       }),
     );
 

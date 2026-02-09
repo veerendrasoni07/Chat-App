@@ -21,6 +21,7 @@ import 'localDB/model/user_isar.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  NotificationService.instance.initNotification();
   final dir = await getApplicationDocumentsDirectory();
   final directory = dir.path;
   final isar = await Isar.open(
@@ -31,7 +32,6 @@ void main() async{
       ],
       directory: directory
   );
-  NotificationService().initNotification();
   runApp(
       ProviderScope(
         overrides: [isarProvider.overrideWithValue(isar)],

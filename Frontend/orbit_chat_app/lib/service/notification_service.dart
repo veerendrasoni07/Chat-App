@@ -1,15 +1,22 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
-
-
+  NotificationService._();
+  static final instance = NotificationService._();
   final notificationPlugin = FlutterLocalNotificationsPlugin();
-  bool _isIntialized = false;
+  bool _isInitialized = false;
 
-  bool get isInitialized => _isIntialized;
+  bool get isInitialized => _isInitialized;
+
+
+  Future<void> requestPermission()async{
+    final androidPlugIn =  notificationPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+     await androidPlugIn!.requestNotificationsPermission();
+  }
+
 
   Future<void> initNotification()async{
-    if(_isIntialized) return;
+    if(_isInitialized) return;
     
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iOSInit = DarwinInitializationSettings(
@@ -23,7 +30,7 @@ class NotificationService {
       android: androidInit,
       iOS: iOSInit
     );
-
+    await requestPermission();
     await notificationPlugin.initialize(settings: initSetting);
 
 
@@ -55,7 +62,7 @@ class NotificationService {
       id: id,
       title:  title,
       body: body,
-      notificationDetails: const NotificationDetails()
+      notificationDetails: notificationDetails()
     );
   }
 
