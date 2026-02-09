@@ -55,14 +55,15 @@ partnerRouter.post('/api/send-request',auth,async(req,res)=>{
 });
 
 
-partnerRouter.get('/api/search-user/:userName',async(req,res)=>{
+partnerRouter.get('/api/search-user/:userName',auth,async(req,res)=>{
     try {
         const {userName} = req.params;
         const allUsers = await User.find({
             $or:[
                 {username:{$regex:userName,$options:'i'}},
                 {fullname:{$regex:userName,$options:'i'}}
-            ]
+            ],
+            _id:{$ne:req.user.id}
         });
         res.status(200).json(allUsers);
     } catch (error) {
@@ -174,23 +175,22 @@ partnerRouter.get('/api/get-all-requests',auth,async(req,res)=>{
     }
 });
 
-// partnerRouter.get('/api/recent-notification-activities', auth, async(req, res) => {
-//   try {
-//     const userId = req.user.id;
+partnerRouter.get('/api/get-all-sent-requests', auth, async(req, res) => {
+  try {
+    const userId = req.user.id;
 
-//     const requests = await Interaction.find({
-//       fromUser:{$ne:null},
-//       toUser: userId,
-//       status: "accepted"
-//     }).populate('toUser').populate('fromUser').sort({createdAt:-1});
+    const requests = await Interaction.find({
+      fromUser:userId,
+      status: "pending"
+    }).populate('toUser').populate('fromUser').sort({createdAt:-1});
 
-//     res.status(200).json(requests);
+    res.status(200).json(requests);
 
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 
 
