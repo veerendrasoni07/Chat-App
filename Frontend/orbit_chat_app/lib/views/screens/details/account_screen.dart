@@ -73,7 +73,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
     debugPrint(currentYear.toString());
     debugPrint(joinedYear.toString());
       return currentYear-joinedYear;
-
   }
 
   @override
@@ -733,7 +732,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                 ),
                 SizedBox(height: size.hp(1)),
                 Text(
-                 "user.username",
+                 user.email,
                   style: GoogleFonts.poppins(
                     fontSize: size.font(16),
                     color: Colors.white70,
