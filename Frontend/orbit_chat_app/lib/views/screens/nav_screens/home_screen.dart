@@ -184,6 +184,7 @@ Widget _buildGlassCapsuleHeader(
                   onTap: () => Get.to(
                     () => AccountScreen(
                       backgroundType: "artist",
+                      status: "self",
                       user: mapUserToIsar(user),
                     ),
                     transition: Transition.leftToRightWithFade,
@@ -415,6 +416,7 @@ Widget _buildFriendOrbit(
                                 );
                                 Get.to(()=> AccountScreen(
                                   backgroundType: '',
+                                  status: "accepted",
                                   user: friend,
                                 ),transition: Transition.cupertinoDialog,duration: const Duration(milliseconds: 400),curve: Curves.easeInOut,);
                               },

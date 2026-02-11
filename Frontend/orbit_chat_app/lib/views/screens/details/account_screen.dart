@@ -16,10 +16,12 @@ import 'package:intl/intl.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   final String backgroundType;
+  final String status;
   final UserIsar user;
 
   const AccountScreen({
     super.key,
+    required this.status,
     required this.backgroundType,
     required this.user,
   });
@@ -153,7 +155,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                           // ),
                         ],
                       ),
-                      _buildHeader(widget.user, size, isMe),
+                      _buildHeader(widget.user,widget.status ,size, isMe),
                       SizedBox(height: size.hp(8)),
                       _interactiveTiltCard(messageCount,friends ?? 0),
                       SizedBox(height: size.hp(10)),
@@ -711,7 +713,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
   }
 
 
-  Widget _buildHeader(UserIsar user, ResponsiveClass size, bool isMe) {
+  Widget _buildHeader(UserIsar user,final String status ,ResponsiveClass size, bool isMe) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: size.wp(3)),
       child: Row(
@@ -739,25 +741,25 @@ class _AccountScreenState extends ConsumerState<AccountScreen>
                   ),
                 ),
                 SizedBox(height: size.hp(5)),
-                Row(
-                  children:<Widget> [
-                    isMe
-                        ? _iosButton("Edit Profile", size, ()  {
-                              editProfileBottomSheet();
-                          })
-                        : _iosButton("Following", size, () {}),
-                    SizedBox(width: size.wp(5)),
-                    isMe
-                        ? const SizedBox()
-                        : _iosButton("Message", size, () {}),
-                  ],
-                ),
+                _buildActionButton(status, size)
               ],
             ),
           ),
         ],
       ),
     );
+  }
+  Widget _buildActionButton(String status, ResponsiveClass size){
+    switch(status){
+      case "self":
+        return _iosButton("Edit Profile", size, () {editProfileBottomSheet();});
+      case "accepted":
+        return _iosButton("Following", size, () {});
+      case "pending":
+        return _iosButton("Message", size, () {});
+      default:
+        return _iosButton("Follow", size, () {});
+    }
   }
 
   Widget _iosButton(String text, ResponsiveClass size, VoidCallback onTap) {

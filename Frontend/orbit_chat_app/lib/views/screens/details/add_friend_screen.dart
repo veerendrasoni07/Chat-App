@@ -83,9 +83,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     final primary = theme.colorScheme.primary;
     final fromUser = ref.watch(userProvider);
     final friends = ref.watch(friendStreamProvider);
-    print("---------------ff------------------------------ff-----------------------------");
-    print(friends);
-    print("---------------ff------------------------------ff-----------------------------");
     final sentRequest = ref.watch(sentRequestProvider);
 
     return Scaffold(
@@ -246,7 +243,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => AccountScreen(user: userIsar, backgroundType: '',),
+                builder: (_) => AccountScreen(user: userIsar, status: alreadyFriend? "accepted" : alreadySent ? "pending" : "follow",backgroundType: '',),
               ),
             );
           },

@@ -154,7 +154,7 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
       onTap: () {
         if(user.id != a.id){
           Get.to(
-                ()=> AccountScreen(user: a, backgroundType: '',),
+                ()=> AccountScreen(user: a,status: "accepted", backgroundType: '',),
             transition: Transition.fadeIn,
             duration:const Duration(milliseconds: 300),
             curve: Curves.fastOutSlowIn,
@@ -168,7 +168,7 @@ class _GroupScreenState extends ConsumerState<GroupScreen> {
             GestureDetector(onTap: (){
               if(user.id != a.id){
                 Get.to(
-                      ()=> AccountScreen(user: a, backgroundType: '',),
+                      ()=> AccountScreen(user: a,status: "accepted" ,backgroundType: '',),
                   transition: Transition.fadeIn,
                   duration:const Duration(milliseconds: 300),
                   curve: Curves.fastOutSlowIn,

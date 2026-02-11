@@ -243,7 +243,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                           ),
                                         );
                                       }
-                                      return AccountScreen(user:mapUserToIsar( snap.data!),backgroundType: "",);
+                                      return AccountScreen(user:mapUserToIsar( snap.data!),status: "accepted",backgroundType: "",);
                                     },
                                   ),
                             ),
@@ -251,7 +251,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           return;
                         }
 
-                        Get.to(()=>AccountScreen(user: friend.value, backgroundType: '',),
+                        Get.to(()=>AccountScreen(user: friend.value,status: "accepted" ,backgroundType: '',),
                           transition: Transition.fade,
                           duration: const Duration(milliseconds: 350),
                         );

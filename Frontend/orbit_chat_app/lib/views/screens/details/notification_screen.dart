@@ -215,7 +215,7 @@ class _RequestTileState extends ConsumerState<_RequestTile>
     final userId = ref.read(userProvider)!.id;
     return GestureDetector(
       onTap: (){
-        Get.to(()=>AccountScreen(backgroundType: "", user: mapUserToIsar(req.from!)),transition: Transition.cupertinoDialog,duration: const Duration(milliseconds: 400),curve: Curves.easeInOut,);
+        Get.to(()=>AccountScreen(backgroundType: "",status: "pending" ,user: mapUserToIsar(req.from!)),transition: Transition.cupertinoDialog,duration: const Duration(milliseconds: 400),curve: Curves.easeInOut,);
       },
       child: _glassTile(
         context: context,
