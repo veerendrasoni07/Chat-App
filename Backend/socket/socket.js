@@ -226,10 +226,10 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
             toUser: toUserId,
             status: "pending"
         });
-        const request = Interaction.aggregate([
+        const request = await Interaction.aggregate([
             {
                       $match:{
-                        toUser:new mongoose.Types.ObjectId(userId),
+                        toUser:new mongoose.Types.ObjectId(toUserId),
                         status:"pending"
                       }
                     },
@@ -259,9 +259,11 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
                   }
         ])
         console.log(request);
+const populatedInteraction = await Interaction.findById(interaction._id)
+  .populate("toUser", "fullname username gender bio createdAt").populate("fromUser", "fullname username gender bio createdAt");
 
         io.to(toUserId).emit("request-received", request);
-        io.to(fromUserId).emit("request-sent", interaction);
+        io.to(fromUserId).emit("request-sent", populatedInteraction);
 
     } catch (error) {
         console.log(error);

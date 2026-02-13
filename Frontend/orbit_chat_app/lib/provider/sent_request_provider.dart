@@ -2,7 +2,6 @@
 import 'package:flutter/cupertino.dart' show BuildContext;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orbit_chat_app/models/interaction.dart';
-import 'package:orbit_chat_app/models/user.dart';
 import 'package:orbit_chat_app/provider/socket_provider.dart';
 import 'package:orbit_chat_app/service/friend_api_service.dart';
 import 'package:orbit_chat_app/service/socket_service.dart' show SocketService;
