@@ -261,7 +261,7 @@ socket.on('send-request', async ({ fromUserId, toUserId }) => {
         console.log(request);
 
         io.to(toUserId).emit("request-received", request);
-        //io.to(fromUserId).emit("request-sent", interaction);
+        io.to(fromUserId).emit("request-sent", interaction);
 
     } catch (error) {
         console.log(error);

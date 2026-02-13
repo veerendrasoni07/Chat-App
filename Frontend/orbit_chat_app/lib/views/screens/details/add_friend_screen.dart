@@ -37,9 +37,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
     socket.sendRequest(fromUserId, toUserId);
   }
 
-
-
-
   void onChangeUsername(String username) {
     if (debounce?.isActive ?? false) debounce?.cancel();
     debounce = Timer(const Duration(milliseconds: 450), () {
