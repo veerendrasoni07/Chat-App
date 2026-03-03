@@ -26,7 +26,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     _pages = const [
       HomeScreen(),
-      CameraScreen(),
+     // CameraScreen(),
     ];
   }
 
@@ -100,7 +100,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _navItem("inactive", 'assets/icons/home.png', 0),
-                _navItem("inactive", 'assets/icons/add-post.png', 1),
+                // _navItem("inactive", 'assets/icons/add-post.png', 1),
               ],
             )
 
