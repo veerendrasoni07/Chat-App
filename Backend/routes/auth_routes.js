@@ -45,8 +45,9 @@ authRouter.post('/api/sign-up',async(req,res)=>{
             expiresAt : Date.now()+ 7*24*60*60*1000
         });
         console.log("sign up successfully");
-        // TODO : REMOVE PASSWORD FROM THE USER OBJECT
-        res.status(200).json({user:newUser,refreshToken,accessToken});
+        const safeUser = newUser.toObject();
+        delete safeUser.password;
+        res.status(200).json({user:safeUser,refreshToken,accessToken});
 
     } catch (error) {
         console.log(error);
@@ -77,7 +78,9 @@ authRouter.post('/api/sign-in',async(req,res)=>{
             expiresAt : Date.now()+ 7*24*60*60*1000
         });
 
-        res.status(200).json({user:user._doc,refreshToken,accessToken});
+        const safeUser = user.toObject();
+        delete safeUser.password;
+        res.status(200).json({user:safeUser,refreshToken,accessToken});
 
     } catch (error) {
         console.log(error);
@@ -148,7 +151,9 @@ authRouter.put('/api/update-profile',auth,async (req,res)=>{
             {new:true}
         );
         console.log("profile updated");
-        res.status(200).json({"user":updated});
+        const safeUser = updated.toObject();
+        delete safeUser.password;
+        res.status(200).json({"user":safeUser});
 
     } catch (error) {
         console.log(error);

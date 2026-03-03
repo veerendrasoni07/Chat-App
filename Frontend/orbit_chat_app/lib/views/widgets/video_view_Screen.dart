@@ -15,28 +15,37 @@ class VideoViewScreen extends StatefulWidget {
 class _VideoViewScreenState extends State<VideoViewScreen> {
   late VideoPlayerController _controller;
   bool showControls = true;
+  bool _isReady = false;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     if(widget.isNetwork){
-      _controller = VideoPlayerController.network(widget.videoUrl)..setLooping(true)..initialize().then((_){
-        setState(() {});
-      });
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+        ..setLooping(true)
+        ..initialize().then((_) {
+          if (!mounted) return;
+          setState(() {
+            _isReady = true;
+          });
+        });
     }else{
-      _controller = VideoPlayerController.file(File(widget.videoUrl))..setLooping(true)..initialize().then((_){
-        setState(() {});
-      });
+      _controller = VideoPlayerController.file(File(widget.videoUrl))
+        ..setLooping(true)
+        ..initialize().then((_) {
+          if (!mounted) return;
+          setState(() {
+            _isReady = true;
+          });
+        });
     }
   }
 
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -62,27 +71,32 @@ class _VideoViewScreenState extends State<VideoViewScreen> {
               },
               child: Stack(
                 children: [
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
-                    ),
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: VideoProgressIndicator(
-                      _controller,
-                      allowScrubbing: true,
-                      colors: const VideoProgressColors(
-                        backgroundColor: Colors.white,
-                        playedColor: Colors.red,
-                        bufferedColor: Colors.grey,
-                      ),
-                      padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.75),
-                    ),
-                  ),
-                  if(showControls || !_controller.value.isPlaying)
-                    AnimatedOpacity(
+                   if (_isReady)
+                     Center(
+                       child: AspectRatio(
+                         aspectRatio: _controller.value.aspectRatio,
+                         child: VideoPlayer(_controller),
+                       ),
+                     )
+                   else
+                     const Center(child: CircularProgressIndicator()),
+                   ClipRRect(
+                     borderRadius: BorderRadius.circular(10),
+                     child: _isReady
+                         ? VideoProgressIndicator(
+                             _controller,
+                             allowScrubbing: true,
+                             colors: const VideoProgressColors(
+                               backgroundColor: Colors.white,
+                               playedColor: Colors.red,
+                               bufferedColor: Colors.grey,
+                             ),
+                             padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.75),
+                           )
+                         : const SizedBox.shrink(),
+                   ),
+                   if(_isReady && (showControls || !_controller.value.isPlaying))
+                     AnimatedOpacity(
                       opacity: (showControls || !_controller.value.isPlaying) ? 1 : 0,
                       duration: const Duration(milliseconds: 400),
                       child: Center(

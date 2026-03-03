@@ -15,20 +15,24 @@ class VideoPreviewScreen extends StatefulWidget {
 class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
   late VideoPlayerController _controller;
   bool showControls = true;
+  bool _isReady = false;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _controller = VideoPlayerController.file(widget.video)..setLooping(true)..initialize().then((_) {
-      setState(() {});
-    });
+    _controller = VideoPlayerController.file(widget.video)
+      ..setLooping(true)
+      ..initialize().then((_) {
+        if (!mounted) return;
+        setState(() {
+          _isReady = true;
+        });
+      });
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 
 
@@ -58,23 +62,27 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
             },
             child: Stack(
               children: [
-                Center(
-                  child: AspectRatio(
-                    aspectRatio: _controller.value.aspectRatio,
-                    child: VideoPlayer(_controller),
-                  ),
-                ),
-                VideoProgressIndicator(
-                    _controller,
-                    allowScrubbing: true,
-                    colors: const VideoProgressColors(
-                      backgroundColor: Colors.white,
-                      playedColor: Colors.red,
-                      bufferedColor: Colors.grey,
+                if (_isReady)
+                  Center(
+                    child: AspectRatio(
+                      aspectRatio: _controller.value.aspectRatio,
+                      child: VideoPlayer(_controller),
                     ),
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.8),
-                ),
-                if(showControls || !_controller.value.isPlaying)
+                  )
+                else
+                  const Center(child: CircularProgressIndicator()),
+                if (_isReady)
+                  VideoProgressIndicator(
+                      _controller,
+                      allowScrubbing: true,
+                      colors: const VideoProgressColors(
+                        backgroundColor: Colors.white,
+                        playedColor: Colors.red,
+                        bufferedColor: Colors.grey,
+                      ),
+                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.8),
+                  ),
+                if(_isReady && (showControls || !_controller.value.isPlaying))
                   AnimatedOpacity(
                     opacity: (showControls || !_controller.value.isPlaying) ? 1 : 0,
                     duration: const Duration(milliseconds: 400),

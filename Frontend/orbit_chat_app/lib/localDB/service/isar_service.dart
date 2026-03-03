@@ -196,8 +196,8 @@ class IsarService {
                   ..duration = message.media?['duration']
               ) : null
         ..messageType = message.type
-        ..status = 'sending'
-        ..localCreatedAt = message.createdAt ?? DateTime.now();
+        ..status = message.status
+        ..localCreatedAt = message.createdAt;
 
       await _isar.messageIsars.put(isarMessage);
     });
@@ -316,6 +316,19 @@ class IsarService {
       final message = await _isar.messageIsars
           .where()
           .serverMessageIdEqualTo(serverId)
+          .findFirst();
+      if (message != null) {
+        message.status = status;
+        await _isar.messageIsars.put(message);
+      }
+    });
+  }
+
+  Future<void> updateLocalMessageStatus(String localId, String status) async {
+    await _isar.writeTxn(() async {
+      final message = await _isar.messageIsars
+          .filter()
+          .localMessageIdEqualTo(localId)
           .findFirst();
       if (message != null) {
         message.status = status;

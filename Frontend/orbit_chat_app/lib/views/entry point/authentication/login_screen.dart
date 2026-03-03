@@ -1,7 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orbit_chat_app/controller/auth_controller.dart';
 import 'package:orbit_chat_app/views/entry%20point/authentication/sign_up_screen.dart';
@@ -285,12 +283,10 @@ class _ChangePasswordFlowState extends State<ChangePasswordFlow> {
   }
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     _pageController.dispose();
     pinController.dispose();
     focusNode.dispose();
-    formKey.currentState!.dispose();
     emailController.dispose();
     passController1.dispose();
     passController2.dispose();

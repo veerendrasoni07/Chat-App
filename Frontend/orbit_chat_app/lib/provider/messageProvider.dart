@@ -118,7 +118,7 @@ class MessageProvider {
         filePath: filePath,
       );
     } catch (e) {
-      // mark placeholder failed
+      await _isarService.updateLocalMessageStatus(localId, 'failed');
       rethrow;
     }
   }
@@ -158,6 +158,7 @@ class MessageProvider {
         localId: localId,
       );
     } catch (e) {
+      await _isarService.updateLocalMessageStatus(localId, 'failed');
       rethrow;
     }
   }
@@ -201,6 +202,7 @@ class MessageProvider {
         thumbnailFile: thumbnail,
       );
     } catch (e) {
+      await _isarService.updateLocalMessageStatus(localId, 'failed');
       rethrow;
     }
   }

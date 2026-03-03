@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:collection/collection.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
@@ -30,7 +31,9 @@ import 'package:orbit_chat_app/views/widgets/video_view_Screen.dart';
 import 'package:orbit_chat_app/views/widgets/voice_bubble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -56,7 +59,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   ScrollController _scrollController = ScrollController();
   final VoiceService _voiceService = VoiceService();
-  late VideoPlayerController videoPlayerController;
+  VideoPlayerController? videoPlayerController;
   late RecorderController _controller;
   File? video;
   String? recordingPath;
@@ -78,16 +81,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
     final userId = ref.read(userProvider)!.id;
 
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialLoad(userId);
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(messageProvider(widget.receiverId)).chatOpened(userId);
     });
+    _scrollController.addListener(_onScroll);
     SoundManager.preload();
     _controller = RecorderController();
+  }
 
+  void _onScroll() {
+    final atBottom = _scrollController.hasClients &&
+        _scrollController.offset <= _scrollController.position.minScrollExtent + 24;
+    if (atBottom != isAtBottom) setState(() => isAtBottom = atBottom);
   }
 
   Future<void> _initialLoad(String senderId) async {
@@ -122,8 +131,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if(image!=null){
       setState(() {
         video = File(image.path);
-        isImage = true;
+        isVideo = true;
       });
+      videoPlayerController?.dispose();
       videoPlayerController = VideoPlayerController.file(video!)..initialize();
       var thumbPath = await VideoThumbnail.thumbnailFile(
         video: video!.path,
@@ -132,9 +142,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         quality: 75,
       );print("-----------------------Thumbnail path -------------------");
       print(thumbPath);
-      if(await Navigator.push(context, MaterialPageRoute(builder: (_)=>VideoPreviewScreen(video: video!, receiverId: widget.receiverId)))){
+      if (context.mounted && (await Navigator.push(context, MaterialPageRoute(builder: (_)=>VideoPreviewScreen(video: video!, receiverId: widget.receiverId))) == true)) {
         final senderId = ref.read(userProvider)!.id;
-        ref.read(messageProvider(widget.receiverId)).sendVideo(senderId: senderId, receiverId: widget.receiverId, filePath: video!,context: context,ref: ref ,message: messageController.text,thumbnail: thumbPath!);
+        ref.read(messageProvider(widget.receiverId)).sendVideo(senderId: senderId, receiverId: widget.receiverId, filePath: video!, context: context, ref: ref, message: messageController.text, thumbnail: thumbPath ?? '');
+        setState(() {
+          video = null;
+          isVideo = false;
+          messageController.clear();
+          videoPlayerController?.dispose();
+          videoPlayerController = null;
+        });
       }
     }
   }
@@ -157,10 +174,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     messageController.dispose();
+    _scrollController.dispose();
     debounce?.cancel();
+    _controller.dispose();
+    videoPlayerController?.dispose();
     super.dispose();
-    print('Disposed');
   }
 
   @override
@@ -177,23 +197,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return PopScope(
       canPop: true,
       onPopInvoked: (bool didPop) {
+        final userId = ref.read(userProvider)!.id;
+        ref.read(messageProvider(widget.receiverId)).chatClosed(userId);
         if (!didPop) {
-          final userId = ref.read(userProvider)!.id;
-          ref
-              .read(messageProvider(widget.receiverId))
-              .chatClosed(userId);
-          print('🔙 System back pressed → chatClosed emitted');
-          Get.to(
-              ()=>Navigator.pop(context),
-            transition: Transition.fade,
-            duration: const Duration(milliseconds: 350),
-          );
-        } else {
-          final userId = ref.read(userProvider)!.id;
-          ref
-              .read(messageProvider(widget.receiverId))
-              .chatClosed(userId);
-          print('🔙 System back pressed → chatClosed emitted (auto pop)');
+          Navigator.pop(context);
         }
       },
       child: Scaffold(
@@ -221,12 +228,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        final friendAsync  = ref.read(friendStreamProvider.select((value){
-                            return value.whenData((list){
-                              list.firstWhereOrNull((element) => element.userId == widget.receiverId);
-                            });
+                        final friendAsync = ref.read(friendStreamProvider.select((value) {
+                          return value.whenData((list) =>
+                              list.firstWhereOrNull((element) => element.userId == widget.receiverId));
                         }));
-                        final friend = friendAsync.value;
+                        final friend = friendAsync.valueOrNull;
 
                         if (friend == null) {
                           Navigator.push(
@@ -251,7 +257,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           return;
                         }
 
-                        Get.to(()=>AccountScreen(user: friend.value,status: "accepted" ,backgroundType: '',),
+                        Get.to(()=>AccountScreen(user: friend!, status: "accepted", backgroundType: ''),
                           transition: Transition.fade,
                           duration: const Duration(milliseconds: 350),
                         );
@@ -337,65 +343,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
           child: messageSteam.when(
               data: (messages){
-                return Column(
+                return Stack(
                   children: [
-                    Expanded(
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        reverse: true,
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[messages.length - index - 1];
-                          final isMe = message.senderId == user!.id;
-                          return AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 350),
-                            child: Align(
-                              alignment:
-                              isMe ? Alignment.centerRight : Alignment.centerLeft,
-                              child:
-                              message.messageType == 'text'
-                                  ? Container(
-                                padding: const EdgeInsets.all(10),
-                                margin: EdgeInsets.symmetric(
-                                  vertical: 5.h,
-                                  horizontal: 10.w,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                  isMe
-                                      ? Colors.white.withOpacity(0.2)
-                                      :  Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      message.content,
-                                      style: GoogleFonts.poppins(
-                                        color:
-                                        Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ).animate().scale(),
-                                    if (isMe) ...[
-                                      const SizedBox(height: 3),
-                                      _buildStatusIcon(message.status),
-                                    ],
-                                  ],
-                                ),
-                              )
-                                  : message.messageType == 'image' ? _buildImage(message,isMe) : message.messageType == 'video' ? _videoThumbnail(message): VoiceBubble(
-                                url: message.media?.url ?? ''  ,
-                                isMe: isMe,
-                              ),
+                    Column(
+                      children: [
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: () => _initialLoad(user!.id),
+                            color: Theme.of(context).colorScheme.primary,
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              reverse: true,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                final message = messages[messages.length - index - 1];
+                                final isMe = message.senderId == user!.id;
+                                return AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 350),
+                                  child: Align(
+                                    alignment:
+                                    isMe ? Alignment.centerRight : Alignment.centerLeft,
+                                    child:
+                                    message.messageType == 'text'
+                                        ? _buildTextBubble(message, isMe)
+                                        : message.messageType == 'image' ? _buildImage(message, isMe) : message.messageType == 'video' ? _videoThumbnail(message) : VoiceBubble(
+                                          url: message.media?.url ?? '',
+                                          isMe: isMe,
+                                        ),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
-                    ),
+                          ),
+                        ),
 
                     if (isFriendTyping)
                       Padding(
@@ -476,7 +457,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                               prefixIcon: Icon(
-                                Icons.door_back_door_outlined,
+                                Icons.chat_bubble_outline,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                               suffixIcon:  SizedBox(
@@ -593,6 +574,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                     ),
                   ],
+                ),
+                    if (!isAtBottom && messages.isNotEmpty)
+                      Positioned(
+                        right: 16.w,
+                        bottom: 100.h,
+                        child: FloatingActionButton.small(
+                          heroTag: 'scroll_to_bottom',
+                          onPressed: () {
+                            if (_scrollController.hasClients) {
+                              _scrollController.animateTo(
+                                _scrollController.position.minScrollExtent,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+                              );
+                              setState(() => isAtBottom = true);
+                            }
+                          },
+                          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.9),
+                          child: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.onPrimary),
+                        ),
+                      ),
+                  ],
                 );
               },
               error: (error,stackError)=> Text(error.toString()),
@@ -600,6 +603,64 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           )
         ),
       )
+    );
+  }
+
+  Widget _buildTextBubble(MessageIsar message, bool isMe) {
+    final timeStr = message.localCreatedAt != null
+        ? DateFormat('HH:mm').format(message.localCreatedAt!)
+        : '';
+    return GestureDetector(
+      onLongPress: () {
+        if (message.content.isNotEmpty) {
+          Clipboard.setData(ClipboardData(text: message.content));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Message copied'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        margin: EdgeInsets.symmetric(vertical: 5.h, horizontal: 10.w),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              message.content,
+              style: GoogleFonts.poppins(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ).animate().scale(),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (timeStr.isNotEmpty)
+                  Text(
+                    timeStr,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                    ),
+                  ),
+                if (isMe) ...[
+                  if (timeStr.isNotEmpty) const SizedBox(width: 6),
+                  _buildStatusIcon(message.status),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -739,7 +800,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _videoThumbnail(MessageIsar message){
     final media = message.media;
     final thumbnail = media?.thumbnail;
-    final isNetwork = thumbnail!.startsWith('http');
+    if (thumbnail == null || thumbnail.isEmpty) {
+      return Container(
+        height: 250.h,
+        width: 250.w,
+        margin: EdgeInsets.symmetric(vertical: 5.h, horizontal: 5.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.black26,
+          border: Border.all(color: Theme.of(context).colorScheme.primary, width: 2),
+        ),
+        child: const Center(child: Icon(Icons.videocam_off, color: Colors.white54)),
+      );
+    }
+    final isNetwork = thumbnail.startsWith('http');
     return Container(
       height: 250.h,
       width: 250.w,

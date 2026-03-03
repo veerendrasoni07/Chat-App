@@ -1,20 +1,18 @@
-import 'dart:io';
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'dart:io';
+
 import 'package:audio_waveforms/audio_waveforms.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:just_audio/just_audio.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class VoiceBubble extends StatefulWidget {
   final String url;
   final bool isMe;
 
-  const VoiceBubble({
-    super.key,
-    required this.url,
-    required this.isMe,
-  });
+  const VoiceBubble({super.key, required this.url, required this.isMe});
 
   @override
   State<VoiceBubble> createState() => _VoiceBubbleState();
@@ -27,16 +25,16 @@ class _VoiceBubbleState extends State<VoiceBubble> {
   bool isWaveReady = false;
   bool isAudioReady = false;
   bool isPlaying = false;
-
   Duration total = Duration.zero;
   Duration current = Duration.zero;
 
   String? localPath;
+  String? errorText;
 
-  /// STREAM SUBSCRIPTIONS
   StreamSubscription? _positionSub;
   StreamSubscription? _stateSub;
   StreamSubscription? _processingSub;
+  StreamSubscription? _durationSub;
 
   @override
   void initState() {
@@ -46,88 +44,108 @@ class _VoiceBubbleState extends State<VoiceBubble> {
     _init();
   }
 
-  Future<void> _init() async {
-    // 1. DOWNLOAD audio file
-    print(widget.url);
-    localPath = await _downloadAudio(widget.url);
-
-    if (!mounted) return;
-
-    // 2. LOAD into JustAudio
-    await _player.setFilePath(localPath!);
-    total = _player.duration ?? Duration.zero;
-    isAudioReady = true;
-
-    if (!mounted) return;
-
-    // 3. Prepare Waveform
-    await _waveController.preparePlayer(path: localPath!);
-    isWaveReady = true;
-
-    if (!mounted) return;
-
-    // 4. STREAM LISTENERS — store them and guard setState
-    _positionSub = _player.positionStream.listen((pos) {
-      if (!mounted) return;
-      current = pos;
-      setState(() {});
-    });
-
-    _stateSub = _player.playerStateStream.listen((state) {
-      if (!mounted) return;
-      isPlaying = state.playing;
-      setState(() {});
-    });
-
-    _processingSub = _player.processingStateStream.listen((state) async {
-      if (state == ProcessingState.completed) {
-        await _player.seek(Duration.zero);
-        await _waveController.seekTo(0);
-        await _waveController.pausePlayer();
-
-        if (!mounted) return;
-        isPlaying = false;
-        setState(() {});
-      }
-    });
-
-    if (mounted) {
-      setState(() {});
-    }
-  }
   @override
   void didUpdateWidget(covariant VoiceBubble oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // If URL changed (placeholder → final Cloudinary URL)
     if (oldWidget.url != widget.url) {
       _reload();
     }
   }
-  Future<void> _reload() async {
-    // stop old player
-    await _player.stop();
-    await _waveController.stopPlayer();
 
-    // reset flags
+  Future<void> _init() async {
+    try {
+      errorText = null;
+      localPath = await _resolvePlayablePath(widget.url);
+      if (!mounted) return;
+
+      await _player.setFilePath(localPath!);
+      total = _player.duration ?? Duration.zero;
+      isAudioReady = true;
+
+      await _waveController.preparePlayer(path: localPath!);
+      isWaveReady = true;
+
+      _durationSub = _player.durationStream.listen((d) {
+        if (!mounted || d == null) return;
+        total = d;
+        setState(() {});
+      });
+
+      _positionSub = _player.positionStream.listen((pos) {
+        if (!mounted) return;
+        current = pos;
+        setState(() {});
+      });
+
+      _stateSub = _player.playerStateStream.listen((state) {
+        if (!mounted) return;
+        isPlaying = state.playing;
+        setState(() {});
+      });
+
+      _processingSub = _player.processingStateStream.listen((state) async {
+        if (state == ProcessingState.completed) {
+          await _player.seek(Duration.zero);
+          if (!mounted) return;
+          isPlaying = false;
+          current = Duration.zero;
+          setState(() {});
+        }
+      });
+    } catch (_) {
+      errorText = "Unable to load audio";
+      isAudioReady = false;
+      isWaveReady = false;
+    }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _reload() async {
+    await _positionSub?.cancel();
+    await _stateSub?.cancel();
+    await _processingSub?.cancel();
+    await _durationSub?.cancel();
+    await _player.stop();
+
     isWaveReady = false;
     isAudioReady = false;
     isPlaying = false;
+    total = Duration.zero;
+    current = Duration.zero;
     localPath = null;
+    errorText = null;
 
-    // reinitialize with new URL
-    _init();
+    await _init();
+  }
 
-    if (mounted) setState(() {});
+  Future<String> _resolvePlayablePath(String source) async {
+    if (source.startsWith('http://') || source.startsWith('https://')) {
+      return _downloadAudio(source);
+    }
+
+    final normalizedPath = source.startsWith('file://')
+        ? Uri.parse(source).toFilePath()
+        : source;
+    final file = File(normalizedPath);
+    if (!file.existsSync()) {
+      throw Exception("Audio source does not exist");
+    }
+    return file.path;
   }
 
   Future<String> _downloadAudio(String url) async {
-    print("VOICE URL : $url");
     final dir = await getTemporaryDirectory();
-    final file = File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}.aac");
-
-    final bytes = await http.readBytes(Uri.parse(url));
-    await file.writeAsBytes(bytes);
+    final uri = Uri.parse(url);
+    final originalPath = uri.path;
+    final ext = p.extension(originalPath).isEmpty ? '.m4a' : p.extension(originalPath);
+    final file = File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}$ext");
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      throw Exception("Download failed");
+    }
+    await file.writeAsBytes(response.bodyBytes);
     return file.path;
   }
 
@@ -139,11 +157,10 @@ class _VoiceBubbleState extends State<VoiceBubble> {
 
   @override
   void dispose() {
-    // CANCEL SUBSCRIPTIONS to prevent memory leaks
     _positionSub?.cancel();
     _stateSub?.cancel();
     _processingSub?.cancel();
-
+    _durationSub?.cancel();
     _player.dispose();
     _waveController.dispose();
     super.dispose();
@@ -166,13 +183,10 @@ class _VoiceBubbleState extends State<VoiceBubble> {
           GestureDetector(
             onTap: () async {
               if (!isAudioReady || !isWaveReady) return;
-
               if (isPlaying) {
                 await _player.pause();
-                await _waveController.pausePlayer();
               } else {
                 await _player.play();
-                await _waveController.startPlayer();
               }
             },
             child: Icon(
@@ -181,29 +195,28 @@ class _VoiceBubbleState extends State<VoiceBubble> {
               size: 36,
             ),
           ),
-
           const SizedBox(width: 10),
-
           Expanded(
             child: (!isAudioReady || !isWaveReady)
-                ? const Text("Loading...", style: TextStyle(color: Colors.white))
+                ? Text(
+                    errorText ?? "Loading...",
+                    style: const TextStyle(color: Colors.white),
+                  )
                 : AudioFileWaveforms(
-              size: const Size(double.infinity, 40),
-              playerController: _waveController,
-              enableSeekGesture: true,
-              waveformType: WaveformType.fitWidth,
-              playerWaveStyle: const PlayerWaveStyle(
-                fixedWaveColor: Colors.white30,
-                liveWaveColor: Colors.white,
-                waveThickness: 2.5,
-              ),
-            ),
+                    size: const Size(double.infinity, 40),
+                    playerController: _waveController,
+                    enableSeekGesture: false,
+                    waveformType: WaveformType.fitWidth,
+                    playerWaveStyle: const PlayerWaveStyle(
+                      fixedWaveColor: Colors.white30,
+                      liveWaveColor: Colors.white,
+                      waveThickness: 2.5,
+                    ),
+                  ),
           ),
-
           const SizedBox(width: 10),
-
           Text(
-            fmt(total),
+            fmt(isPlaying ? current : total),
             style: const TextStyle(color: Colors.white),
           ),
         ],

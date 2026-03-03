@@ -19,6 +19,10 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
             return res.status(403).json({ error: 'Invalid sender'});
         }
 
+        if (!media?.url) {
+            return res.status(400).json({ error: "Voice media URL is required" });
+        }
+
         try {
             const url = new URL(media.url);
             if (!url.host.endsWith('res.cloudinary.com') && !url.host.includes(process.env.CLOUD_NAME)) {
@@ -26,7 +30,7 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
             }
         } catch (error) {
             console.log(error);
-            return res.status(500).json({ error: "Invalid voice url Error" });
+            return res.status(400).json({ error: "Invalid voice url" });
         }
 
         // verify public_id exists & get metadata from cloudinary 
@@ -38,15 +42,19 @@ voiceRouter.post('/api/send-voice-message', auth, async (req, res) => {
                     actualDuration = resource.duration;
                 }
             } catch (error) {
-                console.warn('Cloudinary resource verification failed', err.message);
+                console.warn('Cloudinary resource verification failed', error.message);
             }
 
         }
+        const normalizedMedia = {
+            ...media,
+            duration: Number(actualDuration) || 0,
+        };
         const msg = await Message.create({
             senderId,
             receiverId,
             type: "voice",
-            media:media,
+            media: normalizedMedia,
         });
 
         let conversation = await Conversation.findOne({

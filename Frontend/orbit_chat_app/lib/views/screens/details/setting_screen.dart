@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:orbit_chat_app/models/user.dart';
 import 'package:orbit_chat_app/provider/auth_manager_provider.dart';
+import 'package:orbit_chat_app/provider/theme_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   final User user;
@@ -46,6 +47,7 @@ class SettingsScreen extends ConsumerWidget {
                         const SizedBox(height: 20),
                         _sectionTitle("Account"),
                         _glassTile(Icons.phone_android, "Change Phone"),
+                        _themeTile(context, ref),
                         _glassTile(Icons.logout, "Logout",
                             onTap: () => ref.read(authManagerProvider.notifier).logout(context: context)),
 
@@ -144,6 +146,28 @@ class SettingsScreen extends ConsumerWidget {
         text,
         style:
         GoogleFonts.poppins(fontSize: 15, color: Colors.white.withOpacity(0.8)),
+      ),
+    );
+  }
+
+  // ---- THEME TILE ----
+  Widget _themeTile(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+    final isDark = theme == ThemeMode.dark;
+    return _glassContainer(
+      child: SwitchListTile(
+        value: isDark,
+        onChanged: (_) => ref.read(themeProvider.notifier).toggleTheme(),
+        activeColor: Colors.white,
+        inactiveThumbColor: Colors.white70,
+        title: Text(
+          'Dark mode',
+          style: GoogleFonts.poppins(fontSize: 15, color: Colors.white),
+        ),
+        subtitle: Text(
+          isDark ? 'On' : 'Off',
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.white60),
+        ),
       ),
     );
   }
