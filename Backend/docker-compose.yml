@@ -1,5 +1,6 @@
 services:
-  app:
+  chat-backend:
+    container_name: chat-backend
     build: 
       context: .
       dockerfile: Dockerfile
