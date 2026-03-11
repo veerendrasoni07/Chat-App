@@ -29,7 +29,7 @@ app.use(imageRouter);
 app.use(videoRouter);
 const PORT = process.env.PORT || 5000;
 
-app.get('/', (req, res) => res.send('Server is live!'));
+app.get('/', (req, res) => res.send('Server is live! Yeah'));
 
 server.listen(PORT,"0.0.0.0" ,() => {
   console.log(`Server running on port ${PORT}`);
