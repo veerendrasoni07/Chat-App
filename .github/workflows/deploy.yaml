@@ -3,7 +3,7 @@ name: Chat App Backend To EC2
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
