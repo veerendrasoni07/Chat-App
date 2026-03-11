@@ -1,4 +1,4 @@
-package com.example.orbit_chat_app
+package app.veerendra.orbit_chat_app
 
 import io.flutter.embedding.android.FlutterActivity
 

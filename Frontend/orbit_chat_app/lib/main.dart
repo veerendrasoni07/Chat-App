@@ -13,6 +13,7 @@ import 'package:orbit_chat_app/service/notification_service.dart';
 import 'package:orbit_chat_app/theme/dark_theme.dart';
 import 'package:orbit_chat_app/theme/light_mode.dart';
 import 'package:orbit_chat_app/views/entry%20point/authentication/login_screen.dart';
+import 'package:orbit_chat_app/views/entry%20point/onBoarding/onboarding_page.dart';
 import 'package:orbit_chat_app/views/screens/main_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -66,7 +67,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       splitScreenMode: true,
       builder: (_,__){
         return  GetMaterialApp(
-          home: ref.watch(authManagerProvider) == AuthStatus.authenticated ? const MainScreen() : const LoginScreen() ,
+          home: ref.watch(authManagerProvider) == AuthStatus.authenticated ? const MainScreen() : const OnboardingPage() ,
           defaultTransition: Transition.cupertino,
           darkTheme: darkMode,
           theme: lightMode,
